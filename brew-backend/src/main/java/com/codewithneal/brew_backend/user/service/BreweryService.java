@@ -1,7 +1,8 @@
-package com.codewithneal.brew_backend.service;
+package com.codewithneal.brew_backend.user.service;
 import java.util.List;
 import org.springframework.stereotype.Service;
-import com.codewithneal.brew_backend.model.Brewery;
+
+import com.codewithneal.brew_backend.user.model.Brewery;
 
 @Service
 public class BreweryService {

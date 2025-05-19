@@ -1,4 +1,4 @@
-package com.codewithneal.brew_backend.model;
+package com.codewithneal.brew_backend.user.model;
 
 public class Brewery {
     private Long id;

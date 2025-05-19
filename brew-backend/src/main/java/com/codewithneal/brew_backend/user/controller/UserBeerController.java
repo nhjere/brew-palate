@@ -1,23 +1,25 @@
-package com.codewithneal.brew_backend.controller;
+package com.codewithneal.brew_backend.user.controller;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import com.codewithneal.brew_backend.service.BeerService;
+
+import com.codewithneal.brew_backend.user.model.UserBeer;
+import com.codewithneal.brew_backend.user.service.UserBeerService;
+
 import java.util.List;
-import com.codewithneal.brew_backend.model.Beer;
 
 @RestController
 @RequestMapping("/api/beers")
-public class BeerController {
-    private final BeerService beerService;
+public class UserBeerController {
+    private final UserBeerService beerService;
 
-    public BeerController(BeerService beerService) {
+    public UserBeerController(UserBeerService beerService) {
         this.beerService = beerService;
     }
 
     @GetMapping
-    public List<Beer> getAllBeers() {
+    public List<UserBeer> getAllBeers() {
         return beerService.getBeers();
     }
 }

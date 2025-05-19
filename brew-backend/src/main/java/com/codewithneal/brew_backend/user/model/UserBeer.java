@@ -1,13 +1,13 @@
-package com.codewithneal.brew_backend.model;
+package com.codewithneal.brew_backend.user.model;
 
-public class Beer {
+public class UserBeer {
     private Long id;
     private String name;
     private String style;
     private Long breweryId;
 
     // Constructor
-    public Beer(Long id, String name, String style, Long breweryId) {
+    public UserBeer(Long id, String name, String style, Long breweryId) {
         this.id = id;
         this.name = name;
         this.style = style;
