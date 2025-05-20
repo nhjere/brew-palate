@@ -16,15 +16,36 @@ public class Beer {
     }
 
     // Getters and setters
-    public String getId() { return id; }
-    public void setId(String id) { this.id = id; }
+    public String getId() { 
+        return id; 
+    }
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    public void setId(String id) { 
+        this.id = id; 
+    }
 
-    public String getStyle() { return style; }
-    public void setStyle(String style) { this.style = style; }
+    public String getName() { 
+        return name; 
+    }
 
-    public String getBreweryId() { return breweryId; }
-    public void setBreweryId(String breweryId) { this.breweryId = breweryId; }
+    public void setName(String name) { 
+        this.name = name; 
+    }
+
+    public String getStyle() { 
+        return style; 
+    }
+
+    public void setStyle(String style) { 
+        this.style = style; 
+    }
+
+    public String getBreweryId() { 
+        return breweryId; 
+    }
+
+    public void setBreweryId(String breweryId) { 
+        this.breweryId = breweryId; 
+    }
+
 }

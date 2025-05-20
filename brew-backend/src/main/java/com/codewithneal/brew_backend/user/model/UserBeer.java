@@ -1,38 +1,59 @@
 package com.codewithneal.brew_backend.user.model;
 
 public class UserBeer {
-    private Long id;
+    private String id;
     private String name;
     private String style;
-    private Long breweryId;
+    private String breweryName;
+    private String breweryId;
 
-    // Constructor
-    public UserBeer(Long id, String name, String style, Long breweryId) {
+    public UserBeer() {}
+
+    public UserBeer(String id, String name, String style, String breweryName, String breweryIc) {
         this.id = id;
         this.name = name;
         this.style = style;
-        this.breweryId = breweryId;
+        this.breweryName = breweryName;
+        this.breweryId = breweryIc;
     }
 
-    // Getters
-    public Long getId() {
+    public String getId() {
         return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getName() {
         return name;
     }
 
+    public void setName(String name) {
+        this.name = name;
+    }
+
     public String getStyle() {
         return style;
     }
 
-    public Long getBreweryId() {
+    public void setStyle(String style) {
+        this.style = style;
+    }
+
+    public String getBreweryName() {
+        return breweryName;
+    }
+
+    public void setBreweryName(String breweryName) {
+        this.breweryName = breweryName;
+    }
+
+    public String getBreweryId() {
         return breweryId;
     }
 
-    // Setters
-    public void setId(Long id) {
-        this.id = id;
+    public void setBreweryId(String breweryId) {
+        this.breweryId = breweryId;
     }
 }

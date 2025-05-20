@@ -1,16 +1,23 @@
 package com.codewithneal.brew_backend.user.service;
 
-import java.util.List;
+import com.codewithneal.brew_backend.user.model.UserBeer;
 import org.springframework.stereotype.Service;
 
-import com.codewithneal.brew_backend.user.model.UserBeer;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class UserBeerService {
-        public List<UserBeer> getBeers() {
-        return List.of(
-            new UserBeer(1L, "Hop Juice", "IPA", 1L),
-            new UserBeer(2L, "Dark Matter", "Stout", 2L)
-        );
+
+    private final List<UserBeer> beers = new ArrayList<>();
+
+    public UserBeerService() {
+        beers.add(new UserBeer("1", "Sunset IPA", "IPA", "Lone Star Brewing Co.", "101"));
+        beers.add(new UserBeer("2", "Autumn Lager", "Lager", "Hilltop Brewing", "102"));
+        beers.add(new UserBeer("3", "Citrus Blonde", "Blonde Ale", "Moonlight Brewery", "103"));
+    }
+
+    public List<UserBeer> getAllBeers() {
+        return beers;
     }
 }

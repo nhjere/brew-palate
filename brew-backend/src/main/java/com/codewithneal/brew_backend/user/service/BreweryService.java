@@ -1,15 +1,23 @@
 package com.codewithneal.brew_backend.user.service;
-import java.util.List;
-import org.springframework.stereotype.Service;
 
 import com.codewithneal.brew_backend.user.model.Brewery;
+import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class BreweryService {
-    public List<Brewery> getBreweries() {
-        return List.of(
-            new Brewery(1L, "Jester King", "Austin, TX"),
-            new Brewery(2L, "B52 Brewing", "Conroe, TX")
-        );
+
+    private final List<Brewery> breweries = new ArrayList<>();
+
+    public BreweryService() {
+        breweries.add(new Brewery("1", "Lone Star Brewing Co.", "Austin, TX"));
+        breweries.add(new Brewery("2", "Hilltop Brewing", "Denver, CO"));
+        breweries.add(new Brewery("3", "Moonlight Brewery", "Portland, OR"));
+    }
+
+    public List<Brewery> getAllBreweries() {
+        return breweries;
     }
 }
