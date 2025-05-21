@@ -1,13 +1,13 @@
 package com.codewithneal.brew_backend.user.model;
 
-public class Brewery {
+public class UserBrewery {
     private String id;
     private String name;
     private String location;
 
-    public Brewery() {}
+    public UserBrewery() {}
 
-    public Brewery(String id, String name, String location) {
+    public UserBrewery(String id, String name, String location) {
         this.id = id;
         this.name = name;
         this.location = location;

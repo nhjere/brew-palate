@@ -9,12 +9,12 @@ public class UserBeer {
 
     public UserBeer() {}
 
-    public UserBeer(String id, String name, String style, String breweryName, String breweryIc) {
+    public UserBeer(String id, String name, String style, String breweryName, String breweryId) {
         this.id = id;
         this.name = name;
         this.style = style;
         this.breweryName = breweryName;
-        this.breweryId = breweryIc;
+        this.breweryId = breweryId;
     }
 
     public String getId() {

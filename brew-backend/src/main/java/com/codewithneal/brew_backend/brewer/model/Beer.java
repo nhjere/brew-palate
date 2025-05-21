@@ -1,14 +1,25 @@
 package com.codewithneal.brew_backend.brewer.model;
 
+import jakarta.persistence.*;
+import java.util.UUID;
+
+@Entity
+@Table(name = "brewer_beers")
 public class Beer {
-    private String id;
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    
+    private UUID id;
     private String name;
     private String style;
+
+    @Column(name = "brewery_id")
     private String breweryId;
 
     // Constructors
     public Beer() {}
-    public Beer(String id, String name, String style, String breweryId) {
+    public Beer(UUID id, String name, String style, String breweryId) {
         this.id = id;
         this.name = name;
         this.style = style;
@@ -16,11 +27,11 @@ public class Beer {
     }
 
     // Getters and setters
-    public String getId() { 
+    public UUID getId() { 
         return id; 
     }
 
-    public void setId(String id) { 
+    public void setId(UUID id) { 
         this.id = id; 
     }
 
