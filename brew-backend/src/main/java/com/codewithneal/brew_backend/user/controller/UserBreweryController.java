@@ -1,6 +1,6 @@
 package com.codewithneal.brew_backend.user.controller;
 
-import com.codewithneal.brew_backend.user.model.UserBrewery;
+import com.codewithneal.brew_backend.user.model.Brewery;
 import com.codewithneal.brew_backend.user.service.UserBreweryService;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,7 +17,7 @@ public class UserBreweryController {
     }
 
     @GetMapping
-    public List<UserBrewery> getAllBreweries() {
+    public List<Brewery> getAllBreweries() {
         return breweryService.getAllBreweries();
     }
 }

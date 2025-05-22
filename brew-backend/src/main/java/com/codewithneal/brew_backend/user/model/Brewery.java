@@ -1,29 +1,41 @@
 package com.codewithneal.brew_backend.user.model;
 
-public class UserBrewery {
-    private String id;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
+// defines a brewery profile with id (matched from beers list), name, location
+
+@Entity
+@Table(name = "brewery_profiles")
+public class Brewery {
+
+    @Id
+    private String id;  // matches the breweryId from beers
+
     private String name;
     private String location;
 
-    public UserBrewery() {}
+    public Brewery() {}
 
-    public UserBrewery(String id, String name, String location) {
+    public Brewery(String id, String name, String location) {
         this.id = id;
         this.name = name;
         this.location = location;
     }
 
-    // Getters and setters
     public String getId() { 
         return id; 
     }
+
     public void setId(String id) { 
-        this.id = id;
+        this.id = id; 
     }
 
     public String getName() { 
         return name; 
     }
+
     public void setName(String name) { 
         this.name = name; 
     }

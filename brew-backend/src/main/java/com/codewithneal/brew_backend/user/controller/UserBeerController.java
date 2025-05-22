@@ -1,32 +1,32 @@
 package com.codewithneal.brew_backend.user.controller;
 
-import com.codewithneal.brew_backend.user.model.UserBeer;
-import com.codewithneal.brew_backend.user.service.UserBeerService;
-
-import org.springframework.http.ResponseEntity;
+import com.codewithneal.brew_backend.brewer.repository.BeerRepository;
+import com.codewithneal.brew_backend.user.dto.BeerDTO;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/user/beers")
 public class UserBeerController {
 
-    private final UserBeerService beerService;
+    private final BeerRepository beerRepository;
 
-    public UserBeerController(UserBeerService beerService) {
-        this.beerService = beerService;
+    public UserBeerController(BeerRepository beerRepository) {
+        this.beerRepository = beerRepository;
     }
 
-    // list all beers
     @GetMapping
-    public List<UserBeer> getAllBeers() {
-        return beerService.getAllBeers();
-    }
-
-    // add a beer
-    @PostMapping
-    public ResponseEntity<UserBeer> addBeer(@RequestBody UserBeer beer) {
-        return ResponseEntity.ok(beerService.addBeer(beer));
+    public List<BeerDTO> getAllBeers() {
+        return beerRepository.findAll().stream()
+            .map(beer -> new BeerDTO(
+                beer.getId(),
+                beer.getName(),
+                beer.getStyle(),
+                beer.getBreweryId(),
+                beer.getBreweryName()
+            ))
+            .collect(Collectors.toList());
     }
 }

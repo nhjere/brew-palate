@@ -1,14 +1,37 @@
 package com.codewithneal.brew_backend.user.model;
 
+import jakarta.persistence.*;
+
+import java.util.UUID;
+
+// adds mapping relationship between a unique user id and a unique brewery
+
+@Entity
+@Table(name = "user_follows")
 public class UserFollow {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private UUID id;
+
     private String userId;
-    private String breweryId;
+
+    @ManyToOne
+    @JoinColumn(name = "brewery_id")
+    private Brewery brewery;
 
     public UserFollow() {}
-
-    public UserFollow(String userId, String breweryId) {
+    public UserFollow(String userId, Brewery brewery) {
         this.userId = userId;
-        this.breweryId = breweryId;
+        this.brewery = brewery;
+    }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
     }
 
     public String getUserId() {
@@ -19,11 +42,11 @@ public class UserFollow {
         this.userId = userId;
     }
 
-    public String getBreweryId() {
-        return breweryId;
+    public Brewery getBrewery() {
+        return brewery;
     }
 
-    public void setBreweryId(String breweryId) {
-        this.breweryId = breweryId;
+    public void setBrewery(Brewery brewery) {
+        this.brewery = brewery;
     }
 }

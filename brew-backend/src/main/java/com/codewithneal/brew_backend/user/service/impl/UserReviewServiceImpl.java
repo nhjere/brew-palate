@@ -1,27 +1,28 @@
 package com.codewithneal.brew_backend.user.service.impl;
 
 import com.codewithneal.brew_backend.user.model.UserReview;
+import com.codewithneal.brew_backend.user.repository.UserReviewRepository;
 import com.codewithneal.brew_backend.user.service.UserReviewService;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 @Service
 public class UserReviewServiceImpl implements UserReviewService {
 
-    private final List<UserReview> reviews = new ArrayList<>();
+    private final UserReviewRepository userReviewRepository;
+
+    public UserReviewServiceImpl(UserReviewRepository userReviewRepository) {
+        this.userReviewRepository = userReviewRepository;
+    }
 
     @Override
     public UserReview submitReview(UserReview review) {
-        review.setUserId(UUID.randomUUID().toString());
-        reviews.add(review);
-        return review;
+        return userReviewRepository.save(review);
     }
 
     @Override
     public List<UserReview> getAllReviews() {
-        return reviews;
+        return userReviewRepository.findAll();
     }
 }
