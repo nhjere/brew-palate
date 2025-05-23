@@ -8,8 +8,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.transaction.annotation.Transactional;
 
-
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/user/follows")
@@ -24,8 +24,8 @@ public class UserFollowController {
     }
 
     @PostMapping
-    public ResponseEntity<?> followBrewery(@RequestParam String userId, @RequestParam String breweryId) {
-        if (followRepo.existsByUserIdAndBrewery_Id(userId, breweryId)) {
+    public ResponseEntity<?> followBrewery(@RequestParam UUID userId, @RequestParam UUID breweryId) {
+        if (followRepo.existsByUserIdAndBrewery_BreweryId(userId, breweryId)) {
             return ResponseEntity.status(409).body("Already following this brewery");
         }
 
@@ -39,7 +39,7 @@ public class UserFollowController {
     }
 
     @GetMapping("/{userId}")
-    public List<Brewery> getFollowedBreweries(@PathVariable String userId) {
+    public List<Brewery> getFollowedBreweries(@PathVariable UUID userId) {
         return followRepo.findByUserId(userId).stream()
                 .map(UserFollow::getBrewery)
                 .toList();
@@ -47,12 +47,12 @@ public class UserFollowController {
 
     @Transactional
     @DeleteMapping
-    public ResponseEntity<?> unfollowBrewery(@RequestParam String userId, @RequestParam String breweryId) {
-        if (!followRepo.existsByUserIdAndBrewery_Id(userId, breweryId)) {
+    public ResponseEntity<?> unfollowBrewery(@RequestParam UUID userId, @RequestParam UUID breweryId) {
+        if (!followRepo.existsByUserIdAndBrewery_BreweryId(userId, breweryId)) {
             return ResponseEntity.notFound().build();
         }
 
-        followRepo.deleteByUserIdAndBrewery_Id(userId, breweryId);
+        followRepo.deleteByUserIdAndBrewery_BreweryId(userId, breweryId);
         return ResponseEntity.noContent().build();
     }
 }

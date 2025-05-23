@@ -1,50 +1,49 @@
 package com.codewithneal.brew_backend.user.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-
-// defines a brewery profile with id (matched from beers list), name, location
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import java.util.UUID;
 
 @Entity
 @Table(name = "brewery_profiles")
 public class Brewery {
 
     @Id
-    private String id;  // matches the breweryId from beers
+    @Column(name = "brewery_id")
+    private UUID breweryId;
 
-    private String name;
+    @NotBlank(message = "Brewery name is required")
+    @Size(max = 100, message = "Brewery name must be under 100 characters")
+    @Column(name = "brewery_name")
+    private String breweryName;
+
+    @NotBlank(message = "Location is required")
+    @Size(max = 100, message = "Location must be under 100 characters")
     private String location;
 
-    public Brewery() {}
+    // Getters and Setters
+    public UUID getBreweryId() {
+        return breweryId;
+    }
 
-    public Brewery(String id, String name, String location) {
-        this.id = id;
-        this.name = name;
+    public void setBreweryId(UUID breweryId) {
+        this.breweryId = breweryId;
+    }
+
+    public String getBreweryName() {
+        return breweryName;
+    }
+
+    public void setBreweryName(String breweryName) {
+        this.breweryName = breweryName;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
         this.location = location;
-    }
-
-    public String getId() { 
-        return id; 
-    }
-
-    public void setId(String id) { 
-        this.id = id; 
-    }
-
-    public String getName() { 
-        return name; 
-    }
-
-    public void setName(String name) { 
-        this.name = name; 
-    }
-
-    public String getLocation() { 
-        return location; 
-    }
-
-    public void setLocation(String location) { 
-        this.location = location; 
     }
 }

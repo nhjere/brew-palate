@@ -23,7 +23,7 @@ public class Beer {
 
     @NotBlank(message = "Brewery ID is required")
     @Column(name = "brewery_id")
-    private String breweryId;
+    private UUID breweryId;
 
     @NotBlank(message = "Brewery name is required")
     @Size(max = 100, message = "Brewery name must be under 100 characters")
@@ -33,7 +33,7 @@ public class Beer {
     // Constructors
     public Beer() {}
 
-    public Beer(UUID beer_id, String name, String style, String breweryId, String breweryName) {
+    public Beer(UUID beer_id, String name, String style, UUID breweryId, String breweryName) {
         this.beer_id = beer_id;
         this.name = name;
         this.style = style;
@@ -66,11 +66,11 @@ public class Beer {
         this.style = style;
     }
 
-    public String getBreweryId() {
+    public UUID getBreweryId() {
         return breweryId;
     }
 
-    public void setBreweryId(String breweryId) {
+    public void setBreweryId(UUID breweryId) {
         this.breweryId = breweryId;
     }
 

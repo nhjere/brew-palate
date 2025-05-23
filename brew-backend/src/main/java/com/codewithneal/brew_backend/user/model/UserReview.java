@@ -1,6 +1,11 @@
 package com.codewithneal.brew_backend.user.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+
 import java.util.List;
 import java.util.UUID;
 
@@ -10,26 +15,41 @@ public class UserReview {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private UUID id;
+    @Column(name = "review_id")
+    private UUID reviewId;
 
-    private String userId;
+    @NotNull(message = "User ID is required")
+    @Column(name = "user_id", nullable = false)
+    private UUID userId;
 
+    @NotNull(message = "Beer ID is required")
+    @Column(name = "beer_id", nullable = false)
     private UUID beerId;
 
+    @Min(1) @Max(5)
     private int flavorBalance;
+
+    @Min(1) @Max(5)
     private int mouthfeelQuality;
+
+    @Min(1) @Max(5)
     private int aromaIntensity;
+
+    @Min(1) @Max(5)
     private int finishQuality;
+
+    @Min(1) @Max(5)
     private int overallEnjoyment;
 
     @ElementCollection
-    private List<String> flavorTags;
+    private List<@Size(max = 30) String> flavorTags;
 
+    @Size(max = 500, message = "Comment must be under 500 characters")
     private String comment;
 
     public UserReview() {}
 
-    public UserReview(String userId, UUID beerId, int flavorBalance, int mouthfeelQuality, int aromaIntensity, int finishQuality, int overallEnjoyment, String comment, List<String> flavorTags) {
+    public UserReview(UUID userId, UUID beerId, int flavorBalance, int mouthfeelQuality, int aromaIntensity, int finishQuality, int overallEnjoyment, String comment, List<String> flavorTags) {
         this.userId = userId;
         this.beerId = beerId;
         this.flavorBalance = flavorBalance;
@@ -41,19 +61,19 @@ public class UserReview {
         this.flavorTags = flavorTags;
     }
 
-    public UUID getId() {
-        return id;
+    public UUID getReviewId() {
+        return reviewId;
     }
 
-    public void setId(UUID id) {
-        this.id = id;
+    public void setReviewId(UUID reviewId) {
+        this.reviewId = reviewId;
     }
 
-    public String getUserId() {
+    public UUID getUserId() {
         return userId;
     }
 
-    public void setUserId(String userId) {
+    public void setUserId(UUID userId) {
         this.userId = userId;
     }
 

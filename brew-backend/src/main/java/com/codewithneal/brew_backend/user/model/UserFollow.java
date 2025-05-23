@@ -1,6 +1,7 @@
 package com.codewithneal.brew_backend.user.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 
 import java.util.UUID;
 
@@ -12,33 +13,37 @@ public class UserFollow {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private UUID id;
+    @Column(name = "follow_id")
+    private UUID follow_id;
 
-    private String userId;
+    @NotNull(message = "User ID is required")
+    @Column(name = "user_id")
+    private UUID userId;
 
+    @NotNull(message = "Brewery reference is required")
     @ManyToOne
     @JoinColumn(name = "brewery_id")
     private Brewery brewery;
 
     public UserFollow() {}
-    public UserFollow(String userId, Brewery brewery) {
+    public UserFollow(UUID userId, Brewery brewery) {
         this.userId = userId;
         this.brewery = brewery;
     }
 
     public UUID getId() {
-        return id;
+        return follow_id;
     }
 
-    public void setId(UUID id) {
-        this.id = id;
+    public void setId(UUID follow_id) {
+        this.follow_id = follow_id;
     }
 
-    public String getUserId() {
+    public UUID getUserId() {
         return userId;
     }
 
-    public void setUserId(String userId) {
+    public void setUserId(UUID userId) {
         this.userId = userId;
     }
 

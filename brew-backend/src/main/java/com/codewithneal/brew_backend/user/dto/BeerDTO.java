@@ -6,10 +6,10 @@ public class BeerDTO {
     private UUID id;
     private String name;
     private String style;
-    private String breweryId;
+    private UUID breweryId;
     private String breweryName;
 
-    public BeerDTO(UUID id, String name, String style, String breweryId, String breweryName) {
+    public BeerDTO(UUID id, String name, String style, UUID breweryId, String breweryName) {
         this.id = id;
         this.name = name;
         this.style = style;
@@ -21,6 +21,6 @@ public class BeerDTO {
     public UUID getId() { return id; }
     public String getName() { return name; }
     public String getStyle() { return style; }
-    public String getBreweryId() { return breweryId; }
+    public UUID getBreweryId() { return breweryId; }
     public String getBreweryName() { return breweryName; }
 }
