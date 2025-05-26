@@ -1,59 +1,50 @@
-package com.codewithneal.brew_backend.user.model;
+package com.codewithneal.brew_backend.user.dto;
 
-import jakarta.persistence.*;
-import jakarta.validation.constraints.Size;
+
 import java.util.UUID;
 
-@Entity
-@Table(name = "brewery_profiles")
-public class Brewery {
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-    @Id
-    @Column(name = "brewery_id", nullable = false)
+
+public class BreweryDTO {
+
+    @JsonProperty("id")
     private UUID breweryId;
 
-
-    @Size(max = 100)
-    @Column(name = "brewery_name")
+    @JsonProperty("name")
     private String breweryName;
 
-    @Size(max = 50)
-    @Column(name = "brewery_type")
+    @JsonProperty("brewery_type")
     private String breweryType;
 
-    @Size(max = 150)
-    @Column(name = "street")
+    @JsonProperty("street")
     private String street;
 
-    @Size(max = 100)
-    @Column(name = "city")
+    @JsonProperty("city")
     private String city;
 
-    @Size(max = 100)
-    @Column(name = "state")
+    @JsonProperty("state")
     private String state;
 
-    @Size(max = 20)
-    @Column(name = "postal_code")
+    @JsonProperty("postal_code")
     private String postalCode;
 
-    @Size(max = 100)
-    @Column(name = "country")
+    @JsonProperty("country")
     private String country;
 
-    @Size(max = 20)
-    @Column(name = "phone")
+    @JsonProperty("phone")
     private String phone;
 
-    @Size(max = 200)
-    @Column(name = "website_url")
+    @JsonProperty("website_url")
     private String websiteUrl;
 
-    @Column(name = "latitude")
+    @JsonProperty("latitude")
     private Double latitude;
 
-    @Column(name = "longitude")
+    @JsonProperty("longitude")
     private Double longitude;
+
+    // Getters and Setters
 
     public UUID getBreweryId() {
         return breweryId;
@@ -151,3 +142,4 @@ public class Brewery {
         this.longitude = longitude;
     }
 }
+

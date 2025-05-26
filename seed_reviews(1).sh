@@ -1,0 +1,13 @@
+#!/bin/bash
+API_URL="http://localhost:8080/api/user/reviews"
+echo "📥 Seeding reviews..."
+curl -s -X POST $API_URL -H "Content-Type: application/json" -d "{\"userId\": \"5866d6da-e4af-4f93-b1c7-d28f1de02101\", \"beerId\": \"82e2801b-12c8-4abc-855d-fe61221cfb00\", \"flavorBalance\": 5, \"mouthfeelQuality\": 3, \"aromaIntensity\": 3, \"finishQuality\": 4, \"overallEnjoyment\": 3, \"comment\": \"Unique profile with lots of character.\", \"flavorTags\": ["bitter", "resinous"]}"
+echo ""
+curl -s -X POST $API_URL -H "Content-Type: application/json" -d "{\"userId\": \"4d795b87-0eca-48f8-a920-44be5af31f30\", \"beerId\": \"210db97c-decb-49f6-ab63-f0163730be2c\", \"flavorBalance\": 1, \"mouthfeelQuality\": 5, \"aromaIntensity\": 3, \"finishQuality\": 4, \"overallEnjoyment\": 2, \"comment\": \"Smooth profile with lots of character.\", \"flavorTags\": ["roasty", "dark", "heavy"]}"
+echo ""
+curl -s -X POST $API_URL -H "Content-Type: application/json" -d "{\"userId\": \"9c9684f0-72b6-48e2-ab66-c0bee8d1d9b6\", \"beerId\": \"326c1cb4-c92e-4d3e-be41-dcc55176d78f\", \"flavorBalance\": 5, \"mouthfeelQuality\": 5, \"aromaIntensity\": 3, \"finishQuality\": 5, \"overallEnjoyment\": 5, \"comment\": \"Bold profile with a clean finish.\", \"flavorTags\": ["bitter", "resinous"]}"
+echo ""
+curl -s -X POST $API_URL -H "Content-Type: application/json" -d "{\"userId\": \"400321f4-095d-44d7-bc26-2222c51d7823\", \"beerId\": \"82e2801b-12c8-4abc-855d-fe61221cfb00\", \"flavorBalance\": 4, \"mouthfeelQuality\": 2, \"aromaIntensity\": 1, \"finishQuality\": 5, \"overallEnjoyment\": 1, \"comment\": \"Unique profile with a clean finish.\", \"flavorTags\": ["fruity", "crisp"]}"
+echo ""
+curl -s -X POST $API_URL -H "Content-Type: application/json" -d "{\"userId\": \"a42717ae-4991-4d50-8a5e-b2f944e346a7\", \"beerId\": \"de8f6b89-9f86-433e-91ae-e43cbb516d42\", \"flavorBalance\": 5, \"mouthfeelQuality\": 5, \"aromaIntensity\": 1, \"finishQuality\": 3, \"overallEnjoyment\": 1, \"comment\": \"Unique profile with lots of character.\", \"flavorTags\": ["roasty", "dark", "heavy"]}"
+echo ""

@@ -10,15 +10,18 @@ import java.util.UUID;
 public class Beer {
 
     @Id
+    @Column(name = "beer_id")
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID beer_id;
 
     @NotBlank(message = "Beer name is required")
     @Size(max = 100, message = "Name must be under 100 characters")
+    @Column(name = "beer_name")
     private String name;
 
     @NotBlank(message = "Beer style is required")
     @Size(max = 50, message = "Style must be under 50 characters")
+    @Column(name = "beer_style")
     private String style;
 
     @NotBlank(message = "Brewery ID is required")
