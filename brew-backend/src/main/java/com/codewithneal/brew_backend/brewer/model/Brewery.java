@@ -1,57 +1,63 @@
-package com.codewithneal.brew_backend.user.dto;
-
+package com.codewithneal.brew_backend.brewer.model;
 
 import java.util.UUID;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.Size;
+// import java.util.UUID;
 
+@Entity
+@Table(name = "brewery_profiles")
+public class Brewery {
 
-public class BreweryDTO {
-
-    @JsonProperty("id")
+    @Id
+    @Column(name = "brewery_id", nullable = true)
     private UUID breweryId;
 
-    @JsonProperty("name")
+    @Column(name = "brewery_name", nullable = true)
     private String breweryName;
 
-    @JsonProperty("brewery_type")
+    @Column(name = "brewery_type")
     private String breweryType;
 
-    @JsonProperty("street")
+    @Column(name = "street")
     private String street;
 
-    @JsonProperty("city")
+    @Column(name = "city")
     private String city;
 
-    @JsonProperty("state")
+    @Size(max = 100)
+    @Column(name = "state")
     private String state;
 
-    @JsonProperty("postal_code")
+    @Size(max = 20)
+    @Column(name = "postal_code")
     private String postalCode;
 
-    @JsonProperty("country")
+    @Size(max = 100)
+    @Column(name = "country")
     private String country;
 
-    @JsonProperty("phone")
+    @Size(max = 20)
+    @Column(name = "phone")
     private String phone;
 
-    @JsonProperty("website_url")
+    @Size(max = 200)
+    @Column(name = "website_url")
     private String websiteUrl;
 
-    @JsonProperty("latitude")
+    @Column(name = "latitude")
     private Double latitude;
 
-    @JsonProperty("longitude")
+    @Column(name = "longitude")
     private Double longitude;
-
-    // Getters and Setters
 
     public UUID getBreweryId() {
         return breweryId;
     }
 
     public void setBreweryId(UUID breweryId) {
-        this.breweryId = breweryId;
+    this.breweryId = breweryId;
     }
 
     public String getBreweryName() {
@@ -142,4 +148,3 @@ public class BreweryDTO {
         this.longitude = longitude;
     }
 }
-

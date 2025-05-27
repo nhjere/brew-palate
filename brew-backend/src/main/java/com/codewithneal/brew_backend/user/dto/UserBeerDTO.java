@@ -2,14 +2,14 @@ package com.codewithneal.brew_backend.user.dto;
 
 import java.util.UUID;
 
-public class BeerDTO {
+public class UserBeerDTO {
     private UUID id;
     private String name;
     private String style;
     private UUID breweryId;
     private String breweryName;
 
-    public BeerDTO(UUID id, String name, String style, UUID breweryId, String breweryName) {
+    public UserBeerDTO(UUID id, String name, String style, UUID breweryId, String breweryName) {
         this.id = id;
         this.name = name;
         this.style = style;

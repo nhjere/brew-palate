@@ -1,9 +1,10 @@
 package com.codewithneal.brew_backend.user.controller;
 
+import com.codewithneal.brew_backend.brewer.model.Brewery;
+import com.codewithneal.brew_backend.brewer.repository.BreweryRepository;
 import com.codewithneal.brew_backend.user.model.UserFollow;
 import com.codewithneal.brew_backend.user.repository.UserFollowRepository;
-import com.codewithneal.brew_backend.user.repository.BreweryRepository;
-import com.codewithneal.brew_backend.user.model.Brewery;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.transaction.annotation.Transactional;

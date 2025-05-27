@@ -1,7 +1,7 @@
 package com.codewithneal.brew_backend.user.controller;
 
 import com.codewithneal.brew_backend.brewer.repository.BeerRepository;
-import com.codewithneal.brew_backend.user.dto.BeerDTO;
+import com.codewithneal.brew_backend.user.dto.UserBeerDTO;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,9 +18,9 @@ public class UserBeerController {
     }
 
     @GetMapping
-    public List<BeerDTO> getAllBeers() {
+    public List<UserBeerDTO> getAllBeers() {
         return beerRepository.findAll().stream()
-            .map(beer -> new BeerDTO(
+            .map(beer -> new UserBeerDTO(
                 beer.getId(),
                 beer.getName(),
                 beer.getStyle(),

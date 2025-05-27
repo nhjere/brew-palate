@@ -1,7 +1,8 @@
-package com.codewithneal.brew_backend.user.repository;
+package com.codewithneal.brew_backend.brewer.repository;
 
-import com.codewithneal.brew_backend.user.model.Brewery;
 import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.codewithneal.brew_backend.brewer.model.Brewery;
 
 import java.util.UUID;
 

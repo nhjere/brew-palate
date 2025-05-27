@@ -5,6 +5,8 @@ import jakarta.validation.constraints.NotNull;
 
 import java.util.UUID;
 
+import com.codewithneal.brew_backend.brewer.model.Brewery;
+
 // adds mapping relationship between a unique user id and a unique brewery
 
 @Entity

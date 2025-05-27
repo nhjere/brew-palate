@@ -1,18 +1,15 @@
-package com.codewithneal.brew_backend.user.dto;
+package com.codewithneal.brew_backend.brewer.dto;
+
 
 import java.util.UUID;
 
-import com.codewithneal.brew_backend.user.model.Brewery;
+import com.codewithneal.brew_backend.brewer.model.Brewery;
 
 public class BreweryMapper {
     public static Brewery toEntity(BreweryDTO dto) {
         Brewery brewery = new Brewery();
 
-        if (dto.getBreweryId() != null) {
-            brewery.setBreweryId(dto.getBreweryId()); 
-        } else {
-            throw new IllegalArgumentException("Brewery ID is required");
-        }
+        brewery.setBreweryId(UUID.fromString(dto.getIdString()));
         brewery.setBreweryName(dto.getBreweryName());
         brewery.setBreweryType(dto.getBreweryType());
         brewery.setStreet(dto.getStreet());
@@ -24,7 +21,7 @@ public class BreweryMapper {
         brewery.setWebsiteUrl(dto.getWebsiteUrl());
         brewery.setLatitude(dto.getLatitude());
         brewery.setLongitude(dto.getLongitude());
-        return brewery;
 
+        return brewery;
     }
 }
