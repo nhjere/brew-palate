@@ -32,5 +32,11 @@ public class BreweryController {
         List<Brewery> saved = breweryRepo.saveAll(breweries);
         return ResponseEntity.ok(saved);
     }
+
+    @GetMapping
+    public ResponseEntity<List<Brewery>> getAllBreweries() {
+        List<Brewery> breweries = breweryRepo.findAll();
+        return ResponseEntity.ok(breweries);
+    }
 }
 

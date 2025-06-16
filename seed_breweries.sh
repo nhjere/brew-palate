@@ -20,21 +20,23 @@ while true; do
     break
   fi
 
+  # Use OpenBreweryDB's field names
   payload=$(echo "$response" | jq '[.[] | {
-    breweryId: .id,
-    breweryName: .name,
-    breweryType: .brewery_type,
+    id: .id,
+    name: .name,
+    brewery_type: .brewery_type,
     street: .street,
     city: .city,
     state: .state,
-    postalCode: .postal_code,
+    postal_code: .postal_code,
     country: .country,
     phone: .phone,
-    websiteUrl: .website_url,
+    website_url: .website_url,
     latitude: .latitude,
     longitude: .longitude
   }]')
 
+  # Post payload to backend
   curl -s -X POST "$API_URL" \
     -H "Content-Type: application/json" \
     -d "$payload"

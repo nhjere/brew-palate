@@ -1,0 +1,8 @@
+Supabase Project Setup (Used as authentication for brew-palate):
+
+URL: https://qvqrsdiqhwwciqnncoft.supabase.co
+
+Public API key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF2cXJzZGlxaHd3Y2lxbm5jb2Z0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgzOTQ1MzgsImV4cCI6MjA2Mzk3MDUzOH0.jHIKGhgGqpFHgZurg7rpelAFjskDPgzwBYtG1d6uA9U
+
+JWT Secret: under API Key tab
+
