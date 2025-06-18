@@ -36,4 +36,11 @@ public class BeerController {
         if (removed) return ResponseEntity.noContent().build();
         else return ResponseEntity.notFound().build();
     }
+
+    // delete all beer entries
+    @DeleteMapping("/all")
+    public ResponseEntity<?> deleteAllBeers() {
+        beerService.removeAll();
+        return ResponseEntity.noContent().build();
+    }
 }

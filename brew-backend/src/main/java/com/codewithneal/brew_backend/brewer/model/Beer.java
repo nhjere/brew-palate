@@ -3,6 +3,8 @@ package com.codewithneal.brew_backend.brewer.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -33,15 +35,19 @@ public class Beer {
     @Column(name = "brewery_name")
     private String breweryName;
 
+    @ElementCollection
+    private List<@Size(max = 30) String> flavorTags;
+
     // Constructors
     public Beer() {}
 
-    public Beer(UUID beer_id, String name, String style, UUID breweryId, String breweryName) {
+    public Beer(UUID beer_id, String name, String style, UUID breweryId, String breweryName, List<String> flavorTags) {
         this.beer_id = beer_id;
         this.name = name;
         this.style = style;
         this.breweryId = breweryId;
         this.breweryName = breweryName;
+        this.flavorTags = flavorTags;
     }
 
     // Getters and setters
@@ -84,4 +90,13 @@ public class Beer {
     public void setBreweryName(String breweryName) {
         this.breweryName = breweryName;
     }
+
+    public List<String> getFlavorTags() {
+        return flavorTags;
+    }
+
+    public void setFlavorTags(List<String> flavorTags) {
+        this.flavorTags = flavorTags;
+    }
+
 }

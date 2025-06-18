@@ -9,4 +9,5 @@ public interface BrewerBeerService {
     List<Beer> getAllBeers();
     Beer addBeer(Beer beer);
     boolean removeBeer(String id);
+    void removeAll();
 }

@@ -36,4 +36,10 @@ public class BrewerBeerServiceImpl implements BrewerBeerService {
         }
         return false;
     }
+
+    @Override
+    public void removeAll() {
+        beerRepository.deleteAll();
+    }
+
 }
