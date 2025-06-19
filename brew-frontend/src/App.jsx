@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Home from './pages/Home'
 import UserDashboard from './pages/UserDashboard';
 import BrewerDashboard from './pages/BrewerDashboard'
+import Registration from './pages/Registration'
 import NoPage from './pages/NoPage';
 import React from 'react';
 import './App.css'
@@ -14,6 +15,7 @@ function App() {
       <Router>
         <Routes>
           <Route path="/home/" element={<Home />} />
+          <Route path="/register/" element={<Registration />} />
           <Route path="/user/dashboard" element={<UserDashboard />} />
           <Route path="/brewer/dashboard" element={<BrewerDashboard />} />
           <Route path="*" element={<NoPage/>} />

@@ -13,6 +13,7 @@ function UserDashboard() {
   }, []);
 
   const [breweries, setBreweries] = useState([]);
+  
 
   useEffect(() => {
     axios.get('http://localhost:8080/api/brewer/breweries')
@@ -21,7 +22,7 @@ function UserDashboard() {
   }, []);
 
 return (
-  <div className="min-h-screen bg-orange-100 flex flex-col">
+  <div className="min-h-screen bg-amber-50 flex flex-col">
     {/* Header */}
     <div className="flex items-center justify-between bg-amber-100 p-4 shadow-md">
       <Header />

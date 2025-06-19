@@ -9,7 +9,6 @@ import jakarta.persistence.OneToOne;
 public class Brewer {
     @Id
     private UUID id;
-
     private String email;
     private String password;
 

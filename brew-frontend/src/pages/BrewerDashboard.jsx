@@ -1,6 +1,7 @@
 import Header from '../components/header'
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import SearchBar from '../components/SearchBar';
 
 export default function BrewerDashboard() {
     
@@ -13,8 +14,12 @@ export default function BrewerDashboard() {
     }, []);
 
     return (
-        <div className="p-6 text-black">
-              < Header />
+        <div className="min-h-screen bg-amber-50 flex flex-col w-full">
+
+              <div className="flex items-center justify-between bg-amber-100 p-4 shadow-md">
+                    <Header />
+                    <SearchBar />
+              </div>
               <h1 style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '1rem' }}>
                 Discover Breweries
               </h1>
