@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import Header from '../components/header';
-import SearchBar from '../components/SearchBar';
 import "../App.css";
 import { createClient } from '@supabase/supabase-js';
 
@@ -11,10 +10,6 @@ const supabase = createClient(
 )
 
 export default function Registration() {
-
-    // in-field error handling 
-    const [errorMessage, setErrorMessage] = useState('');
-    const [successMessage, setSuccessMessage] = useState('');
 
     // useState manages form data
     const [formData, setFormData] = useState({
@@ -26,12 +21,16 @@ export default function Registration() {
         address: '',
     });
     
+    // in-field error handling 
+    const [errorMessage, setErrorMessage] = useState('');
+    const [successMessage, setSuccessMessage] = useState('');
+
     // updates formData and matches input (name) to user input (value)
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData((prev) => ({
-        ...prev,
-        [name]: value,
+            ...prev,
+            [name]: value,
         }));
     };
 
@@ -46,7 +45,7 @@ export default function Registration() {
             return;
         }
 
-        // calls supabase auth service with user email and password
+        // Register with supabase
         const { data, error } = await supabase.auth.signUp({
             email: formData.email,
             password: formData.password,
@@ -58,9 +57,39 @@ export default function Registration() {
             return;
         }
 
-        console.log("Supabase user created:", data.user);
+        const userId = data.user?.id;
+        if (!userId) {
+            setErrorMessage('No user ID returned from Supabase');
+            return;
+        }
+
+        // Send extra data to backend
+        try {
+        const metadata = {
+            userId: userId,
+            username: formData.username,
+            role: formData.role,
+            address: formData.address,
+        };
+
+        console.log("Sending metadata to backend...");
+        const BASE_URL = import.meta.env.VITE_BACKEND_URL;
+        await axios.post(`${BASE_URL}/api/user/register`, metadata);
+
         setSuccessMessage('Registration successful! Please check your email to verify your account.');
-    };
+        } catch (err) {
+            console.error(err);
+            if (err.response?.status === 400 && err.response.data.includes("Username already taken")) {
+                setErrorMessage('Username already taken. Please choose another.');
+            } else {
+                setErrorMessage('Metadata registration failed. Please try again.');
+            }
+        }
+        
+
+        
+    }    
+
 
     return (
         <>
@@ -120,7 +149,7 @@ export default function Registration() {
                                 value={formData.email}
                                 onChange={handleChange}
                                 required
-                                className="w-full p-2 rounded-md border border-gray-300 focus:outline-none focus:ring focus:border-amber-500 text-blue-800"
+                                className="w-full p-2 rounded-md border border-gray-300 focus:outline-none focus:ring focus:border-amber-500"
                             />
                             <input
                                 type="text"

@@ -14,7 +14,7 @@ public class Beer {
     @Id
     @Column(name = "beer_id")
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private UUID beer_id;
+    private UUID beerId;
 
     @NotBlank(message = "Beer name is required")
     @Size(max = 100, message = "Name must be under 100 characters")
@@ -41,8 +41,8 @@ public class Beer {
     // Constructors
     public Beer() {}
 
-    public Beer(UUID beer_id, String name, String style, UUID breweryId, String breweryName, List<String> flavorTags) {
-        this.beer_id = beer_id;
+    public Beer(UUID beerId, String name, String style, UUID breweryId, String breweryName, List<String> flavorTags) {
+        this.beerId = beerId;
         this.name = name;
         this.style = style;
         this.breweryId = breweryId;
@@ -52,11 +52,11 @@ public class Beer {
 
     // Getters and setters
     public UUID getId() {
-        return beer_id;
+        return beerId;
     }
 
-    public void setId(UUID beer_id) {
-        this.beer_id = beer_id;
+    public void setId(UUID beerId) {
+        this.beerId = beerId;
     }
 
     public String getName() {

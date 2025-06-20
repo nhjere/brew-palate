@@ -3,14 +3,14 @@ package com.codewithneal.brew_backend.user.dto;
 import java.util.UUID;
 
 public class UserBeerDTO {
-    private UUID id;
+    private UUID beerId;
     private String name;
     private String style;
     private UUID breweryId;
     private String breweryName;
 
-    public UserBeerDTO(UUID id, String name, String style, UUID breweryId, String breweryName) {
-        this.id = id;
+    public UserBeerDTO(UUID beerId, String name, String style, UUID breweryId, String breweryName) {
+        this.beerId = beerId;
         this.name = name;
         this.style = style;
         this.breweryId = breweryId;
@@ -18,7 +18,7 @@ public class UserBeerDTO {
     }
 
     // Getters
-    public UUID getId() { return id; }
+    public UUID getId() { return beerId; }
     public String getName() { return name; }
     public String getStyle() { return style; }
     public UUID getBreweryId() { return breweryId; }
