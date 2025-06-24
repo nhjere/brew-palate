@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import Header from '../components/header';
 import SearchBar from '../components/SearchBar';
+import ReviewModal from '../components/ReviewModal'
 import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
@@ -10,9 +11,15 @@ const supabase = createClient(
 );
 
 function UserDashboard() {
+
+  // main dashboard variables
   const [beers, setBeers] = useState([]);
   const [breweries, setBreweries] = useState([]);
   const [username, setUsername] = useState('');
+
+  // review modal variables
+  const [selectedBeerId, setSelectedBeerId] = useState(null);
+  const [showReviewModal, setShowReviewModal] = useState(false);
 
   // Fetch beers
   useEffect(() => {
@@ -100,7 +107,18 @@ function UserDashboard() {
                 {/* Style + Action */}
                 <div className="text-right">
                   <p className="mb-2 font-medium text-gray-800">{beer.style}</p>
-                  <button className="bg-blue-200 px-4 py-2 rounded-full text-black">Review!</button>
+                  
+                  {/* Review Button */}
+                  <button
+                    className="bg-blue-200 px-4 py-2 rounded-full text-black"
+                    onClick={() => {
+                      setSelectedBeerId(beer.id);
+                      setShowReviewModal(true);
+                    }}
+                  >
+                    Review!
+                  </button>
+
                 </div>
               </div>
             ))}
@@ -122,8 +140,19 @@ function UserDashboard() {
             </ul>
           </section>
         </aside>
+
       </div>
+
+    {/* modal (placed outside of flex container bc it overlays) */}
+    {showReviewModal && (
+      <ReviewModal
+        beerId={selectedBeerId}
+        onClose={() => setShowReviewModal(false)}
+      />
+    )}
+
     </div>
+
   );
 }
 

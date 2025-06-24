@@ -127,7 +127,7 @@ export default function Login() {
                                 type="button"
                                 className="ml-1 text-amber-700 font-semibold register-link"
                                 onClick={() => navigate("/user/dashboard")}>
-                                Guest
+                                Sign in as Guest
                             </button>
                         </div>
                     </form>

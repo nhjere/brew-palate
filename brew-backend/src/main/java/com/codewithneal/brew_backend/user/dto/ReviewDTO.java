@@ -1,55 +1,24 @@
-package com.codewithneal.brew_backend.user.model;
-
-import jakarta.persistence.*;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+package com.codewithneal.brew_backend.user.dto;
 
 import java.util.List;
 import java.util.UUID;
 
-@Entity
-@Table(name = "user_reviews")
-public class UserReview {
+public class ReviewDTO {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "review_id")
-    private UUID reviewId;
-
-    @NotNull(message = "User ID is required")
-    @Column(name = "user_id", nullable = false)
     private UUID userId;
-
-    @NotNull(message = "Beer ID is required")
-    @Column(name = "beer_id", nullable = false)
     private UUID beerId;
-
-    @Min(1) @Max(5)
     private int flavorBalance;
-
-    @Min(1) @Max(5)
     private int mouthfeelQuality;
-
-    @Min(1) @Max(5)
     private int aromaIntensity;
-
-    @Min(1) @Max(5)
     private int finishQuality;
-
-    @Min(1) @Max(5)
     private int overallEnjoyment;
-
-    @ElementCollection
-    private List<@Size(max = 30) String> flavorTags;
-
-    @Size(max = 500, message = "Comment must be under 500 characters")
+    private List<String> flavorTags;
     private String comment;
 
-    public UserReview() {}
+    public ReviewDTO() {}
 
-    public UserReview(UUID userId, UUID beerId, int flavorBalance, int mouthfeelQuality, int aromaIntensity, int finishQuality, int overallEnjoyment, String comment, List<String> flavorTags) {
+    public ReviewDTO(UUID userId, UUID beerId, int flavorBalance, int mouthfeelQuality, int aromaIntensity,
+                         int finishQuality, int overallEnjoyment, List<String> flavorTags, String comment) {
         this.userId = userId;
         this.beerId = beerId;
         this.flavorBalance = flavorBalance;
@@ -57,16 +26,8 @@ public class UserReview {
         this.aromaIntensity = aromaIntensity;
         this.finishQuality = finishQuality;
         this.overallEnjoyment = overallEnjoyment;
-        this.comment = comment;
         this.flavorTags = flavorTags;
-    }
-
-    public UUID getReviewId() {
-        return reviewId;
-    }
-
-    public void setReviewId(UUID reviewId) {
-        this.reviewId = reviewId;
+        this.comment = comment;
     }
 
     public UUID getUserId() {

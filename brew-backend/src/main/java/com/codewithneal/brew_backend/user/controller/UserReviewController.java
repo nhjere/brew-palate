@@ -1,29 +1,40 @@
 package com.codewithneal.brew_backend.user.controller;
 
-import com.codewithneal.brew_backend.user.model.UserReview;
-import com.codewithneal.brew_backend.user.service.UserReviewService;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import com.codewithneal.brew_backend.user.model.Review;
+import com.codewithneal.brew_backend.user.model.UserFollow;
+import com.codewithneal.brew_backend.user.service.ReviewService;
 
 import java.util.List;
+import java.util.UUID;
+
+import org.springframework.http.ResponseEntity;
+
+import com.codewithneal.brew_backend.brewer.model.Brewery;
+import com.codewithneal.brew_backend.user.dto.ReviewDTO;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/user/reviews")
 public class UserReviewController {
 
-    private final UserReviewService reviewService;
+    private final ReviewService reviewService;
 
-    public UserReviewController(UserReviewService reviewService) {
+    public UserReviewController(ReviewService reviewService) {
         this.reviewService = reviewService;
     }
-
-    @PostMapping
-    public ResponseEntity<UserReview> submitReview(@RequestBody UserReview review) {
-        return ResponseEntity.ok(reviewService.submitReview(review));
+    
+    // saves a rating by calling review service
+    @PostMapping()
+    public ResponseEntity<?> postReview(@RequestBody ReviewDTO dto) {
+        Review saved = reviewService.saveReview(dto);
+        return ResponseEntity.status(201).body(saved);
     }
 
-    @GetMapping
-    public List<UserReview> getAllReviews() {
-        return reviewService.getAllReviews();
+    // get all reviews
+    @GetMapping()
+    public ResponseEntity<List<Review>> getAllReviews() {
+        List<Review> reviews = reviewService.getAllReviews();
+        return ResponseEntity.ok(reviews);
     }
+
 }

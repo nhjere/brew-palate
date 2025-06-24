@@ -1,19 +1,21 @@
 package com.codewithneal.brew_backend.brewer.controller;
 
 import com.codewithneal.brew_backend.brewer.model.Beer;
-import com.codewithneal.brew_backend.brewer.service.BrewerBeerService;
+import com.codewithneal.brew_backend.brewer.service.BeerService;
+import com.codewithneal.brew_backend.user.dto.UserBeerDTO;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/brewer/beers")
 public class BeerController {
 
-    private final BrewerBeerService beerService;
+    private final BeerService beerService;
 
-    public BeerController(BrewerBeerService beerService) {
+    public BeerController(BeerService beerService) {
         this.beerService = beerService;
     }
 
@@ -21,6 +23,13 @@ public class BeerController {
     @GetMapping
     public List<Beer> getAllBeers() {
         return beerService.getAllBeers();
+    }
+
+    // get info on one beer
+    @GetMapping("/{beerId}")
+    public ResponseEntity<Beer> getBeerById(@PathVariable UUID beerId) {
+        Beer beer = beerService.getBeerById(beerId);
+        return ResponseEntity.ok(beer);
     }
 
     // add a beer
