@@ -58,6 +58,7 @@ export default function ReviewModal({ beerId, onClose}) {
         });
     };
 
+    // sends review payload to backend upon submission
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -135,7 +136,6 @@ export default function ReviewModal({ beerId, onClose}) {
                                 <input
                                     type="checkbox"
                                     className="w-4 h-4 border-2 border-black rounded checked:bg-white checked:border-black focus:ring-0"
-
                                     checked={reviewFormData.flavorTags.includes(tag)}
                                     onChange={() => handleTagToggle(tag)}
                                 />

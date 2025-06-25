@@ -3,6 +3,7 @@ import axios from 'axios';
 import Header from '../components/header';
 import SearchBar from '../components/SearchBar';
 import ReviewModal from '../components/ReviewModal'
+import TastePanel from '../components/TastePanel';
 import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
@@ -55,6 +56,9 @@ function UserDashboard() {
     fetchUsername();
   }, []);
 
+  // Set of Flavor Tags
+  
+
   return (
     <div className="min-h-screen bg-amber-50 flex flex-col">
       {/* Header */}
@@ -73,21 +77,26 @@ function UserDashboard() {
 
       {/* Main Layout */}
       <div className="flex flex-row flex-1 w-full">
-        {/* Left Sidebar */}
-        <aside className="w-1/5 bg-amber-100 p-4 space-y-4 text-left text-amber-800">
-          <button className="bg-orange-100 w-full py-2 rounded-md">My Profile</button>
-          <button className="bg-orange-100 w-full py-2 rounded-md">Following</button>
 
-          <section className="bg-red-50 border border-gray-300 rounded-lg p-4 shadow-sm">
-            <h2 className="text-2xl font-bold mb-2">Breweries</h2>
-            <p className="text-sm mb-2">Check out these local craft breweries:</p>
-            <ul className="list-disc list-outside pl-5 space-y-1 text-sm font-medium">
-              {breweries.slice(0, 15).map((brewery) => (
-                <li key={brewery.breweryId}>{brewery.breweryName}</li>
-              ))}
-            </ul>
-          </section>
-        </aside>
+        {/* Left Sidebar */}
+            <aside className="w-1/5 bg-amber-100 p-4 space-y-4 text-left text-amber-800">
+            <button className="bg-orange-100 w-full py-2 rounded-md">My Profile</button>
+            <button className="bg-orange-100 w-full py-2 rounded-md">Following</button>
+
+            {/* Your Taste */}
+            < TastePanel />
+
+            {/* Discover Breweries Section */}
+            <section className="bg-red-50 border border-gray-300 rounded-lg p-4 shadow-sm">
+              <h2 className="text-2xl font-bold mb-2">Breweries</h2>
+              <p className="text-sm mb-2">Check out these local craft breweries:</p>
+              <ul className="list-disc list-outside pl-5 space-y-1 text-sm font-medium">
+                {breweries.slice(0, 15).map((brewery) => (
+                  <li key={brewery.breweryId}>{brewery.breweryName}</li>
+                ))}
+              </ul>
+            </section>
+            </aside>
 
         {/* Main Content */}
         <main className="flex-1 p-6">
