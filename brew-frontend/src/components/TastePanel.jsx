@@ -2,10 +2,9 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import "../index.css"
 
-export default function TastePanel() {
+export default function TastePanel({tags, setTags, onRefresh}) {
 
     const [beers, setBeers] = useState([]);
-    const [tags, setTags] = useState([]);
 
     // Fetch beers
     useEffect(() => {
@@ -26,7 +25,8 @@ export default function TastePanel() {
     // saves current selected tags to local storage
     const handleRefresh = () => {
         localStorage.setItem('userFlavorTags', JSON.stringify(tags));
-        console.log('Saved tags:', tags); // optional debug
+        console.log('Saved tags:', tags);
+        onRefresh();
       };
     
     // seperate unique flavor tags given to beers and add to "your taste" selection
@@ -44,7 +44,6 @@ export default function TastePanel() {
 
                         <input
                             type="checkbox"
-                            
                             className="w-4 h-4 border-2 border-black rounded checked:bg-white checked:border-black focus:ring-0"
                             checked={tags.includes(tag)}
                             onChange={() => handleTagChange(tag)}
@@ -63,6 +62,6 @@ export default function TastePanel() {
                     Refresh
                     </button>
                 </div>
-            </section>
+        </section>
     )
 }
