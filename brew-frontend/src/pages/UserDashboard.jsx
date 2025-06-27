@@ -118,7 +118,7 @@ function UserDashboard() {
         {/* Main Content */}
         <main className="flex-1 min-w-[500px] p-6">
           <div className="flex flex-col gap-5 w-full">
-            <h2 className="text-left text-amber-800 font-bold text-xl">Discover Beers</h2>
+          <h2 className="text-2xl text-left text-amber-800 font-bold"> Discover Beers </h2>
 
             {filteredBeers.length > 0 ? (
               filteredBeers.map((beer) => (
