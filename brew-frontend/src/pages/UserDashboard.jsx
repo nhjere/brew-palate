@@ -18,6 +18,8 @@ function UserDashboard() {
   const [beers, setBeers] = useState([]);
   const [breweries, setBreweries] = useState([]);
   const [username, setUsername] = useState('');
+
+  // taste panel variables
   const [flavorTags, setFlavorTags] = useState([]);
   const [committedTags, setCommittedTags] = useState([]);
 
@@ -25,19 +27,24 @@ function UserDashboard() {
   const [selectedBeerId, setSelectedBeerId] = useState(null);
   const [showReviewModal, setShowReviewModal] = useState(false);
 
+  // pagination variables
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalPages, setTotalPages] = useState();
+  const [breweryMap, setBreweryMap] = useState({});
+
   // Fetch beers
-  useEffect(() => {
-    axios.get('http://localhost:8080/api/brewer/beers')
-      .then(res => setBeers(res.data))
-      .catch(err => console.error(err));
-  }, []);
+  // useEffect(() => {
+  //   axios.get('http://localhost:8080/api/import/show-beers/?page=0&size=20')
+  //     .then(res => setBeers(res.data.content))
+  //     .catch(err => console.error(err));
+  // }, []);
 
   // Fetch breweries
-  useEffect(() => {
-    axios.get('http://localhost:8080/api/brewer/breweries')
-      .then(res => setBreweries(res.data))
-      .catch(err => console.error(err));
-  }, []);
+  // useEffect(() => {
+  //   axios.get('http://localhost:8080/api/brewer/breweries')
+  //     .then(res => setBreweries(res.data))
+  //     .catch(err => console.error(err));
+  // }, []);
 
   // Fetch username from backend using Supabase user ID
   useEffect(() => {
@@ -59,13 +66,55 @@ function UserDashboard() {
     fetchUsername();
   }, []);
 
-  // filtering logic for main beer feed
+  // refetch beer data on currentPage change
+  useEffect(() => {
+    axios.get(`http://localhost:8080/api/import/show-beers?page=${currentPage}&size=20`)
+    .then(res => {
+      setBeers(res.data.content), 
+      setTotalPages(res.data.totalPages)
+    })
+    .catch(err => console.error(err));
+  }, [currentPage]);
+
+  // refetch brewery data on currentPage change
+  useEffect(() => {
+  axios.get(`http://localhost:8080/api/import/show-breweries?page=${currentPage}&size=20`)
+    .then(res => {
+      setBreweries(res.data.content);
+      setTotalPages(res.data.totalPages);
+    })
+    .catch(err => console.error(err));
+}, [currentPage]);
+
+  // brewery look-up object for beer cards
+  useEffect(() => {
+    axios.get('http://localhost:8080/api/import/show-breweries?page=0&size=1000')
+      .then(res => {
+        const map = {};
+        res.data.content.forEach(b => {
+          map[b.externalBreweryId] = b.name;
+        });
+setBreweryMap(map);
+      })
+      .catch(err => console.error(err));
+  }, []);
+
+  // filtering logic to for main beer feed
   const filteredBeers = committedTags.length === 0
   ? beers
   : beers.filter(beer =>
       Array.isArray(beer.flavorTags) &&
       committedTags.every(tag => beer.flavorTags.includes(tag))
     );
+
+  // useEffect(() => {
+  //   if (beers.length > 0) {
+  //     console.log("Sample beer:", beers[0]);
+  //     console.log("breweryMap keys:", Object.keys(breweryMap));
+  //     console.log("brewery_id:", beers[0].breweryId);
+  //   }
+    
+  // }, [beers, breweryMap]);
 
   return (
    
@@ -101,13 +150,13 @@ function UserDashboard() {
             <h2 className="text-2xl font-bold mb-2">Breweries</h2>
             <p className="text-sm mb-2">Check out these local craft breweries:</p>
             <ul className="list-disc list-outside pl-5 space-y-1 text-sm font-medium">
-              {breweries.slice(0, 15).map((brewery) => (
+              {breweries.slice(0, 20).map((brewery) => (
                 <li key={brewery.breweryId}>
                   <a
                     href={`/brewery/${brewery.breweryId}`}
                     className="text-amber-800 hover:underline"
                   >
-                    {brewery.breweryName}
+                    {brewery.name}
                   </a>
                 </li>
               ))}
@@ -122,20 +171,24 @@ function UserDashboard() {
 
             {filteredBeers.length > 0 ? (
               filteredBeers.map((beer) => (
+                
                 <div
                   key={beer.id}
                   className="w-full bg-red-50 border border-gray-300 rounded-lg p-4 shadow-sm flex justify-between items-center"
                 >
                   {/* Beer Info */}
                   <div className="text-left">
-                    <h2 className="text-xl text-amber-800 font-bold">{beer.name}</h2>
-                    <p className="italic text-sm text-gray-700 mb-2">from {beer.breweryName}</p>
+                    <h2 className="text-xl text-amber-800 font-bold mt-0">{beer.name}</h2>
+                    <p className="italic text-sm text-gray-700 mb-4">
+                      from {breweryMap[beer.breweryId] || 'Unknown Brewery'}
+                    </p>
                     <p className="text-sm text-gray-800">{beer.flavorTags.join(', ')}</p>
                   </div>
 
                   {/* Style + Action */}
                   <div className="text-right">
-                    <p className="mb-2 font-medium text-gray-800">{beer.style}</p>
+                    <p className="font-medium text-gray-800">{beer.style}</p>
+                    <p className="mb-2 font-medium text-gray-700">ABV = {(beer.abv * 100).toFixed(1)}%</p>
                     <button
                       className="bg-blue-200 px-4 py-2 rounded-full text-black"
                       onClick={() => {
@@ -153,6 +206,13 @@ function UserDashboard() {
                 No beers found with those flavor tags.
               </div>
             )}
+
+            <div className="pagination-controls">
+              <button disabled={currentPage === 0} onClick={() => setCurrentPage(p => p - 1)}>Previous</button>
+              <span className="ml-2 mr-2">  {currentPage + 1} of {totalPages} </span>
+              <button disabled={currentPage === totalPages - 1} onClick={() => setCurrentPage(p => p + 1)}>Next</button>
+            </div>
+
           </div>
         </main>
 

@@ -1,15 +1,17 @@
-package com.codewithneal.brew_backend.brewer.CSVreader;
+package com.codewithneal.brew_backend.brewer.CsvReader.beers;
 
 import jakarta.persistence.*;
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Table(name = "imported_beers")
 public class BeerCsv {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long internalId;
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "beer_id")
+    private UUID beerId;
 
     private Double abv;
     private Double ibu;
@@ -48,14 +50,16 @@ public class BeerCsv {
         this.flavorTags = flavorTags;
     }
 
-
-
-    public Long getInternalId() {
-        return internalId;
+    public List<String> getFlavorTags() {
+        return flavorTags;
     }
 
-    public void setInternalId(Long internalId) {
-        this.internalId = internalId;
+    public UUID getBeerId() {
+        return beerId;
+    }
+
+    public void setInternalId(UUID beerId) {
+        this.beerId = beerId;
     }
 
     public Double getAbv() {
@@ -104,6 +108,14 @@ public class BeerCsv {
 
     public void setBreweryId(String breweryId) {
         this.breweryId = breweryId;
+    }
+
+    public Double getOunces() {
+        return ounces;
+    }
+
+    public void setOunces(Double ounces) {
+        this.ounces = ounces;
     }
 
 }
