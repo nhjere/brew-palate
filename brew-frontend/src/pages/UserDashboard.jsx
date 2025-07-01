@@ -6,6 +6,7 @@ import ReviewModal from '../components/ReviewModal'
 import TastePanel from '../components/TastePanel';
 import { createClient } from '@supabase/supabase-js';
 import RecPanel from '../components/RecPanel';
+import { useBreweryMap } from '../context/BreweryContext';
 
 const supabase = createClient(
   import.meta.env.VITE_SUPABASE_URL,
@@ -30,21 +31,7 @@ function UserDashboard() {
   // pagination variables
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState();
-  const [breweryMap, setBreweryMap] = useState({});
-
-  // Fetch beers
-  // useEffect(() => {
-  //   axios.get('http://localhost:8080/api/import/show-beers/?page=0&size=20')
-  //     .then(res => setBeers(res.data.content))
-  //     .catch(err => console.error(err));
-  // }, []);
-
-  // Fetch breweries
-  // useEffect(() => {
-  //   axios.get('http://localhost:8080/api/brewer/breweries')
-  //     .then(res => setBreweries(res.data))
-  //     .catch(err => console.error(err));
-  // }, []);
+  const breweryMap = useBreweryMap();
 
   // Fetch username from backend using Supabase user ID
   useEffect(() => {
@@ -86,19 +73,6 @@ function UserDashboard() {
     .catch(err => console.error(err));
 }, [currentPage]);
 
-  // brewery look-up object for beer cards
-  useEffect(() => {
-    axios.get('http://localhost:8080/api/import/show-breweries?page=0&size=1000')
-      .then(res => {
-        const map = {};
-        res.data.content.forEach(b => {
-          map[b.externalBreweryId] = b.name;
-        });
-setBreweryMap(map);
-      })
-      .catch(err => console.error(err));
-  }, []);
-
   // filtering logic to for main beer feed
   const filteredBeers = committedTags.length === 0
   ? beers
@@ -106,15 +80,9 @@ setBreweryMap(map);
       Array.isArray(beer.flavorTags) &&
       committedTags.every(tag => beer.flavorTags.includes(tag))
     );
-
-  // useEffect(() => {
-  //   if (beers.length > 0) {
-  //     console.log("Sample beer:", beers[0]);
-  //     console.log("breweryMap keys:", Object.keys(breweryMap));
-  //     console.log("brewery_id:", beers[0].breweryId);
-  //   }
-    
-  // }, [beers, breweryMap]);
+  
+  
+  
 
   return (
    
@@ -168,39 +136,46 @@ setBreweryMap(map);
         <main className="flex-1 min-w-[500px] p-6">
           <div className="flex flex-col gap-5 w-full">
           <h2 className="text-2xl text-left text-amber-800 font-bold"> Discover Beers </h2>
-
+            
             {filteredBeers.length > 0 ? (
-              filteredBeers.map((beer) => (
-                
-                <div
-                  key={beer.id}
-                  className="w-full bg-red-50 border border-gray-300 rounded-lg p-4 shadow-sm flex justify-between items-center"
-                >
-                  {/* Beer Info */}
-                  <div className="text-left">
-                    <h2 className="text-xl text-amber-800 font-bold mt-0">{beer.name}</h2>
-                    <p className="italic text-sm text-gray-700 mb-4">
-                      from {breweryMap[beer.breweryId] || 'Unknown Brewery'}
-                    </p>
-                    <p className="text-sm text-gray-800">{beer.flavorTags.join(', ')}</p>
-                  </div>
+              filteredBeers.map((beer) => {
 
-                  {/* Style + Action */}
-                  <div className="text-right">
-                    <p className="font-medium text-gray-800">{beer.style}</p>
-                    <p className="mb-2 font-medium text-gray-700">ABV = {(beer.abv * 100).toFixed(1)}%</p>
-                    <button
-                      className="bg-blue-200 px-4 py-2 rounded-full text-black"
-                      onClick={() => {
-                        setSelectedBeerId(beer.id);
-                        setShowReviewModal(true);
-                      }}
-                    >
-                      Review!
-                    </button>
+                const brewery = breweryMap[beer.breweryId];
+                
+                return (
+                  <div
+                    key={beer.id}
+                    className="w-full bg-red-50 border border-gray-300 rounded-lg p-4 shadow-sm flex justify-between items-center"
+                  >
+                    {/* Beer Info */}
+                    <div className="text-left">
+                      <h2 className="text-xl text-amber-800 font-bold mt-0">{beer.name}</h2>
+                      <p>
+                        from {brewery?.name || 'Unknown Brewery'}
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        {brewery?.city}, {brewery?.state}
+                      </p>
+                      <p className="text-sm text-gray-800">{beer.flavorTags.join(', ')}</p>
+                    </div>
+
+                    {/* Style + Action */}
+                    <div className="text-right">
+                      <p className="font-medium text-gray-800">{beer.style}</p>
+                      <p className="mb-2 font-medium text-gray-700">ABV = {(beer.abv * 100).toFixed(1)}%</p>
+                      <button
+                        className="bg-blue-200 px-4 py-2 rounded-full text-black"
+                        onClick={() => {
+                          setSelectedBeerId(beer.beerId);
+                          setShowReviewModal(true);
+                        }}
+                      >
+                        Review!
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             ) : (
               <div className="text-center text-gray-600 italic pt-16">
                 No beers found with those flavor tags.

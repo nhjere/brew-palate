@@ -8,6 +8,7 @@ import java.io.FileReader;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class BeerCsvImporter {
@@ -15,36 +16,38 @@ public class BeerCsvImporter {
     @Autowired
     private BeerCsvRepository beerCsvRepository;
 
+    public BeerCsv getBeerById(UUID beerId) {
+        return beerCsvRepository.findById(beerId)
+        .orElseThrow(() -> new RuntimeException("Beer not found"));
+    }
 
     public void importFromCsv(String filePath) {
+        try (Reader reader = new FileReader(filePath)) {
+            System.out.println(" Reading from file: " + filePath);
 
+            List<BeerCsv> csvBeers = new CsvToBeanBuilder<BeerCsv>(reader)
+                    .withType(BeerCsv.class)
+                    .build()
+                    .parse();
 
-    try (Reader reader = new FileReader(filePath)) {
-        System.out.println(" Reading from file: " + filePath);
+            System.out.println(" Parsed beers: " + csvBeers.size());
 
-        List<BeerCsv> csvBeers = new CsvToBeanBuilder<BeerCsv>(reader)
-                .withType(BeerCsv.class)
-                .build()
-                .parse();
+            for (BeerCsv csv : csvBeers) {
+                System.out.println(" Parsed: " + csv.getName() + " | style: " + csv.getStyle());
+                List<String> tags = generateBasicTags(csv);
+                csv.setFlavorTags(tags);
+            }
 
-        System.out.println(" Parsed beers: " + csvBeers.size());
+            if (csvBeers.isEmpty()) {
+                System.out.println("ALERT No data parsed. Check the file format and column names.");
+            } else {
+                beerCsvRepository.saveAll(csvBeers);
+                System.out.println(" Saved " + csvBeers.size() + " beers to imported_beers table.");
+            }
 
-        for (BeerCsv csv : csvBeers) {
-            System.out.println(" Parsed: " + csv.getName() + " | style: " + csv.getStyle());
-            List<String> tags = generateBasicTags(csv);
-            csv.setFlavorTags(tags);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-
-        if (csvBeers.isEmpty()) {
-            System.out.println("ALERT No data parsed. Check the file format and column names.");
-        } else {
-            beerCsvRepository.saveAll(csvBeers);
-            System.out.println(" Saved " + csvBeers.size() + " beers to imported_beers table.");
-        }
-
-    } catch (Exception e) {
-        e.printStackTrace();
-    }
 
 }
 
@@ -54,11 +57,14 @@ public class BeerCsvImporter {
 
         // ABV-driven
         if (csv.getAbv() != null) {
-            if (csv.getAbv() >= 7.0) tags.add("strong");
-            if (csv.getAbv() <= 4.5) tags.add("light");
-            if (csv.getAbv() <= 4.0) tags.add("sessionable");
+            if (csv.getAbv() >= 0.07) {
+                tags.add("strong");
+            } else if (csv.getAbv() > 0.04) {
+                tags.add("sessionable");
+            } else if (csv.getAbv() <= 0.04) {
+                tags.add("light");
+            }
         }
-
         // IBU-driven
         if (csv.getIbu() != null) {
             if (csv.getIbu() > 60) tags.add("bitter");

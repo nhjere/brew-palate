@@ -2,8 +2,6 @@ package com.codewithneal.brew_backend.brewer.service;
 
 import com.codewithneal.brew_backend.brewer.model.Beer;
 import com.codewithneal.brew_backend.brewer.repository.BeerRepository;
-import com.codewithneal.brew_backend.user.dto.ReviewDTO;
-import com.codewithneal.brew_backend.user.dto.UserBeerDTO;
 
 
 import org.springframework.stereotype.Service;

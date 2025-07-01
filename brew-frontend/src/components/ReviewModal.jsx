@@ -1,6 +1,7 @@
 import React, { use, useEffect, useState } from 'react';
 import axios from 'axios';
 import { createClient } from '@supabase/supabase-js';
+import { useBreweryMap } from '../context/BreweryContext';
 
 // supabase auth config
 const supabase = createClient(
@@ -11,6 +12,7 @@ const supabase = createClient(
 export default function ReviewModal({ beerId, onClose}) {
     const [beer, setBeer] = useState(null);
     const [successMessage, setSuccessMessage] = useState('');
+    const breweryMap = useBreweryMap();
     
     // useState to manage review form data
     const [reviewFormData, setReviewFormData] = useState({
@@ -27,7 +29,7 @@ export default function ReviewModal({ beerId, onClose}) {
     // fetches beer metadata associated with beer id
     useEffect(() => {
         if (!beerId) return;
-        axios.get(`http://localhost:8080/api/brewer/beers/${beerId}`)
+        axios.get(`http://localhost:8080/api/import/beers/${beerId}`)
             .then(res => setBeer(res.data))
             .catch(err => console.error(err));
     }, [beerId]);
@@ -95,12 +97,22 @@ export default function ReviewModal({ beerId, onClose}) {
             <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-lg text-amber-800 relative text-left h-3/4 overflow-y-auto">
                 {beer ? (
                     <>
-                        <h2 className="text-2xl font-bold mb-2">{beer.name}</h2>
-                        <p className="mb-1">Style: {beer.style}</p>
-                        <p className="mb-1">Tags: {beer.flavorTags.join(', ')}</p>
-                        <p className="mb-4">From: {beer.breweryName}</p>
+                    {(() => {       
+                        const brewery = breweryMap[beer.externalBreweryId];
 
-                        <button className="absolute top-2 right-2 text-gray-500 hover:text-red-500" onClick={onClose} > ✕ </button>
+                        return(
+                            <>
+                            <h2 className="text-2xl font-bold mb-2">{beer.name}</h2>
+                            <p className="mb-1">Style: {beer.style}</p>
+                            <p className="mb-1">Tags: {beer.flavorTags.join(', ')}</p>
+                            <p className="mb-4">
+                  From: {brewery?.name || 'Unknown Brewery'} ({brewery?.city}, {brewery?.state})
+                </p>
+                            </>
+                        );
+                    })()}
+                    <button className="absolute top-2 right-2 text-gray-500 hover:text-red-500" onClick={onClose} > ✕ </button>
+                
                     </>
                 ) : (
                     <p>Loading beer info...</p>
