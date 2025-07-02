@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import com.codewithneal.brew_backend.brewer.CsvReader.breweries.BreweryCsv;
 import com.codewithneal.brew_backend.brewer.CsvReader.breweries.BreweryCsvImporter;
 import com.codewithneal.brew_backend.brewer.CsvReader.breweries.BreweryCsvRepository;
+import com.codewithneal.brew_backend.brewer.service.BeerService;
 import com.codewithneal.brew_backend.brewer.CsvReader.CompleteBeerDTO;
 
 import org.springframework.data.domain.Page;
@@ -15,9 +16,14 @@ import org.springframework.data.domain.PageRequest;
 
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import javax.swing.text.html.HTML.Tag;
+
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/import")
@@ -29,12 +35,46 @@ public class CsvImportController {
     @Autowired
     private BeerCsvRepository beerCsvRepository;
 
-    //import beers.csv
+    // import beers.csv
     @GetMapping("/beers")
     public String importBeersGet(@RequestParam(defaultValue = "src/main/resources/beers.csv") String path) {
         beerCsvImporter.importFromCsv(path);
         return "Beers imported via GET from: " + path;
     }
+
+    // access beer by specific beer id
+    @GetMapping("/beers/{beerId}")
+    public ResponseEntity<BeerCsv> getBeerById(@PathVariable UUID beerId) {
+        BeerCsv beer = beerCsvImporter.getBeerById(beerId);
+        return ResponseEntity.ok(beer);
+    }
+
+    
+    // @GetMapping("/flavortags")
+    // public Set<String> getAllTags() {
+    //     List<BeerCsv> beers = beerCsvRepository.findAll();
+    //     Set<String> tags = new HashSet<>();
+    //     for (int i = 0; i < beers.size(); i++) {
+    //         List<String> flavortags = beers.get(i).getFlavorTags();
+    //         tags.addAll(flavortags);
+    //     }
+    //     return tags;
+    // }
+
+    // get all flavor tags
+    @GetMapping("/flavor-tags")
+    public Set<String> getAllTags() {
+        List<List<String>> allTags = beerCsvRepository.findAllFlavorTags();
+        return allTags.stream()
+                    .flatMap(List::stream)
+                    .collect(Collectors.toSet());
+    }
+
+    @GetMapping("/all-beers")
+    public List<BeerCsv> getAllBeers() {
+        return beerCsvRepository.findAll();
+    }
+
 
     // supports a paginated GET endpoint for .../show-beers/?page=0&size=20
     // payload found under key "content"
@@ -69,55 +109,6 @@ public class CsvImportController {
     ) {
         Pageable pageable = PageRequest.of(page, size);
         return breweryCsvRepository.findAll(pageable);
-    }
-
-    @GetMapping("/api/import/complete-beers")
-    public List<CompleteBeerDTO> getBeersWithBrewery() {
-        List<BeerCsv> beers = beerCsvRepository.findAll();
-        List<BreweryCsv> breweries = breweryCsvRepository.findAll();
-
-        Map<String, String> breweryNameMap = breweries.stream()
-            .collect(Collectors.toMap(BreweryCsv::getExternalBreweryId, BreweryCsv::getName));
-
-        return beers.stream().map(beer -> {
-            String breweryName = breweryNameMap.getOrDefault(beer.getBreweryId(), "Unknown Brewery");
-            return new CompleteBeerDTO(
-                beer.getBeerId(),
-                beer.getName(),
-                beer.getStyle(),
-                beer.getAbv(),
-                beer.getIbu(),
-                beer.getFlavorTags(),
-                beer.getBreweryId(),
-                breweryName
-            );
-        }).collect(Collectors.toList());
-    }
-
-    @GetMapping("/beers/{beerId}")
-    public ResponseEntity<CompleteBeerDTO> getBeerById(@PathVariable UUID beerId) {
-        Optional<BeerCsv> beerOpt = beerCsvRepository.findById(beerId);
-        if (beerOpt.isEmpty()) {
-            return ResponseEntity.badRequest().build();
-        }
-
-        BeerCsv beer = beerOpt.get();
-        String breweryName = breweryCsvRepository
-            .findByExternalBreweryId(beer.getBreweryId())  // match external IDs
-            .map(BreweryCsv::getName)
-            .orElse("Unknown Brewery");
-
-        CompleteBeerDTO dto = new CompleteBeerDTO(
-            beer.getBeerId(),
-            beer.getName(),
-            beer.getStyle(),
-            beer.getAbv(),
-            beer.getIbu(),
-            beer.getFlavorTags(),
-            beer.getBreweryId(),
-            breweryName
-        );
-        return ResponseEntity.ok(dto);
     }
 
 

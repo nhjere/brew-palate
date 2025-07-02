@@ -97,8 +97,9 @@ export default function ReviewModal({ beerId, onClose}) {
             <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-lg text-amber-800 relative text-left h-3/4 overflow-y-auto">
                 {beer ? (
                     <>
-                    {(() => {       
-                        const brewery = breweryMap[beer.externalBreweryId];
+                    {(() => { 
+                        console.log(beer)      
+                        const brewery = breweryMap[beer.breweryId];
 
                         return(
                             <>
@@ -106,8 +107,8 @@ export default function ReviewModal({ beerId, onClose}) {
                             <p className="mb-1">Style: {beer.style}</p>
                             <p className="mb-1">Tags: {beer.flavorTags.join(', ')}</p>
                             <p className="mb-4">
-                  From: {brewery?.name || 'Unknown Brewery'} ({brewery?.city}, {brewery?.state})
-                </p>
+                                From: {brewery?.name || 'Unknown Brewery'} ({brewery?.city}, {brewery?.state})
+                            </p>
                             </>
                         );
                     })()}

@@ -19,6 +19,7 @@ function UserDashboard() {
   const [beers, setBeers] = useState([]);
   const [breweries, setBreweries] = useState([]);
   const [username, setUsername] = useState('');
+  const [beerPool, setBeerPool] = useState([]);
 
   // taste panel variables
   const [flavorTags, setFlavorTags] = useState([]);
@@ -71,7 +72,17 @@ function UserDashboard() {
       setTotalPages(res.data.totalPages);
     })
     .catch(err => console.error(err));
-}, [currentPage]);
+  }, [currentPage]);
+
+  // fetch entire pool of beers available
+  useEffect(() => {
+    axios.get(`http://localhost:8080/api/import/all-beers`)
+      .then(res => {
+        setBeerPool(res.data);
+      })
+      .catch(err => console.error(err));
+  }, []);
+
 
   // filtering logic to for main beer feed
   const filteredBeers = committedTags.length === 0
@@ -81,8 +92,7 @@ function UserDashboard() {
       committedTags.every(tag => beer.flavorTags.includes(tag))
     );
   
-  
-  
+
 
   return (
    
@@ -108,8 +118,8 @@ function UserDashboard() {
 
           {/* Filter Section  */}
           <TastePanel
-            tags={flavorTags}
-            setTags={setFlavorTags}
+            flavorTags={flavorTags}
+            setFlavorTags={setFlavorTags}
             onRefresh={() => setCommittedTags(flavorTags)}
           />
 
