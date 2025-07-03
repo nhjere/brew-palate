@@ -17,12 +17,7 @@ import org.springframework.data.domain.PageRequest;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import javax.swing.text.html.HTML.Tag;
-
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 
 @RestController
@@ -49,18 +44,6 @@ public class CsvImportController {
         return ResponseEntity.ok(beer);
     }
 
-    
-    // @GetMapping("/flavortags")
-    // public Set<String> getAllTags() {
-    //     List<BeerCsv> beers = beerCsvRepository.findAll();
-    //     Set<String> tags = new HashSet<>();
-    //     for (int i = 0; i < beers.size(); i++) {
-    //         List<String> flavortags = beers.get(i).getFlavorTags();
-    //         tags.addAll(flavortags);
-    //     }
-    //     return tags;
-    // }
-
     // get all flavor tags
     @GetMapping("/flavor-tags")
     public Set<String> getAllTags() {
@@ -86,6 +69,23 @@ public class CsvImportController {
         Pageable pageable = PageRequest.of(page, size);
         return beerCsvRepository.findAll(pageable);
     }
+
+    // show filtered beers
+    @GetMapping("/filtered-beers")
+    public Page<BeerCsv> getFilteredBeers(
+        @RequestParam(required = false) List<String> tags,
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "20") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+        if (tags == null || tags.isEmpty()) {
+            return beerCsvRepository.findAll(pageable);
+        } else {
+            return beerCsvRepository.findByAllTags(tags, tags.size(), pageable);
+        }
+        
+    }
+    
     
     // import breweries.csv
     @Autowired

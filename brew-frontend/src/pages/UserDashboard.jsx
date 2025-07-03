@@ -54,15 +54,29 @@ function UserDashboard() {
     fetchUsername();
   }, []);
 
-  // refetch beer data on currentPage change
   useEffect(() => {
-    axios.get(`http://localhost:8080/api/import/show-beers?page=${currentPage}&size=20`)
-    .then(res => {
-      setBeers(res.data.content), 
-      setTotalPages(res.data.totalPages)
-    })
-    .catch(err => console.error(err));
-  }, [currentPage]);
+    const fetchFilteredBeers = async () => {
+      try {
+        const res = await axios.get('http://localhost:8080/api/import/filtered-beers', {
+          params: {
+            tags: committedTags,
+            page: currentPage,
+            size: 20
+          },
+          paramsSerializer: params => {
+            return new URLSearchParams(params).toString();
+          }
+        });
+        setBeers(res.data.content);
+        setTotalPages(res.data.totalPages);
+      } catch (err) {
+        console.error("Failed to fetch beers", err);
+      }
+    };
+
+    fetchFilteredBeers();
+  }, [committedTags, currentPage]);
+    
 
   // refetch brewery data on currentPage change
   useEffect(() => {
@@ -83,15 +97,7 @@ function UserDashboard() {
       .catch(err => console.error(err));
   }, []);
 
-
-  // filtering logic to for main beer feed
-  const filteredBeers = committedTags.length === 0
-  ? beers
-  : beers.filter(beer =>
-      Array.isArray(beer.flavorTags) &&
-      committedTags.every(tag => beer.flavorTags.includes(tag))
-    );
-  
+  const filteredBeers = beers;
 
 
   return (
@@ -109,10 +115,10 @@ function UserDashboard() {
       </div>
 
       {/* Main Layout */}
-      <div className="flex flex-row flex-1 w-full min-h-[500px]">
+      <div className="flex flex-row w-full max-w-screen-xl mx-auto min-h-[500px]">
 
         {/* Left Sidebar */}
-        <aside className="w-1/5 min-w-[220px] flex-shrink-0 bg-amber-100 p-4 space-y-4 text-left text-amber-800">
+        <aside className="w-[240px] flex-shrink-0 bg-amber-100 p-4 space-y-4 text-left text-amber-800">
           <button className="bg-orange-100 w-full py-2 rounded-md">My Profile</button>
           <button className="bg-orange-100 w-full py-2 rounded-md">Following</button>
 
@@ -143,7 +149,7 @@ function UserDashboard() {
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 min-w-[500px] p-6">
+        <main className="flex-1 max-w-[800px] p-6">
           <div className="flex flex-col gap-5 w-full">
           <h2 className="text-2xl text-left text-amber-800 font-bold"> Discover Beers </h2>
             
@@ -155,7 +161,7 @@ function UserDashboard() {
                 return (
                   <div
                     key={beer.id}
-                    className="w-full bg-red-50 border border-gray-300 rounded-lg p-4 shadow-sm flex justify-between items-center"
+                    className="min-h-[120px] w-full bg-red-50 border border-gray-300 rounded-lg p-4 shadow-sm flex justify-between items-center"
                   >
                     {/* Beer Info */}
                     <div className="text-left">
@@ -202,7 +208,7 @@ function UserDashboard() {
         </main>
 
         {/* Right Sidebar */}
-        <aside className="w-1/5 min-w-[220px] flex-shrink-0 bg-amber-100 p-4 space-y-4 text-left text-amber-800">
+        <aside className="w-[240px] flex-shrink-0 bg-amber-100 p-4 space-y-4 text-left text-amber-800">
           <RecPanel selectedTags={committedTags} />
         </aside>
       </div>

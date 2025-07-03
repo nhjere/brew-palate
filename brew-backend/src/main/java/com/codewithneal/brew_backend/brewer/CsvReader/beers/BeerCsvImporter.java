@@ -16,11 +16,13 @@ public class BeerCsvImporter {
     @Autowired
     private BeerCsvRepository beerCsvRepository;
 
+    // find a beer by provided id
     public BeerCsv getBeerById(UUID beerId) {
         return beerCsvRepository.findById(beerId)
         .orElseThrow(() -> new RuntimeException("Beer not found"));
     }
 
+    // imports data from reading csv (beers.csv)
     public void importFromCsv(String filePath) {
         try (Reader reader = new FileReader(filePath)) {
             System.out.println(" Reading from file: " + filePath);
