@@ -1,7 +1,6 @@
 package com.codewithneal.brew_backend.user.controller;
 
 import com.codewithneal.brew_backend.user.model.Review;
-import com.codewithneal.brew_backend.user.model.UserFollow;
 import com.codewithneal.brew_backend.user.service.ReviewService;
 
 import java.util.List;
@@ -9,7 +8,6 @@ import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
 
-import com.codewithneal.brew_backend.brewer.model.Brewery;
 import com.codewithneal.brew_backend.user.dto.ReviewDTO;
 import org.springframework.web.bind.annotation.*;
 

@@ -144,17 +144,20 @@ export default function ReviewModal({ beerId, onClose}) {
                     <div>
                         <label className="block text-sm font-medium mb-1"> How would you describe it? </label>
                         <div className="flex flex-wrap gap-2">
-                        {['Citrusy', 'Malty', 'Roasty', 'Fruity', 'Hoppy', "Light", "Refreshing" ,"Bitter" ,"Sweet" ,"Carbonated", "Clean"].map((tag) => (
-                            <label key={tag} className="flex items-center space-x-2 text-sm">
-                                <input
-                                    type="checkbox"
-                                    className="w-4 h-4 border-2 border-black rounded checked:bg-white checked:border-black focus:ring-0"
-                                    checked={reviewFormData.flavorTags.includes(tag)}
-                                    onChange={() => handleTagToggle(tag)}
-                                />
-                            <span>{tag}</span>
-                            </label>
-                        ))}
+                        {["Roasty", "Winter", "Dry", "Spicy", "Sour", "Clean", "Bitter", "Fruity", "Summer", "Malty", "Light", "Refreshing", "Boozy", "Sweet", "Sessionable", "Crisp", "Hoppy", "Smooth"].map((tag) => {
+                            const capitalTag = tag.charAt(0).toUpperCase() + tag.slice(1).toLowerCase();
+                            return (
+                                <label key={tag} className="flex items-center space-x-2 text-sm">
+                                    <input
+                                        type="checkbox"
+                                        className="w-4 h-4 border-2 border-black rounded checked:bg-white checked:border-black focus:ring-0"
+                                        checked={reviewFormData.flavorTags.includes(tag)}
+                                        onChange={() => handleTagToggle(tag)}
+                                    />
+                                    <span>{capitalTag}</span>
+                                </label>
+                            );
+                        })}
                         </div>
                     </div>
 

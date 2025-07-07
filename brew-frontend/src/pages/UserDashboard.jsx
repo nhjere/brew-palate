@@ -172,7 +172,9 @@ function UserDashboard() {
                       <p className="text-sm text-gray-600">
                         {brewery?.city}, {brewery?.state}
                       </p>
-                      <p className="text-sm text-gray-800">{beer.flavorTags.join(', ')}</p>
+                      <p className="text-sm text-gray-800">
+                        {beer.flavorTags.map(tag => tag.charAt(0).toUpperCase() + tag.slice(1)).join(', ')}
+                      </p>
                     </div>
 
                     {/* Style + Action */}
