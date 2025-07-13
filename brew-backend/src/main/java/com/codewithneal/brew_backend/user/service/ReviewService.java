@@ -1,6 +1,7 @@
 package com.codewithneal.brew_backend.user.service;
 
 import com.codewithneal.brew_backend.user.dto.ReviewDTO;
+import com.codewithneal.brew_backend.user.dto.ReviewMinimalDTO;
 import com.codewithneal.brew_backend.user.model.Review;
 import com.codewithneal.brew_backend.user.repository.ReviewRepository;
 
@@ -49,16 +50,16 @@ public class ReviewService {
         return reviewRepo.findAll();
     }
 
-
- 
-
-    // @Override
-    // public UserReview submitReview(UserReview review) {
-    //     return userReviewRepository.save(review);
-    // }
-
-    // @Override
-    // public List<UserReview> getAllReviews() {
-    //     return userReviewRepository.findAll();
-    // }
+    // get all (minimal) review dtos posted by a specific user for recommender
+    public List<ReviewMinimalDTO> getMinimalReviewsByUserId(UUID userId) {
+    List<Review> reviews = reviewRepo.findByUserId(userId);
+    return reviews.stream()
+        .map(review -> new ReviewMinimalDTO(
+            review.getUserId(),
+            review.getBeerId(),
+            review.getOverallEnjoyment(),
+            review.getFlavorTags()
+        ))
+        .toList();
+    }
 }

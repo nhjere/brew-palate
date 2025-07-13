@@ -1,0 +1,179 @@
+import pandas as pd
+import numpy as np
+from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.feature_extraction.text import TfidfVectorizer
+import ast
+
+def loadData():
+    # load and consolidate beer df
+    beers_filepath = '../imported_beers.csv'
+    beers_df = pd.read_csv(beers_filepath)
+    tags_filepath = '../imported_beers_ft.csv'
+    tags_df = pd.read_csv(tags_filepath)
+    complete_beers = pd.merge(beers_df, tags_df, on='beer_id')
+    beers_df = complete_beers.groupby('beer_id').agg({
+        'abv': 'first',
+        'external_brewery_id': 'first',
+        'ibu': 'first',
+        'external_beer_id': 'first',
+        'name': 'first',
+        'ounces': 'first',
+        'style': 'first',
+        'flavor_tag': lambda x: list(set(x))
+    }).reset_index()
+
+    # load reviews df
+    reviews_filepath = '../reviews.csv'
+    reviews_df = pd.read_csv(reviews_filepath)
+    reviews_df["userId"] = reviews_df["userId"].astype(str)
+    reviews_df["beerId"] = reviews_df["beerId"].astype(str)
+    reviews_df["flavorTags"] = reviews_df["flavorTags"].apply(ast.literal_eval)
+
+    # vectorizes beers
+    beer_vectors = vectorizeBeers(beers_df)
+
+    return beers_df, reviews_df, beer_vectors
+
+def convertReviews(json_reviews):
+    return pd.DataFrame(json_reviews)
+
+def vectorizeBeers(beers_df):
+    # concatenates and vectorizes flavor tag fields for each beer
+    beers_df["tag_string"] = beers_df["flavor_tag"].apply(lambda tags: " ".join(tags))
+    vectorizer = TfidfVectorizer()
+    beer_tag_matrix = vectorizer.fit_transform(beers_df["tag_string"])
+    beer_vectors = pd.DataFrame(
+        beer_tag_matrix.toarray(),
+        index=beers_df["beer_id"],
+        columns=vectorizer.get_feature_names_out()
+    )
+
+    # manually down weight sessionable because it shows up too much
+    if "sessionable" in beer_vectors.columns:
+        beer_vectors["sessionable"] *= 0.4 
+
+    return beer_vectors
+
+''' RECOMMENDER LOGIC '''
+
+def getUserVector(user_id, df, beer_matrix, beer_ids):
+
+    liked = df[(df["userId"] == user_id) & (df["overallEnjoyment"] >= 4)][["beerId", "overallEnjoyment"]]
+    if liked.empty:
+        return None
+    vectors = []
+    weights = []
+
+    for _, row in liked.iterrows():
+        beer_id = row["beerId"]
+        if beer_id in beer_ids:
+            index = beer_ids.index(beer_id)
+            vectors.append(beer_matrix[index])
+            weights.append(row["overallEnjoyment"])
+
+    if not vectors:
+        return None
+
+    user_vector = np.average(np.array(vectors), axis=0, weights=np.array(weights))
+
+    norm = np.linalg.norm(user_vector)
+    return user_vector / norm if norm > 0 else user_vector
+
+def addDiversity(df, top_n=30, top_tag_ratio=0.7):
+    selected = []
+    selected_ids = set()
+
+    # Count how often each tag appears in this set
+    global_tag_counts = {}
+    for tags in df["flavor_tag"]:
+        for tag in tags:
+            global_tag_counts[tag] = global_tag_counts.get(tag, 0) + 1
+
+    # Sort tags by frequency in top recommendations
+    sorted_tags = sorted(global_tag_counts.items(), key=lambda x: -x[1])
+    tag_total = len(sorted_tags)
+    top_tags = [tag for tag, _ in sorted_tags[:max(1, tag_total // 5)]]
+    rare_tags = [tag for tag, _ in sorted_tags[-max(1, tag_total // 4):]]
+
+
+    # Choose beers with top tags (prioritize)
+    for _, row in df.iterrows():
+        if len(selected) >= int(top_n * top_tag_ratio):
+            break
+        beer_id = row["beer_id"]
+        if beer_id in selected_ids:
+            continue
+        if any(tag in top_tags for tag in row["flavor_tag"]):
+            selected.append(row)
+            selected_ids.add(beer_id)
+
+    # Add beers with rare tags (encourage diversity)
+    for _, row in df.iterrows():
+        if len(selected) >= top_n:
+            break
+        beer_id = row["beer_id"]
+        if beer_id in selected_ids:
+            continue
+        if any(tag in rare_tags for tag in row["flavor_tag"]):
+            selected.append(row)
+            selected_ids.add(beer_id)
+
+    # Step 5: Pad if necessary
+    for _, row in df.iterrows():
+        if len(selected) >= top_n:
+            break
+        beer_id = row["beer_id"]
+        if beer_id not in selected_ids:
+            selected.append(row)
+            selected_ids.add(beer_id)
+
+    return pd.DataFrame(selected)
+
+def getPopularBeers(reviews_df, beers_df, num_recs):
+    min_reviews = 3
+
+    beer_stats = (
+        reviews_df.groupby("beerId")["overallEnjoyment"]
+        .agg(["mean", "count"])
+        .reset_index()
+        .rename(columns={"mean": "avg_rating", "count": "num_reviews"})
+    )
+
+    popular_beers = beer_stats[beer_stats["num_reviews"] >= min_reviews]
+    merged = popular_beers.merge(beers_df, left_on="beerId", right_on="beer_id")
+    sorted_beers = merged.sort_values(by="avg_rating", ascending=False)
+    diverse = sorted_beers.drop_duplicates(subset="style", keep="first")
+    top_beers = diverse.head(num_recs) if len(diverse) >= num_recs else sorted_beers.head(num_recs)
+
+    return top_beers[["beer_id", "name", "style", "flavor_tag", "avg_rating", "num_reviews"]]
+
+def recommendBeers(user_id, reviews_df, beers_df, beer_vectors, num_recs=20):
+    beer_ids = beers_df["beer_id"].tolist()
+    user_profile = getUserVector(user_id, reviews_df, beer_vectors.values, beer_ids)
+
+    if user_profile is None:
+        print(f"Here are the popular beers...")
+        popular_beers = getPopularBeers(reviews_df, beers_df, num_recs)
+        return addDiversity(popular_beers, top_n=num_recs)
+
+    # Calculate similarity between user profile and all beers
+    similarity_scores = cosine_similarity([user_profile], beer_vectors.values)[0]
+
+    # Get top beer indices excluding already liked beers
+    liked_beer_ids = reviews_df[(reviews_df["userId"] == user_id) & (reviews_df["overallEnjoyment"] >= 4)]["beerId"].tolist()
+    liked_beer_indices = [i for i, bid in enumerate(beer_ids) if bid in liked_beer_ids]
+
+    recommended_indices = similarity_scores.argsort()[::-1]
+    recommended_indices = [i for i in recommended_indices if i not in liked_beer_indices]
+
+    # Get top N recommendations
+    top_n_indices = recommended_indices[:num_recs * 5]
+    recommended_beer_ids = [beer_ids[i] for i in top_n_indices]
+
+    # After getting top_n recommendations
+    top_recs = beers_df[beers_df["beer_id"].isin(recommended_beer_ids)].copy()
+    top_recs = top_recs.head(num_recs * 5)  # ensure df matches pool size
+    diverse_recs = addDiversity(top_recs, top_n=num_recs)
+    return diverse_recs
+
+

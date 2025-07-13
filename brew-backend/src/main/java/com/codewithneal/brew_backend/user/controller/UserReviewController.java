@@ -9,6 +9,8 @@ import java.util.UUID;
 import org.springframework.http.ResponseEntity;
 
 import com.codewithneal.brew_backend.user.dto.ReviewDTO;
+import com.codewithneal.brew_backend.user.dto.ReviewMinimalDTO;
+
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -35,4 +37,12 @@ public class UserReviewController {
         return ResponseEntity.ok(reviews);
     }
 
+    /*  RECOMMENDER SERVICE API */
+
+    // get all reviews stored by a user for Fast API recommender
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<ReviewMinimalDTO>> getReviewsByUser(@PathVariable UUID userId) {
+        List<ReviewMinimalDTO> reviewDTOs = reviewService.getMinimalReviewsByUserId(userId);
+        return ResponseEntity.ok(reviewDTOs);
+    }
 }
