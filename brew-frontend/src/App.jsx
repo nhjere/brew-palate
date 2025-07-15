@@ -8,21 +8,24 @@ import React from 'react';
 import './App.css'
 import './index.css'
 import { BreweryProvider } from './context/BreweryContext';
+import { BeerProvider } from './context/BeerContext';
 
 function App() {
 
   return (
-    <BreweryProvider>
-      <Router>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/register/" element={<Registration />} />
-          <Route path="/user/dashboard" element={<UserDashboard />} />
-          <Route path="/brewer/dashboard" element={<BrewerDashboard />} />
-          <Route path="*" element={<NoPage />} />
-        </Routes>
-      </Router>
-    </BreweryProvider>
+    <BeerProvider>
+      <BreweryProvider>
+        <Router>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/register/" element={<Registration />} />
+            <Route path="/user/dashboard" element={<UserDashboard />} />
+            <Route path="/brewer/dashboard" element={<BrewerDashboard />} />
+            <Route path="*" element={<NoPage />} />
+          </Routes>
+        </Router>
+      </BreweryProvider>
+    </BeerProvider>
 
   );
 }

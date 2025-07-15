@@ -9,7 +9,7 @@ const supabase = createClient(
   import.meta.env.VITE_SUPABASE_ANON_KEY
 );
 
-export default function ReviewModal({ beerId, onClose}) {
+export default function ReviewModal({ beerId, onClose, onReviewSubmit}) {
     const [beer, setBeer] = useState(null);
     const [successMessage, setSuccessMessage] = useState('');
     const breweryMap = useBreweryMap();
@@ -83,6 +83,7 @@ export default function ReviewModal({ beerId, onClose}) {
             await axios.post(`${BASE_URL}/api/user/reviews`, reviewPayload);
             setSuccessMessage('Review submitted successfully!');
             setTimeout(() => {
+                onReviewSubmit();
                 onClose();
             }, 1500);
 

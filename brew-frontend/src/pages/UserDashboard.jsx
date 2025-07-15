@@ -15,6 +15,9 @@ const supabase = createClient(
 
 function UserDashboard() {
 
+  // set user 
+  const [userId, setUserId] = useState(null);
+
   // main dashboard variables
   const [beers, setBeers] = useState([]);
   const [breweries, setBreweries] = useState([]);
@@ -28,31 +31,37 @@ function UserDashboard() {
   // review modal variables
   const [selectedBeerId, setSelectedBeerId] = useState(null);
   const [showReviewModal, setShowReviewModal] = useState(false);
+  const [refreshRecs, setRefreshRecs] = useState(false);
 
   // pagination variables
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState();
   const breweryMap = useBreweryMap();
 
-  // Fetch username from backend using Supabase user ID
+  // Fetch user and sets username using Supabase user ID
   useEffect(() => {
-    const fetchUsername = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      const userId = user?.id;
+  const fetchUser = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    const user = session?.user;
+    if (!user) {
+      console.warn("No user session found.");
+      setUserId(null);
+      setUsername('');
+      return;
+    }
+    setUserId(user.id); 
+    try {
+      const BASE_URL = import.meta.env.VITE_BACKEND_URL;
+      const res = await axios.get(`${BASE_URL}/api/user/username/${user.id}`);
+      setUsername(res.data.username || '');
+    } catch (err) {
+      console.error("Failed to load username:", err);
+      setUsername('');
+    }
+  };
 
-      if (userId) {
-        try {
-          const BASE_URL = import.meta.env.VITE_BACKEND_URL;
-          const res = await axios.get(`${BASE_URL}/api/user/username/${userId}`);
-          setUsername(res.data.username);
-        } catch (err) {
-          console.error("Failed to load username:", err);
-        }
-      }
-    };
-
-    fetchUsername();
-  }, []);
+  fetchUser();
+}, []);
 
   useEffect(() => {
     const fetchFilteredBeers = async () => {
@@ -211,7 +220,7 @@ function UserDashboard() {
 
         {/* Right Sidebar */}
         <aside className="w-[240px] flex-shrink-0 bg-amber-100 p-4 space-y-4 text-left text-amber-800">
-          <RecPanel selectedTags={committedTags} />
+          <RecPanel userId={userId} refreshRecs={refreshRecs}/>
         </aside>
       </div>
 
@@ -220,6 +229,7 @@ function UserDashboard() {
         <ReviewModal
           beerId={selectedBeerId}
           onClose={() => setShowReviewModal(false)}
+          onReviewSubmit={() => setRefreshRecs(prev => !prev)}
         />
       )}
       
