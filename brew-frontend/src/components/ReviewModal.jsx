@@ -124,7 +124,7 @@ export default function ReviewModal({ beerId, onClose, onReviewSubmit}) {
 
                 <form className="space-y-4 mt-4">
                     {/* Sliders for Ratings */}
-                    {['flavorBalance', 'mouthfeelQuality', 'aromaIntensity', 'finishQuality', 'overallEnjoyment'].map((field) => (
+                    {['overallEnjoyment'].map((field) => (
                         <div key={field}>
                             <label className="block text-sm font-medium capitalize mb-1">
                                 {field.replace(/([A-Z])/g, ' $1')}

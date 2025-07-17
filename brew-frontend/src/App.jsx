@@ -19,7 +19,7 @@ function App() {
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/register/" element={<Registration />} />
-            <Route path="/user/dashboard" element={<UserDashboard />} />
+            <Route path="/user/dashboard/:userId" element={<UserDashboard />} />
             <Route path="/brewer/dashboard" element={<BrewerDashboard />} />
             <Route path="*" element={<NoPage />} />
           </Routes>

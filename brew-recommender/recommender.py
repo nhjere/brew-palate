@@ -56,29 +56,6 @@ def vectorizeBeers(beers_df):
 
 ''' RECOMMENDER LOGIC '''
 
-def getUserVector(user_id, df, beer_matrix, beer_ids):
-
-    liked = df[(df["userId"] == user_id) & (df["overallEnjoyment"] >= 4)][["beerId", "overallEnjoyment"]]
-    if liked.empty:
-        return None
-    vectors = []
-    weights = []
-
-    for _, row in liked.iterrows():
-        beer_id = row["beerId"]
-        if beer_id in beer_ids:
-            index = beer_ids.index(beer_id)
-            vectors.append(beer_matrix[index])
-            weights.append(row["overallEnjoyment"])
-
-    if not vectors:
-        return None
-
-    user_vector = np.average(np.array(vectors), axis=0, weights=np.array(weights))
-
-    norm = np.linalg.norm(user_vector)
-    return user_vector / norm if norm > 0 else user_vector
-
 def addDiversity(df, top_n=30, top_tag_ratio=0.7):
     selected = []
     selected_ids = set()
@@ -147,40 +124,12 @@ def getPopularBeers(reviews_df, beers_df, num_recs):
 
     return top_beers[["beer_id", "name", "style", "flavor_tag", "avg_rating", "num_reviews"]]
 
-def recommendBeers(user_id, reviews_df, beers_df, beer_vectors, num_recs=20):
-    user_id = str(user_id)
-    beer_ids = beers_df["beer_id"].tolist()
-    user_profile = getUserVector(user_id, reviews_df, beer_vectors.values, beer_ids)
-
-    if user_profile is None:
-        print(f"Here are the popular beers...")
-        popular_beers = getPopularBeers(reviews_df, beers_df, num_recs)
-        return addDiversity(popular_beers, top_n=num_recs)
-
-    # Calculate similarity between user profile and all beers
-    similarity_scores = cosine_similarity([user_profile], beer_vectors.values)[0]
-
-    # Get top beer indices excluding already liked beers
-    liked_beer_ids = reviews_df[(reviews_df["userId"] == user_id) & (reviews_df["overallEnjoyment"] >= 4)]["beerId"].tolist()
-    liked_beer_indices = [i for i, bid in enumerate(beer_ids) if bid in liked_beer_ids]
-
-    recommended_indices = similarity_scores.argsort()[::-1]
-    recommended_indices = [i for i in recommended_indices if i not in liked_beer_indices]
-
-    # Get top N recommendations
-    top_n_indices = recommended_indices[:num_recs * 5]
-    recommended_beer_ids = [beer_ids[i] for i in top_n_indices]
-
-    # After getting top_n recommendations
-    top_recs = beers_df[beers_df["beer_id"].isin(recommended_beer_ids)].copy()
-    top_recs = top_recs.head(num_recs * 5)  # ensure df matches pool size
-    diverse_recs = addDiversity(top_recs, top_n=num_recs)
-    return diverse_recs
-
-
 def getProfileVector(user_reviews_df, beer_matrix, beer_ids):
     
     # Keep only liked beers (rating >= 4)
+    if user_reviews_df.empty or "overallEnjoyment" not in user_reviews_df.columns:
+        return None
+
     liked = user_reviews_df[user_reviews_df["overallEnjoyment"] >= 4][["beerId", "overallEnjoyment"]]
 
     if liked.empty:
@@ -228,6 +177,28 @@ def getLiveRecommendations(user_id, reviews_df, beers_df, beer_vectors, user_rev
     top_recs = top_recs.head(num_recs * 5)
     diverse_recs = addDiversity(top_recs, top_n=num_recs)
     return diverse_recs
+
+def safe_float(val):
+    try:
+        return float(val)
+    except (TypeError, ValueError):
+        return None
+
+def serialize_beers(df):
+    return [
+        {
+            "beerId": row["beer_id"],
+            "id": str(row.get("external_beer_id") or ""),
+            "name": row["name"],
+            "style": row["style"],
+            "abv": safe_float(row.get("abv")),
+            "ibu": safe_float(row.get("ibu")),
+            "ounces": safe_float(row.get("ounces")),
+            "breweryId": str(row.get("external_brewery_id") or ""),
+            "flavorTags": row.get("flavor_tag", []) or []
+        }
+        for _, row in df.fillna("").iterrows()
+    ]
 
 
 

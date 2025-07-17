@@ -1,5 +1,5 @@
 import "../index.css"
-import bp_logo from "../assets/bp_logo.png";
+import bp_logo from "../assets/final_logo.png";
 
 export default function Header() {
     return (

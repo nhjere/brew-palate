@@ -12,7 +12,9 @@ const supabase = createClient(
 
 
 export default function Login() {
+
     const navigate = useNavigate();
+    const [user, setUser] = useState(null);
 
     // creates state object called form data (only email and password for login)
     const [formData, setFormData] = useState({
@@ -52,8 +54,9 @@ export default function Login() {
         }
 
         console.log('User ', data.user, 'logged in')
+        setUser(data.user);
         setSuccessMessage('Login successful!')
-        navigate('/user/dashboard'); 
+        navigate(`/user/dashboard/${data.user.id}`);
 
     }
 
@@ -123,12 +126,15 @@ export default function Login() {
                                 onClick={() => navigate("/register")}>
                                 Register
                             </button>
-                                                        <button
+                            {user && (
+                            <button
                                 type="button"
                                 className="ml-1 text-amber-700 font-semibold register-link"
-                                onClick={() => navigate("/user/dashboard")}>
+                                onClick={() => navigate(`/user/dashboard/${user.id}`)}
+                            >
                                 Sign in as Guest
                             </button>
+                            )}
                         </div>
                     </form>
 

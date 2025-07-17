@@ -4,9 +4,11 @@ import Header from '../components/header';
 import SearchBar from '../components/SearchBar';
 import ReviewModal from '../components/ReviewModal'
 import TastePanel from '../components/TastePanel';
+import LocationFilter from '../components/LocationFilter';
 import { createClient } from '@supabase/supabase-js';
 import RecPanel from '../components/RecPanel';
 import { useBreweryMap } from '../context/BreweryContext';
+import { useNavigate, useParams } from 'react-router-dom';
 
 const supabase = createClient(
   import.meta.env.VITE_SUPABASE_URL,
@@ -17,12 +19,15 @@ function UserDashboard() {
 
   // set user 
   const [userId, setUserId] = useState(null);
+  const {userId: paramUserId } = useParams();
+  const navigate = useNavigate();
 
   // main dashboard variables
   const [beers, setBeers] = useState([]);
   const [breweries, setBreweries] = useState([]);
   const [username, setUsername] = useState('');
   const [beerPool, setBeerPool] = useState([]);
+  const [address, setAddress] = useState('');
 
   // taste panel variables
   const [flavorTags, setFlavorTags] = useState([]);
@@ -38,30 +43,39 @@ function UserDashboard() {
   const [totalPages, setTotalPages] = useState();
   const breweryMap = useBreweryMap();
 
+  const BASE_URL = import.meta.env.VITE_BACKEND_URL;
+  
   // Fetch user and sets username using Supabase user ID
   useEffect(() => {
-  const fetchUser = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    const user = session?.user;
-    if (!user) {
-      console.warn("No user session found.");
-      setUserId(null);
-      setUsername('');
-      return;
-    }
-    setUserId(user.id); 
-    try {
-      const BASE_URL = import.meta.env.VITE_BACKEND_URL;
-      const res = await axios.get(`${BASE_URL}/api/user/username/${user.id}`);
-      setUsername(res.data.username || '');
-    } catch (err) {
-      console.error("Failed to load username:", err);
-      setUsername('');
-    }
-  };
+    const fetchUserProfile = async () => {
+      const { data: { session }, error } = await supabase.auth.getSession();
 
-  fetchUser();
-}, []);
+      if (error || !session) {
+        console.warn("No Supabase session found.");
+        return;
+      }
+      const user = session.user;
+      setUserId(user.id);
+
+      const token = session.access_token;
+
+      try {
+        const res = await axios.get(`${BASE_URL}/api/user/profile`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        setUsername(res.data.username || '');
+        setAddress(res.data.address || '');
+
+      } catch (err) {
+        console.error("Failed to fetch user profile:", err);
+      }
+    };
+
+    fetchUserProfile();
+  }, []);
 
   useEffect(() => {
     const fetchFilteredBeers = async () => {
@@ -113,7 +127,7 @@ function UserDashboard() {
    
     <div className="min-h-screen bg-amber-50 flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between bg-amber-100 p-4 shadow-md">
+      <div className="flex items-center justify-between bg-orange-100 p-4 shadow-md">
         <Header />
         <div className="w-5/6">
           <SearchBar />
@@ -127,9 +141,13 @@ function UserDashboard() {
       <div className="flex flex-row w-full max-w-screen-xl mx-auto min-h-[500px]">
 
         {/* Left Sidebar */}
-        <aside className="w-[240px] flex-shrink-0 bg-amber-100 p-4 space-y-4 text-left text-amber-800">
-          <button className="bg-orange-100 w-full py-2 rounded-md">My Profile</button>
-          <button className="bg-orange-100 w-full py-2 rounded-md">Following</button>
+        <aside className="w-[240px] flex-shrink-0 bg-orange-100 p-4 space-y-4 text-left text-amber-800">
+          <button className="bg-red-50 w-full !font-bold py-2 rounded-md">My Profile</button>
+          <button className="bg-red-50 w-full !font-bold py-2 rounded-md">Following</button>
+
+          <LocationFilter
+            address={address}
+          />
 
           {/* Filter Section  */}
           <TastePanel
@@ -158,7 +176,7 @@ function UserDashboard() {
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 max-w-[800px] p-6">
+        <main className="flex-1 bg-orange-50 max-w-[800px] p-6">
           <div className="flex flex-col gap-5 w-full">
           <h2 className="text-2xl text-left text-amber-800 font-bold"> Discover Beers </h2>
             
@@ -219,7 +237,7 @@ function UserDashboard() {
         </main>
 
         {/* Right Sidebar */}
-        <aside className="w-[240px] flex-shrink-0 bg-amber-100 p-4 space-y-4 text-left text-amber-800">
+        <aside className="w-[240px] flex-shrink-0 bg-orange-100 p-4 space-y-4 text-left text-amber-800">
           <RecPanel userId={userId} refreshRecs={refreshRecs}/>
         </aside>
       </div>

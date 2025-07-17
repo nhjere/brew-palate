@@ -5,7 +5,7 @@ import pandas as pd
 import httpx
 import uuid
 from classes import ReviewMinimalDTO, Beer
-from recommender import loadData, convertReviews, recommendBeers, getLiveRecommendations
+from recommender import addDiversity, getPopularBeers, loadData, convertReviews, getLiveRecommendations, serialize_beers
 
 def safe_float(value):
     try:
@@ -31,30 +31,7 @@ beers_df, reviews_df, beer_vectors = loadData()
 def root():
     return beer_vectors.to_dict(orient='records')
 
-@app.get("/recs/{user_id}", response_model=List[Beer])
-def getRecommendations(user_id: uuid.UUID):
-    user_id_str = str(user_id)
-    if user_id_str not in reviews_df["userId"].values:
-        return []
-
-    recs = recommendBeers(user_id, reviews_df, beers_df, beer_vectors, num_recs=20)
-
-    return [
-        {
-            "beerId": row["beer_id"],
-            "id": str(row.get("external_beer_id") or ""),
-            "name": row["name"],
-            "style": row["style"],
-            "abv": row.get("abv"),
-            "ibu": row.get("ibu"),
-            "ounces": row.get("ounces"),
-            "breweryId": str(row.get("external_brewery_id") or ""),
-            "flavorTags": row["flavor_tag"]
-        }
-        for i, row in recs.iterrows()
-    ]
-
-@app.get("/live-recs/{user_id}", response_model=List[Beer])
+@app.get("/live-recs/{user_id}")
 async def getLiveRecs(user_id: uuid.UUID):
     url = f"{SPRING_BOOT_BASE_URL}/api/user/reviews/user/{user_id}"
     async with httpx.AsyncClient() as client:
@@ -63,22 +40,18 @@ async def getLiveRecs(user_id: uuid.UUID):
         reviews_json = response.json()
 
     user_reviews_df = convertReviews(reviews_json)
-    live_recs = getLiveRecommendations(user_id, reviews_df, beers_df, beer_vectors, user_reviews_df)
+    is_fallback = user_reviews_df.empty or "overallEnjoyment" not in user_reviews_df.columns
 
-    return [
-    {
-        "beerId": row["beer_id"],
-        "id": str(row.get("external_beer_id") or ""),
-        "name": row["name"],
-        "style": row["style"],
-        "abv": safe_float(row.get("abv")),
-        "ibu": safe_float(row.get("ibu")),
-        "ounces": safe_float(row.get("ounces")),
-        "breweryId": str(row.get("external_brewery_id") or ""),
-        "flavorTags": row.get("flavor_tag", []) or []
+    recs = (
+        addDiversity(getPopularBeers(reviews_df, beers_df, 20), top_n=20)
+        if is_fallback else
+        getLiveRecommendations(user_id, reviews_df, beers_df, beer_vectors, user_reviews_df)
+    )
+
+    return {
+        "fallback": is_fallback,
+        "beers": serialize_beers(recs)
     }
-    for _, row in live_recs.fillna("").iterrows()
-]
 
 # this api endpoint can be repurposed to display User's past reviews
 @app.get('/reviews/{user_id}', response_model=List[ReviewMinimalDTO])
