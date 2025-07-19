@@ -34,11 +34,3 @@ public class Brewer {
 }
 
 
-/*
- *  Supabase Project Setup (brew-auth)
- * 
- *  URL: https://qvqrsdiqhwwciqnncoft.supabase.co
- *  Anon/Public Key:
- *  JWT Secret: 3VsvtNn55isDIuRHahFkXGVJoR/15/l+cF/SQ1rwpq+igQmQSx0GBsT2N3kgI0AUolfo7nWaCaZA6fuiVZErpA==
- * 
- */

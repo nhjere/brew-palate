@@ -16,8 +16,8 @@ const supabase = createClient(
 );
 
 function UserDashboard() {
-
-  // set user 
+    
+    // set user 
   const [userId, setUserId] = useState(null);
   const {userId: paramUserId } = useParams();
   const navigate = useNavigate();
@@ -48,211 +48,214 @@ function UserDashboard() {
   // Fetch user and sets username using Supabase user ID
   useEffect(() => {
     const fetchUserProfile = async () => {
-      const { data: { session }, error } = await supabase.auth.getSession();
+    const { data: { session }, error } = await supabase.auth.getSession();
 
-      if (error || !session) {
+    if (error || !session) {
         console.warn("No Supabase session found.");
         return;
-      }
-      const user = session.user;
-      setUserId(user.id);
-
-      const token = session.access_token;
-
-      try {
+    }
+    const user = session.user;
+    setUserId(user.id);
+    const token = session.access_token;
+    try {
         const res = await axios.get(`${BASE_URL}/api/user/profile`, {
-          headers: {
+        headers: {
             Authorization: `Bearer ${token}`,
-          },
+        },
         });
 
         setUsername(res.data.username || '');
         setAddress(res.data.address || '');
 
-      } catch (err) {
+    } catch (err) {
         console.error("Failed to fetch user profile:", err);
-      }
+    }
     };
-
     fetchUserProfile();
   }, []);
-
+  
+  // fetch filtered beers from csv backed db
   useEffect(() => {
     const fetchFilteredBeers = async () => {
-      try {
-        const res = await axios.get('http://localhost:8080/api/import/filtered-beers', {
-          params: {
-            tags: committedTags,
-            page: currentPage,
-            size: 20
-          },
-          paramsSerializer: params => {
-            return new URLSearchParams(params).toString();
-          }
-        });
-        setBeers(res.data.content);
-        setTotalPages(res.data.totalPages);
-      } catch (err) {
-        console.error("Failed to fetch beers", err);
-      }
+        try {
+            const res = await axios.get('http://localhost:8080/api/import/filtered-beers', {
+            params: {
+                tags: committedTags,
+                page: currentPage,
+                size: 20
+            },
+            paramsSerializer: params => {
+                return new URLSearchParams(params).toString();
+            }
+            });
+            setBeers(res.data.content);
+            setTotalPages(res.data.totalPages);
+        } catch (err) {
+            console.error("Failed to fetch beers", err);
+        }
     };
 
     fetchFilteredBeers();
   }, [committedTags, currentPage]);
     
 
-  // refetch brewery data on currentPage change
-  useEffect(() => {
-  axios.get(`http://localhost:8080/api/import/show-breweries?page=${currentPage}&size=20`)
-    .then(res => {
-      setBreweries(res.data.content);
-      setTotalPages(res.data.totalPages);
-    })
-    .catch(err => console.error(err));
-  }, [currentPage]);
+    // refetch brewery data on currentPage change
+    useEffect(() => {
+    axios.get(`http://localhost:8080/api/import/show-breweries?page=${currentPage}&size=20`)
+        .then(res => {
+        setBreweries(res.data.content);
+        setTotalPages(res.data.totalPages);
+        })
+        .catch(err => console.error(err));
+    }, [currentPage]);
 
-  // fetch entire pool of beers available
-  useEffect(() => {
-    axios.get(`http://localhost:8080/api/import/all-beers`)
-      .then(res => {
-        setBeerPool(res.data);
-      })
-      .catch(err => console.error(err));
-  }, []);
+    // fetch entire pool of beers available
+    useEffect(() => {
+        axios.get(`http://localhost:8080/api/import/all-beers`)
+        .then(res => {
+            setBeerPool(res.data);
+        })
+        .catch(err => console.error(err));
+    }, []);
 
-  const filteredBeers = beers;
+    const filteredBeers = beers;
 
 
-  return (
-   
-    <div className="min-h-screen bg-amber-50 flex flex-col">
-      {/* Header */}
-      <div className="flex items-center justify-between bg-orange-100 p-4 shadow-md">
-        <Header />
-        <div className="w-5/6">
-          <SearchBar />
-        </div>
-        <div className="text-lg text-amber-800 font-semibold ml-2">
-          Welcome, {username}!
-        </div>
-      </div>
-
-      {/* Main Layout */}
-      <div className="flex flex-row w-full max-w-screen-xl mx-auto min-h-[500px]">
-
-        {/* Left Sidebar */}
-        <aside className="w-[240px] flex-shrink-0 bg-orange-100 p-4 space-y-4 text-left text-amber-800">
-          <button className="bg-red-50 w-full !font-bold py-2 rounded-md">My Profile</button>
-          <button className="bg-red-50 w-full !font-bold py-2 rounded-md">Following</button>
-
-          <LocationFilter
-            address={address}
-          />
-
-          {/* Filter Section  */}
-          <TastePanel
-            flavorTags={flavorTags}
-            setFlavorTags={setFlavorTags}
-            onRefresh={() => setCommittedTags(flavorTags)}
-          />
-
-          {/* Discover Breweries Section */}
-          <section className="bg-red-50 border border-gray-300 rounded-lg p-4 shadow-sm">
-            <h2 className="text-2xl font-bold mb-2">Breweries</h2>
-            <p className="text-sm mb-2">Check out these local craft breweries:</p>
-            <ul className="list-disc list-outside pl-5 space-y-1 text-sm font-medium">
-              {breweries.slice(0, 20).map((brewery) => (
-                <li key={brewery.breweryId}>
-                  <a
-                    href={`/brewery/${brewery.breweryId}`}
-                    className="text-amber-800 hover:underline"
-                  >
-                    {brewery.name}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </section>
-        </aside>
-
-        {/* Main Content */}
-        <main className="flex-1 bg-orange-50 max-w-[800px] p-6">
-          <div className="flex flex-col gap-5 w-full">
-          <h2 className="text-2xl text-left text-amber-800 font-bold"> Discover Beers </h2>
-            
-            {filteredBeers.length > 0 ? (
-              filteredBeers.map((beer) => {
-
-                const brewery = breweryMap[beer.breweryId];
-                
-                return (
-                  <div
-                    key={beer.id}
-                    className="min-h-[120px] w-full bg-red-50 border border-gray-300 rounded-lg p-4 shadow-sm flex justify-between items-center"
-                  >
-                    {/* Beer Info */}
-                    <div className="text-left">
-                      <h2 className="text-xl text-amber-800 font-bold mt-0">{beer.name}</h2>
-                      <p>
-                        from {brewery?.name || 'Unknown Brewery'}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        {brewery?.city}, {brewery?.state}
-                      </p>
-                      <p className="text-sm text-gray-800">
-                        {beer.flavorTags.map(tag => tag.charAt(0).toUpperCase() + tag.slice(1)).join(', ')}
-                      </p>
-                    </div>
-
-                    {/* Style + Action */}
-                    <div className="text-right">
-                      <p className="font-medium text-gray-800">{beer.style}</p>
-                      <p className="mb-2 font-medium text-gray-700">ABV = {(beer.abv * 100).toFixed(1)}%</p>
-                      <button
-                        className="bg-blue-200 px-4 py-2 rounded-full text-black"
-                        onClick={() => {
-                          setSelectedBeerId(beer.beerId);
-                          setShowReviewModal(true);
-                        }}
-                      >
-                        Review!
-                      </button>
-                    </div>
-                  </div>
-                );
-              })
-            ) : (
-              <div className="text-center text-gray-600 italic pt-16">
-                No beers found with those flavor tags.
-              </div>
-            )}
-
-            <div className="pagination-controls">
-              <button disabled={currentPage === 0} onClick={() => setCurrentPage(p => p - 1)}>Previous</button>
-              <span className="ml-2 mr-2">  {currentPage + 1} of {totalPages} </span>
-              <button disabled={currentPage === totalPages - 1} onClick={() => setCurrentPage(p => p + 1)}>Next</button>
+    return (
+    
+        <div className="min-h-screen bg-amber-50 flex flex-col">
+        {/* Header */}
+        <div className="flex items-center justify-between bg-orange-100 p-4 shadow-md">
+            <Header />
+            <div className="w-5/6">
+            <SearchBar />
             </div>
+            <div className="text-lg text-amber-800 font-semibold ml-2">
+            Welcome, {username}!
+            </div>
+        </div>
 
-          </div>
-        </main>
+        {/* Main Layout */}
+        <div className="flex flex-row w-full max-w-screen-xl mx-auto min-h-[500px]">
 
-        {/* Right Sidebar */}
-        <aside className="w-[240px] flex-shrink-0 bg-orange-100 p-4 space-y-4 text-left text-amber-800">
-          <RecPanel userId={userId} refreshRecs={refreshRecs}/>
-        </aside>
-      </div>
+            {/* Left Sidebar */}
+            <aside className="w-[240px] flex-shrink-0 bg-orange-100 p-4 space-y-4 text-left text-amber-800">
+            <button className="bg-red-50 w-full !font-bold py-2 rounded-md">My Profile</button>
+            <button
+                className="bg-red-50 w-full !font-bold py-2 rounded-md"
+                onClick={() => {
+                const url = `/brewer/dashboard?address=${encodeURIComponent(address)}`;
+                window.open(url, '_blank');
+                }}
+            >
+                Find Breweries
+            </button>
 
-      {/* modal (placed outside of flex container bc it overlays) */}
-      {showReviewModal && (
-        <ReviewModal
-          beerId={selectedBeerId}
-          onClose={() => setShowReviewModal(false)}
-          onReviewSubmit={() => setRefreshRecs(prev => !prev)}
-        />
-      )}
-      
-    </div>
-  );
+            
+            {/* Filter Section  */}
+            <TastePanel
+                flavorTags={flavorTags}
+                setFlavorTags={setFlavorTags}
+                onRefresh={() => setCommittedTags(flavorTags)}
+            />
+
+            {/* Discover Breweries Section */}
+            <section className="bg-red-50 border border-gray-300 rounded-lg p-4 shadow-sm">
+                <h2 className="text-2xl font-bold mb-2">Breweries</h2>
+                <p className="text-sm mb-2">Check out these local craft breweries:</p>
+                <ul className="list-disc list-outside pl-5 space-y-1 text-sm font-medium">
+                {breweries.slice(0, 20).map((brewery) => (
+                    <li key={brewery.breweryId}>
+                    <a
+                        href={`/brewery/${brewery.breweryId}`}
+                        className="text-amber-800 hover:underline"
+                    >
+                        {brewery.name}
+                    </a>
+                    </li>
+                ))}
+                </ul>
+            </section>
+            </aside>
+
+            {/* Main Content */}
+            <main className="flex-1 bg-orange-50 max-w-[800px] p-6">
+            <div className="flex flex-col gap-5 w-full">
+            <h2 className="text-2xl text-left text-amber-800 font-bold"> Discover Beers </h2>
+                
+                {filteredBeers.length > 0 ? (
+                filteredBeers.map((beer) => {
+
+                    const brewery = breweryMap[beer.breweryId];
+                    
+                    return (
+                    <div
+                        key={beer.id}
+                        className="min-h-[120px] w-full bg-red-50 border border-gray-300 rounded-lg p-4 shadow-sm flex justify-between items-center"
+                    >
+                        {/* Beer Info */}
+                        <div className="text-left">
+                        <h2 className="text-xl text-amber-800 font-bold mt-0">{beer.name}</h2>
+                        <p>
+                            from {brewery?.name || 'Unknown Brewery'}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                            {brewery?.city}, {brewery?.state}
+                        </p>
+                        <p className="text-sm text-gray-800">
+                            {beer.flavorTags.map(tag => tag.charAt(0).toUpperCase() + tag.slice(1)).join(', ')}
+                        </p>
+                        </div>
+
+                        {/* Style + Action */}
+                        <div className="text-right">
+                        <p className="font-medium text-gray-800">{beer.style}</p>
+                        <p className="mb-2 font-medium text-gray-700">ABV = {(beer.abv * 100).toFixed(1)}%</p>
+                        <button
+                            className="bg-blue-200 px-4 py-2 rounded-full text-black"
+                            onClick={() => {
+                            setSelectedBeerId(beer.beerId);
+                            setShowReviewModal(true);
+                            }}
+                        >
+                            Review!
+                        </button>
+                        </div>
+                    </div>
+                    );
+                })
+                ) : (
+                <div className="text-center text-gray-600 italic pt-16">
+                    No beers found with those flavor tags.
+                </div>
+                )}
+
+                <div className="pagination-controls">
+                <button disabled={currentPage === 0} onClick={() => setCurrentPage(p => p - 1)}>Previous</button>
+                <span className="ml-2 mr-2">  {currentPage + 1} of {totalPages} </span>
+                <button disabled={currentPage === totalPages - 1} onClick={() => setCurrentPage(p => p + 1)}>Next</button>
+                </div>
+
+            </div>
+            </main>
+
+            {/* Right Sidebar */}
+            <aside className="w-[240px] flex-shrink-0 bg-orange-100 p-4 space-y-4 text-left text-amber-800">
+            <RecPanel userId={userId} refreshRecs={refreshRecs}/>
+            </aside>
+        </div>
+
+        {/* modal (placed outside of flex container bc it overlays) */}
+        {showReviewModal && (
+            <ReviewModal
+            beerId={selectedBeerId}
+            onClose={() => setShowReviewModal(false)}
+            onReviewSubmit={() => setRefreshRecs(prev => !prev)}
+            />
+        )}
+        
+        </div>
+    );
 }
 
 export default UserDashboard;

@@ -9,7 +9,7 @@ export default function Header() {
                 alt="BrewPalate Logo"
                 className="h-22 w-22 mr-0 object-contain rounded-md"
             />
-            <h1 className="text-4xl font-bold text-amber-900">BrewPalatte</h1>
+            <h1 className="text-4xl font-bold text-amber-900">BrewPalette</h1>
             </div>
     )
 }
