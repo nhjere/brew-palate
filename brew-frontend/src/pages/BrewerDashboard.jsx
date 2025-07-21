@@ -1,7 +1,7 @@
 import Header from '../components/header';
 import SearchBar from '../components/SearchBar';
 import LocationFilter from '../components/LocationFilter';
-// import BreweryMap from '../components/BreweryMap';
+import BreweryMap from '../components/BreweryMap';
 // import CrawlGenerator from '../components/CrawlGenerator';
 import { useLocation } from 'react-router-dom';
 import { useEffect, useState } from 'react';
@@ -19,6 +19,8 @@ export default function BrewerDashboard() {
     const [distance, setDistance] = useState(25);
     const [allBreweries, setAllBreweries] = useState([]);
     const navigate = useNavigate();
+    const [mapCenter, setMapCenter] = useState(null);
+    const [currentPage, setCurrentPage] = useState(1);
     const [address, setAddress] = useState(() => {
         return localStorage.getItem('brew_address') || '10120 Pickfair Dr';
     });
@@ -64,9 +66,9 @@ export default function BrewerDashboard() {
         if (coords) {
         const [lng, lat] = coords;
         fetchNearbyBreweries(lat, lng);
+        setMapCenter({lat, lng})
         }
     };
-
     fetchCoords();
     }, [address, distance]);
 
@@ -104,16 +106,20 @@ export default function BrewerDashboard() {
         console.error('Error geocoding address:', err);
         });
     };
-        
+
+    // brewery table pages logic 
+    const breweriesPerPage = 11;
+    const startIdx = (currentPage - 1) * breweriesPerPage;
+    const currentPageBreweries = filteredBreweries.slice(startIdx, startIdx + breweriesPerPage);
+    const totalPages = Math.ceil(filteredBreweries.length / breweriesPerPage);
+            
 
     return (
-        <div className="min-h-screen bg-orange-100 ">
-        <div className="flex items-center justify-between p-4">
-            <Header />
-        </div>
+        <div className="min-h-screen bg-orange-100">
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 p-4">
-            <div className="col-span-1">
+        <div className="p-4">
+            <Header />
+            <div className="mt-2">
             <LocationFilter
                 address={address}
                 onAddressChange={handleAddressChange}
@@ -124,46 +130,71 @@ export default function BrewerDashboard() {
                 onSearch={refetchNearby}
             />
             </div>
-
-            <div className="col-span-2">
-                <section className="bg-red-50 border border-gray-300 rounded-lg p-4 shadow-sm">
-                    <h2 className="text-2xl font-bold mb-2">Breweries</h2>
-                    <p className="text-sm mb-2">Check out these local craft breweries:</p>
-
-                    <div className="overflow-x-auto">
-                    <table className="min-w-full table-auto border border-gray-300 text-sm">
-                        <thead className="bg-orange-100">
-                        <tr>
-                            <th className="px-4 py-2 text-left">Name</th>
-                            <th className="px-4 py-2 text-left">Address</th>
-                            <th className="px-4 py-2 text-left">Distance (mi)</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {filteredBreweries.slice(0, 20).map((brewery) => (
-                            <tr key={brewery.breweryId} className="border-t">
-                            <td className="px-4 py-2 text-amber-800 hover:underline">
-                                <Link to={`/brewery/${brewery.breweryId}`}>
-                                    {brewery.breweryName}
-                                </Link>
-                            </td>
-                            <td className="px-4 py-2">
-                                {brewery.street}, {brewery.city}, {brewery.state}
-                            </td>
-                            <td className="px-4 py-2">
-                                {brewery.distance ? brewery.distance.toFixed(2) : 'N/A'}
-                            </td>
-                            </tr>
-                        ))}
-                        </tbody>
-                    </table>
-                    </div>
-                </section>
-                </div>
         </div>
 
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 px-4 pb-8">
 
+            <div className="lg:col-span-3">
+            <section className="bg-white border border-gray-300 rounded-lg p-4 shadow-sm h-full">
+                <h2 className="text-xl font-semibold mb-2">Map View</h2>
+                {mapCenter && (
+                <BreweryMap 
+                    breweries={filteredBreweries}
+                    center={mapCenter}
+                />
+                )}
+            </section>
+            </div>
 
+            <div className="lg:col-span-2">
+            <section className="bg-white border border-gray-300 rounded-lg p-4 shadow-sm">
+                <h2 className="text-xl font-semibold mb-2">Nearby Breweries</h2>
+                <table className="min-w-full table-auto border border-gray-300 text-sm">
+                <thead className="bg-orange-100">
+                    <tr>
+                    <th className="px-4 py-2 text-left">Name</th>
+                    <th className="px-4 py-2 text-left">Distance (mi)</th>
+                    </tr>
+                </thead>
+                    <tbody>
+                    {currentPageBreweries.map((brewery) => (
+                        <tr key={brewery.breweryId} className="border-t">
+                        <td className="px-4 py-2 text-amber-800 hover:underline">
+                            <Link to={`/brewery/${brewery.breweryId}`}>
+                            {brewery.breweryName}
+                            </Link>
+                        </td>
+                        <td className="px-4 py-2">
+                            {brewery.distance ? brewery.distance.toFixed(2) : 'N/A'}
+                        </td>
+                        </tr>
+                    ))}
+                    </tbody>
+                </table>
+
+                <div className="flex justify-between items-center mt-4 text-sm">
+                    <button
+                        disabled={currentPage === 1}
+                        onClick={() => setCurrentPage(currentPage - 1)}
+                        className="bg-gray-200 px-3 py-1 rounded disabled:opacity-50"
+                    >
+                        Prev
+                    </button>
+
+                    <span>Page {currentPage} of {totalPages}</span>
+
+                    <button
+                        disabled={currentPage === totalPages}
+                        onClick={() => setCurrentPage(currentPage + 1)}
+                        className="bg-gray-200 px-3 py-1 rounded disabled:opacity-50"
+                    >
+                        Next
+                    </button>
+                </div>
+            </section>
+            </div>
+
+        </div>
         </div>
     );
 }

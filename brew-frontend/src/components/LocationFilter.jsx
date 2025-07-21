@@ -20,51 +20,44 @@ const handleConfirmAddress = () => {
 
 
 return (
-    <aside className="bg-red-50 border border-gray-300 rounded-lg p-4 shadow-sm">
-        <h2 className="text-2xl font-bold mb-1">Filter By Location</h2>
+<aside className="bg-white border border-gray-300 rounded-lg p-4 shadow-sm">
+  <div className="flex flex-col lg:flex-row items-center justify-between gap-4 w-full">
 
-        <label className="text-sm font-medium text-gray-800 mb-1 block">Your Address:</label>
-        <div className="flex items-center gap-2 mb-2">
-            <input
-            type="text"
-            value={newAddress}
-            onChange={(e) => setNewAddress(e.target.value)}
-            className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
-            />
-            <button
-            onClick={handleConfirmAddress}
-            className="bg-blue-200 px-4 py-1 rounded text-sm hover:bg-blue-300"
-            >
-            Enter
-            </button>
-        </div>
+    <div className="flex items-center gap-2 flex-wrap">
+      <label className="text-sm font-medium text-gray-800 whitespace-nowrap">Your Address:</label>
+      <input
+        type="text"
+        value={newAddress}
+        onChange={(e) => setNewAddress(e.target.value)}
+        className="w-64 px-2 py-1 border border-gray-300 rounded-md text-sm"
+      />
+    </div>
 
-        <p className="text-sm text-gray-700 mb-3 italic">
-            {address ? `Searching from: ${address}` : "Location unknown"}
-        </p>
+    <div className="flex items-center gap-2 flex-wrap">
+      <label className="text-sm font-medium text-gray-800 whitespace-nowrap">Max Distance:</label>
+      <input
+        type="number"
+        value={localDistance}
+        onChange={(e) => setLocalDistance(Number(e.target.value))}
+        className="w-16 px-2 py-1 border border-gray-300 rounded-md text-sm text-center"
+      />
+      <span className="text-sm text-gray-800">miles</span>
+    </div>
 
-        <label className="text-sm font-medium text-gray-800 mb-1 block">
-            Max Distance: {localDistance} miles
-        </label>
-        <input
-            type="range"
-            min="1"
-            max="100"
-            value={localDistance}
-            onChange={(e) => setLocalDistance(Number(e.target.value))}
-            className="appearance-none w-full h-2 bg-white border border-black rounded mb-5"
-        />
+    <button
+      onClick={() => {
+        handleConfirmAddress();
+        setDistance(localDistance);
+        onSearch();
+      }}
+      className="bg-blue-200 px-4 py-2 rounded-full text-black"
+    >
+      Search Breweries
+    </button>
+  </div>
+</aside>
 
-        <button
-            onClick={() => {
-            setDistance(localDistance);
-            onSearch();
-            }}
-            className="bg-amber-800 text-white py-2 px-4 rounded hover:bg-amber-700"
-        >
-            Search Breweries
-        </button>
-    </aside>
+
 );
 }
 

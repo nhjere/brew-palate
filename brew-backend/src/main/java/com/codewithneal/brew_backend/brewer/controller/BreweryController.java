@@ -6,8 +6,11 @@ import com.codewithneal.brew_backend.brewer.model.Brewery;
 import com.codewithneal.brew_backend.brewer.repository.BreweryRepository;
 
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.http.ResponseEntity;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -58,5 +61,45 @@ public class BreweryController {
         List<Brewery> breweries = breweryRepo.findAll();
         return ResponseEntity.ok(breweries);
     }
+
+
+    // writes all breweries to db
+    @PostMapping("/seed/all")
+    public ResponseEntity<String> seedAllBreweries() {
+        RestTemplate restTemplate = new RestTemplate();
+        List<Brewery> allBreweries = new ArrayList<>();
+        int page = 1;
+        int totalFetched = 0;
+
+        while (true) {
+            String url = "https://api.openbrewerydb.org/v1/breweries?per_page=200&page=" + page;
+            try {
+                ResponseEntity<BreweryDTO[]> response = restTemplate.getForEntity(url, BreweryDTO[].class);
+                BreweryDTO[] dtoArray = response.getBody();
+
+                if (dtoArray == null || dtoArray.length == 0) {
+                    break; // No more data
+                }
+
+                List<Brewery> batch = Arrays.stream(dtoArray)
+                    .map(BreweryMapper::toEntity)
+                    .toList();
+
+                allBreweries.addAll(batch);
+                totalFetched += batch.size();
+                page++;
+
+            } catch (Exception e) {
+                return ResponseEntity.internalServerError()
+                    .body("Failed at page " + page + ": " + e.getMessage());
+            }
+        }
+
+        breweryRepo.saveAll(allBreweries);
+        return ResponseEntity.ok("Successfully imported " + totalFetched + " breweries.");
+    }
+
+
+
 }
 
