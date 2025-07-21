@@ -26,9 +26,9 @@ export default function RecPanel({userId, refreshRecs}) {
 
     // Fetch reviews
     useEffect(() => {
-        if (!userId) return;
+    if (!userId) return;
 
-        axios.get(`http://localhost:8080/api/user/reviews/user/${userId}`)
+    axios.get(`http://localhost:8080/api/user/reviews/user/${userId}`)
         .then(res => setReviews(res.data))
         .catch(err => console.error("Failed to fetch user's past reviews:", err));
     }, [userId, refreshRecs]);
@@ -50,7 +50,7 @@ export default function RecPanel({userId, refreshRecs}) {
                 {/* Scrollable container */}
                 <div className="max-h-60 overflow-y-auto pr-2 custom-scrollbar">
                     <ul className="list-disc list-outside pl-5 space-y-1 text-sm font-medium">
-                    {reviews.map((review) => {
+                    {[...reviews].reverse().map((review) => {
                         const beer = beerMap[review.beerId];
                         return (
                         <li key={review.beerId} className="mb-4">

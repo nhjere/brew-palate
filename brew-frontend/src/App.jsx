@@ -4,14 +4,13 @@ import UserDashboard from './pages/UserDashboard';
 import BrewerDashboard from './pages/BrewerDashboard'
 import Registration from './pages/Registration'
 import NoPage from './pages/NoPage';
-import React from 'react';
+import BreweryPage from './pages/BreweryPage';
 import './App.css'
 import './index.css'
 import { BreweryProvider } from './context/BreweryContext';
 import { BeerProvider } from './context/BeerContext';
 
 function App() {
-
   return (
     <BeerProvider>
       <BreweryProvider>
@@ -21,12 +20,12 @@ function App() {
             <Route path="/register/" element={<Registration />} />
             <Route path="/user/dashboard/:userId" element={<UserDashboard />} />
             <Route path="/brewer/dashboard" element={<BrewerDashboard />} />
+            <Route path="/brewery/:breweryId" element={<BreweryPage />} /> 
             <Route path="*" element={<NoPage />} />
           </Routes>
         </Router>
       </BreweryProvider>
     </BeerProvider>
-
   );
 }
 

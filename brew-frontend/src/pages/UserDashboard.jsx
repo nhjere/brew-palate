@@ -100,14 +100,14 @@ function UserDashboard() {
     
 
     // refetch brewery data on currentPage change
-    useEffect(() => {
-    axios.get(`http://localhost:8080/api/import/show-breweries?page=${currentPage}&size=20`)
-        .then(res => {
-        setBreweries(res.data.content);
-        setTotalPages(res.data.totalPages);
-        })
-        .catch(err => console.error(err));
-    }, [currentPage]);
+    // useEffect(() => {
+    // axios.get(`http://localhost:8080/api/import/show-breweries?page=${currentPage}&size=20`)
+    //     .then(res => {
+    //     setBreweries(res.data.content);
+    //     setTotalPages(res.data.totalPages);
+    //     })
+    //     .catch(err => console.error(err));
+    // }, [currentPage]);
 
     // fetch entire pool of beers available
     useEffect(() => {
@@ -117,6 +117,15 @@ function UserDashboard() {
         })
         .catch(err => console.error(err));
     }, []);
+
+    // reads in all breweries from db (previously posted from open brewery db)
+    useEffect(() => {
+        axios.get('http://localhost:8080/api/brewer/breweries/all')
+        .then(res => setBreweries(res.data))
+        .catch(err => console.error(err));
+
+    }, []);
+
 
     const filteredBeers = beers;
 
@@ -170,7 +179,7 @@ function UserDashboard() {
                         href={`/brewery/${brewery.breweryId}`}
                         className="text-amber-800 hover:underline"
                     >
-                        {brewery.name}
+                        {brewery.breweryName}
                     </a>
                     </li>
                 ))}

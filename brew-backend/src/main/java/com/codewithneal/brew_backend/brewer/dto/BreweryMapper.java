@@ -24,4 +24,23 @@ public class BreweryMapper {
 
         return brewery;
     }
+
+    public static BreweryDTO toDTO(Brewery brewery) {
+        BreweryDTO dto = new BreweryDTO();
+
+        dto.setBreweryId(brewery.getBreweryId().toString());
+        dto.setBreweryName(brewery.getBreweryName());
+        dto.setBreweryType(brewery.getBreweryType());
+        dto.setStreet(brewery.getStreet());
+        dto.setCity(brewery.getCity());
+        dto.setState(brewery.getState());
+        dto.setPostalCode(brewery.getPostalCode());
+        dto.setCountry(brewery.getCountry());
+        dto.setPhone(brewery.getPhone());
+        dto.setWebsiteUrl(brewery.getWebsiteUrl());
+        dto.setLatitude(brewery.getLatitude());
+        dto.setLongitude(brewery.getLongitude());
+
+        return dto;
+    }
 }

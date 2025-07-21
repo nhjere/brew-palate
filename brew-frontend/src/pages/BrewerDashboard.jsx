@@ -6,6 +6,8 @@ import LocationFilter from '../components/LocationFilter';
 import { useLocation } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 export default function BrewerDashboard() {
 
@@ -16,10 +18,12 @@ export default function BrewerDashboard() {
     const [filteredBreweries, setFilteredBreweries] = useState([]);
     const [distance, setDistance] = useState(25);
     const [allBreweries, setAllBreweries] = useState([]);
+    const navigate = useNavigate();
     const [address, setAddress] = useState(() => {
         return localStorage.getItem('brew_address') || '10120 Pickfair Dr';
     });
 
+    
     // store new value when user updates address
     const handleAddressChange = async (newAddress) => {
     try {
@@ -42,12 +46,6 @@ export default function BrewerDashboard() {
         }
     };
     
-    // // reads in all breweries from db (previously posted from open brewery db)
-    // useEffect(() => {
-    //     axios.get('http://localhost:8080/api/brewer/breweries')
-    //     .then(res => setAllBreweries(res.data))
-    //     .catch(err => console.error(err));
-    // }, []);
 
     // geo code address -> long, lat 
     useEffect(() => {
@@ -82,7 +80,7 @@ export default function BrewerDashboard() {
         } catch (err) {
             console.error('Error fetching nearby breweries:', err);
         }
-    };
+    }; 
 
     // retrigger a search
     const refetchNearby = () => {
@@ -145,9 +143,9 @@ export default function BrewerDashboard() {
                         {filteredBreweries.slice(0, 20).map((brewery) => (
                             <tr key={brewery.breweryId} className="border-t">
                             <td className="px-4 py-2 text-amber-800 hover:underline">
-                                <a href={`/brewery/${brewery.breweryId}`}>
-                                {brewery.breweryName}
-                                </a>
+                                <Link to={`/brewery/${brewery.breweryId}`}>
+                                    {brewery.breweryName}
+                                </Link>
                             </td>
                             <td className="px-4 py-2">
                                 {brewery.street}, {brewery.city}, {brewery.state}

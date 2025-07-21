@@ -50,6 +50,7 @@ public class BreweryDTO {
         return idString;
     }
 
+
     public UUID getBreweryId() {
         return UUID.fromString(idString);
     }

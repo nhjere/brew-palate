@@ -83,7 +83,8 @@ button.register-link:focus {
 
 /* Tailwind-compatible custom scrollbar styles */
 .custom-scrollbar::-webkit-scrollbar {
-  width: 5px;
+  width: 10px;
+  height: 30px;
 }
 
 
