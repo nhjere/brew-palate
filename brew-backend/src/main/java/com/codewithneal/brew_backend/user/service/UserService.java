@@ -48,6 +48,10 @@ public class UserService {
         return userRepo.findById(userId);
     }
 
+    // saves user changes
+    public User saveUser(User user) {
+        return userRepo.save(user);
+    }
 
     public boolean usernameExists(String username) {
         return userRepo.existsByUsername(username);

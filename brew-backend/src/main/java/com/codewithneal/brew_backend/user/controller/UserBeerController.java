@@ -29,4 +29,6 @@ public class UserBeerController {
             ))
             .collect(Collectors.toList());
     }
+
+    // add GET, POST, PATCH
 }

@@ -49,6 +49,7 @@ public class UserController {
 
     }
 
+    // retrieve a  profile information based on a JWT (JSON Web Token) provided in the HTTP Authorization header
     @Value("${supabase.jwt.secret}")
         private String jwtSecret;
 
@@ -80,6 +81,43 @@ public class UserController {
         }
     }
 
+    @PatchMapping("/profile/update")
+    public ResponseEntity<?> updateUserProfile(
+        @RequestHeader("Authorization") String authHeader,
+        @RequestBody Map<String, Object> updates
+    ) {
+        // remove bearer prefix from authorization header
+        String token = authHeader.replace("Bearer ", "");
+        try {
+            // Decode Supabase JWT token
+            DecodedJWT jwt = JWT.require(Algorithm.HMAC256(jwtSecret))
+                                .build()
+                                .verify(token);
+            String userId = jwt.getSubject();
+
+            Optional<User> userOpt = userService.getUserById(UUID.fromString(userId));
+            if (userOpt.isEmpty()) {
+                return ResponseEntity.status(404).body(Map.of("error", "User not found"));
+            }
+            
+            User updatedUser = userOpt.get();
+
+            // conditionally update user fields
+            if (updates.containsKey("username")) {
+                updatedUser.setUsername((String) updates.get("username"));
+            }
+            if (updates.containsKey("address")) {
+                updatedUser.setAddress((String) updates.get("address"));
+            }
+
+            userService.saveUser(updatedUser);
+
+            return ResponseEntity.ok(updatedUser);
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body(Map.of("error", "Invalid token or update failed"));
+        }
+    }
+ 
 
 
 }

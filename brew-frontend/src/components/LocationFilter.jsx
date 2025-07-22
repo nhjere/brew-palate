@@ -20,7 +20,7 @@ const handleConfirmAddress = () => {
 
 
 return (
-<aside className="bg-white border border-gray-300 rounded-lg p-4 shadow-sm">
+<aside className="bg-orange-50 border border-gray-300 rounded-lg p-4 shadow-sm">
   <div className="flex flex-col lg:flex-row items-center justify-between gap-4 w-full">
 
     <div className="flex items-center gap-2 flex-wrap">
@@ -30,6 +30,7 @@ return (
         value={newAddress}
         onChange={(e) => setNewAddress(e.target.value)}
         className="w-64 px-2 py-1 border border-gray-300 rounded-md text-sm"
+        placeholder="Enter your location"
       />
     </div>
 

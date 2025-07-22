@@ -4,7 +4,7 @@ import LocationFilter from '../components/LocationFilter';
 import BreweryMap from '../components/BreweryMap';
 // import CrawlGenerator from '../components/CrawlGenerator';
 import { useLocation } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
@@ -14,18 +14,36 @@ export default function BrewerDashboard() {
     const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
     
     const location = useLocation();
-    const queryParams = new URLSearchParams(location.search);
     const [filteredBreweries, setFilteredBreweries] = useState([]);
     const [distance, setDistance] = useState(25);
     const [allBreweries, setAllBreweries] = useState([]);
     const navigate = useNavigate();
     const [mapCenter, setMapCenter] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);
-    const [address, setAddress] = useState(() => {
-        return localStorage.getItem('brew_address') || '10120 Pickfair Dr';
-    });
+    const queryParams = new URLSearchParams(location.search);
 
-    
+    const [address, setAddress] = useState('');
+    const isFirstLoad = useRef(true);
+
+    // handles address loading in first spot
+    useEffect(() => {
+        if (isFirstLoad.current) {
+            const queryAddress = queryParams.get('address');
+            const stored = localStorage.getItem('brew_address');
+
+            if (queryAddress) {
+                setAddress(queryAddress);
+                localStorage.setItem('brew_address', queryAddress);
+            } else if (stored) {
+                setAddress(stored);
+            } else {
+                setAddress('Austin');
+            }
+
+            isFirstLoad.current = false;
+        }
+    }, []);
+
     // store new value when user updates address
     const handleAddressChange = async (newAddress) => {
     try {
@@ -107,6 +125,7 @@ export default function BrewerDashboard() {
         });
     };
 
+
     // brewery table pages logic 
     const breweriesPerPage = 11;
     const startIdx = (currentPage - 1) * breweriesPerPage;
@@ -135,7 +154,7 @@ export default function BrewerDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 px-4 pb-8">
 
             <div className="lg:col-span-3">
-            <section className="bg-white border border-gray-300 rounded-lg p-4 shadow-sm h-full">
+            <section className="bg-orange-50 border border-gray-300 rounded-lg p-4 shadow-sm h-full">
                 <h2 className="text-xl font-semibold mb-2">Map View</h2>
                 {mapCenter && (
                 <BreweryMap 
@@ -147,7 +166,7 @@ export default function BrewerDashboard() {
             </div>
 
             <div className="lg:col-span-2">
-            <section className="bg-white border border-gray-300 rounded-lg p-4 shadow-sm">
+            <section className="bg-orange-50 border border-gray-300 rounded-lg p-4 shadow-sm">
                 <h2 className="text-xl font-semibold mb-2">Nearby Breweries</h2>
                 <table className="min-w-full table-auto border border-gray-300 text-sm">
                 <thead className="bg-orange-100">
@@ -157,18 +176,23 @@ export default function BrewerDashboard() {
                     </tr>
                 </thead>
                     <tbody>
-                    {currentPageBreweries.map((brewery) => (
+                        {currentPageBreweries.map((brewery) => (
                         <tr key={brewery.breweryId} className="border-t">
-                        <td className="px-4 py-2 text-amber-800 hover:underline">
-                            <Link to={`/brewery/${brewery.breweryId}`}>
-                            {brewery.breweryName}
-                            </Link>
-                        </td>
-                        <td className="px-4 py-2">
+                            <td className="px-4 py-2">
+                            <a
+                                href={`/brewery/${brewery.breweryId}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-amber-800 hover:underline"
+                            >
+                                {brewery.breweryName}
+                            </a>
+                            </td>
+                            <td className="px-4 py-2">
                             {brewery.distance ? brewery.distance.toFixed(2) : 'N/A'}
-                        </td>
+                            </td>
                         </tr>
-                    ))}
+                        ))}
                     </tbody>
                 </table>
 

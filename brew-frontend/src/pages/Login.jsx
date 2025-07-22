@@ -53,7 +53,7 @@ export default function Login() {
             return;
         }
 
-        console.log('User ', data.user, 'logged in')
+        // console.log('User ', data.user, 'logged in')
         setUser(data.user);
         setSuccessMessage('Login successful!')
         navigate(`/user/dashboard/${data.user.id}`);

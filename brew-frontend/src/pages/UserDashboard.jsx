@@ -18,117 +18,119 @@ const supabase = createClient(
 function UserDashboard() {
     
     // set user 
-  const [userId, setUserId] = useState(null);
-  const {userId: paramUserId } = useParams();
-  const navigate = useNavigate();
+    const [userId, setUserId] = useState(null);
+    const {userId: paramUserId } = useParams();
+    const navigate = useNavigate();
 
-  // main dashboard variables
-  const [beers, setBeers] = useState([]);
-  const [breweries, setBreweries] = useState([]);
-  const [username, setUsername] = useState('');
-  const [beerPool, setBeerPool] = useState([]);
-  const [address, setAddress] = useState('');
+    // main dashboard variables
+    const [beers, setBeers] = useState([]);
+    const [breweries, setBreweries] = useState([]);
+    const [username, setUsername] = useState('');
+    const [beerPool, setBeerPool] = useState([]);
+    const [address, setAddress] = useState('');
 
-  // taste panel variables
-  const [flavorTags, setFlavorTags] = useState([]);
-  const [committedTags, setCommittedTags] = useState([]);
+    // taste panel variables
+    const [flavorTags, setFlavorTags] = useState([]);
+    const [committedTags, setCommittedTags] = useState([]);
 
-  // review modal variables
-  const [selectedBeerId, setSelectedBeerId] = useState(null);
-  const [showReviewModal, setShowReviewModal] = useState(false);
-  const [refreshRecs, setRefreshRecs] = useState(false);
+    // review modal variables
+    const [selectedBeerId, setSelectedBeerId] = useState(null);
+    const [showReviewModal, setShowReviewModal] = useState(false);
+    const [refreshRecs, setRefreshRecs] = useState(false);
 
-  // pagination variables
-  const [currentPage, setCurrentPage] = useState(0);
-  const [totalPages, setTotalPages] = useState();
-  const breweryMap = useBreweryMap();
+    // pagination variables
+    const [currentPage, setCurrentPage] = useState(0);
+    const [totalPages, setTotalPages] = useState();
+    const breweryMap = useBreweryMap();
 
-  const BASE_URL = import.meta.env.VITE_BACKEND_URL;
+    const BASE_URL = import.meta.env.VITE_BACKEND_URL;
   
-  // Fetch user and sets username using Supabase user ID
-  useEffect(() => {
-    const fetchUserProfile = async () => {
-    const { data: { session }, error } = await supabase.auth.getSession();
-
-    if (error || !session) {
+    // Fetch user and sets username using Supabase user ID
+    useEffect(() => {
+    const fetchUserProfile = async (session) => {
+        if (!session) {
         console.warn("No Supabase session found.");
         return;
-    }
-    const user = session.user;
-    setUserId(user.id);
-    const token = session.access_token;
-    try {
+        }
+
+        const user = session.user;
+        setUserId(user.id);
+        localStorage.setItem("user_id", user.id);
+
+        const token = session.access_token;
+        try {
         const res = await axios.get(`${BASE_URL}/api/user/profile`, {
-        headers: {
+            headers: {
             Authorization: `Bearer ${token}`,
-        },
+            },
         });
 
         setUsername(res.data.username || '');
         setAddress(res.data.address || '');
-
-    } catch (err) {
-        console.error("Failed to fetch user profile:", err);
-    }
-    };
-    fetchUserProfile();
-  }, []);
-  
-  // fetch filtered beers from csv backed db
-  useEffect(() => {
-    const fetchFilteredBeers = async () => {
-        try {
-            const res = await axios.get('http://localhost:8080/api/import/filtered-beers', {
-            params: {
-                tags: committedTags,
-                page: currentPage,
-                size: 20
-            },
-            paramsSerializer: params => {
-                return new URLSearchParams(params).toString();
-            }
-            });
-            setBeers(res.data.content);
-            setTotalPages(res.data.totalPages);
         } catch (err) {
-            console.error("Failed to fetch beers", err);
+        console.error("Failed to fetch user profile:", err);
         }
     };
 
-    fetchFilteredBeers();
-  }, [committedTags, currentPage]);
+    supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) {
+        fetchUserProfile(session);
+        }
+    });
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+        if (session) {
+        fetchUserProfile(session);
+        }
+    });
+
+    return () => {
+        authListener.subscription.unsubscribe();
+    };
+    }, []);
+
     
-
-    // refetch brewery data on currentPage change
-    // useEffect(() => {
-    // axios.get(`http://localhost:8080/api/import/show-breweries?page=${currentPage}&size=20`)
-    //     .then(res => {
-    //     setBreweries(res.data.content);
-    //     setTotalPages(res.data.totalPages);
-    //     })
-    //     .catch(err => console.error(err));
-    // }, [currentPage]);
-
-    // fetch entire pool of beers available
+    // fetch filtered beers from csv backed db
     useEffect(() => {
-        axios.get(`http://localhost:8080/api/import/all-beers`)
-        .then(res => {
-            setBeerPool(res.data);
-        })
-        .catch(err => console.error(err));
-    }, []);
+        const fetchFilteredBeers = async () => {
+            try {
+                const res = await axios.get('http://localhost:8080/api/import/filtered-beers', {
+                params: {
+                    tags: committedTags,
+                    page: currentPage,
+                    size: 20
+                },
+                paramsSerializer: params => {
+                    return new URLSearchParams(params).toString();
+                }
+                });
+                setBeers(res.data.content);
+                setTotalPages(res.data.totalPages);
+            } catch (err) {
+                console.error("Failed to fetch beers", err);
+            }
+        };
 
-    // reads in all breweries from db (previously posted from open brewery db)
-    useEffect(() => {
-        axios.get('http://localhost:8080/api/brewer/breweries/all')
-        .then(res => setBreweries(res.data))
-        .catch(err => console.error(err));
+        fetchFilteredBeers();
+    }, [committedTags, currentPage]);
 
-    }, []);
+        // fetch entire pool of beers available
+        useEffect(() => {
+            axios.get(`http://localhost:8080/api/import/all-beers`)
+            .then(res => {
+                setBeerPool(res.data);
+            })
+            .catch(err => console.error(err));
+        }, []);
 
+        // reads in all breweries from db (previously posted from open brewery db)
+        useEffect(() => {
+            axios.get('http://localhost:8080/api/brewer/breweries/all')
+            .then(res => setBreweries(res.data))
+            .catch(err => console.error(err));
 
-    const filteredBeers = beers;
-
+        }, []);
+        const filteredBeers = beers;
 
     return (
     
@@ -149,7 +151,15 @@ function UserDashboard() {
 
             {/* Left Sidebar */}
             <aside className="w-[240px] flex-shrink-0 bg-orange-100 p-4 space-y-4 text-left text-amber-800">
-            <button className="bg-red-50 w-full !font-bold py-2 rounded-md">My Profile</button>
+            <button 
+                className="bg-red-50 w-full !font-bold py-2 rounded-md"
+                onClick= {() => {
+                    const url = `/user/profile/${userId}`
+                    window.open(url, '_blank')
+                }}   
+            >
+                My Profile
+            </button>
             <button
                 className="bg-red-50 w-full !font-bold py-2 rounded-md"
                 onClick={() => {
