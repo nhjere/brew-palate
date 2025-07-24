@@ -100,16 +100,17 @@ export default function ReviewModal({ beerId, onClose, onReviewSubmit}) {
                     <>
                     {(() => { 
                         console.log(beer)      
-                        const brewery = breweryMap[beer.breweryId];
+                        const brewery = breweryMap[beer.breweryUuid];
 
                         return(
                             <>
-                            <h2 className="text-2xl font-bold mb-2">{beer.name}</h2>
-                            <p className="mb-1">Style: {beer.style}</p>
-                            <p className="mb-1">Tags: {beer.flavorTags.join(', ')}</p>
-                            <p className="mb-4">
-                                From: {brewery?.name || 'Unknown Brewery'} ({brewery?.city}, {brewery?.state})
-                            </p>
+                                <h2 className="text-2xl font-bold mb-2">{beer.name}</h2>
+                                <p className="mb-1">Style: {beer.style}</p>
+                                <p className="mb-1">
+                                    Tags: {beer.flavorTags.map(tag => tag.charAt(0).toUpperCase() + tag.slice(1).toLowerCase()).join(', ')}
+                                </p>
+                                <p className="mb-1">From: {brewery?.breweryName || 'Unknown Brewery'}</p>
+                                <p className="mb-1">Address: {brewery?.street}, {brewery?.city}, {brewery?.state}, {brewery?.postalCode} </p>
                             </>
                         );
                     })()}

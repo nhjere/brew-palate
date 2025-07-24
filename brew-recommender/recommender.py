@@ -6,16 +6,15 @@ import ast
 
 def loadData():
     # load and consolidate beer df
-    beers_filepath = '../imported_beers.csv'
+    beers_filepath = '../beer_pool.csv'
     beers_df = pd.read_csv(beers_filepath)
-    tags_filepath = '../imported_beers_ft.csv'
+    tags_filepath = '../beer_ft_pool.csv'
     tags_df = pd.read_csv(tags_filepath)
     complete_beers = pd.merge(beers_df, tags_df, on='beer_id')
     beers_df = complete_beers.groupby('beer_id').agg({
         'abv': 'first',
-        'external_brewery_id': 'first',
+        'brewery_uuid': 'first',
         'ibu': 'first',
-        'external_beer_id': 'first',
         'name': 'first',
         'ounces': 'first',
         'style': 'first',
@@ -23,7 +22,7 @@ def loadData():
     }).reset_index()
 
     # load reviews df
-    reviews_filepath = '../final_reviews.csv'
+    reviews_filepath = '../new_reviews.csv'
     reviews_df = pd.read_csv(reviews_filepath)
     reviews_df["userId"] = reviews_df["userId"].astype(str)
     reviews_df["beerId"] = reviews_df["beerId"].astype(str)
@@ -115,12 +114,13 @@ def getPopularBeers(reviews_df, beers_df, num_recs):
         .reset_index()
         .rename(columns={"mean": "avg_rating", "count": "num_reviews"})
     )
-
+    
     popular_beers = beer_stats[beer_stats["num_reviews"] >= min_reviews]
     merged = popular_beers.merge(beers_df, left_on="beerId", right_on="beer_id")
     sorted_beers = merged.sort_values(by="avg_rating", ascending=False)
     diverse = sorted_beers.drop_duplicates(subset="style", keep="first")
     top_beers = diverse.head(num_recs) if len(diverse) >= num_recs else sorted_beers.head(num_recs)
+
 
     return top_beers[["beer_id", "name", "style", "flavor_tag", "avg_rating", "num_reviews"]]
 
@@ -157,6 +157,7 @@ def getLiveRecommendations(user_id, reviews_df, beers_df, beer_vectors, user_rev
     beer_ids = beers_df["beer_id"].tolist()
     user_profile = getProfileVector(user_reviews_df, beer_vectors.values, beer_ids)
 
+    # likely will have to change to reflect beer flavor tags chosen in initial user preference survey
     if user_profile is None:
         print(f"[LiveRecs] No user vector, using popular fallback.")
         popular_beers = getPopularBeers(reviews_df, beers_df, num_recs)
@@ -188,17 +189,18 @@ def serialize_beers(df):
     return [
         {
             "beerId": row["beer_id"],
-            "id": str(row.get("external_beer_id") or ""),
-            "name": row["name"],
-            "style": row["style"],
             "abv": safe_float(row.get("abv")),
             "ibu": safe_float(row.get("ibu")),
+            "name": row["name"],
+            "style": row["style"],
             "ounces": safe_float(row.get("ounces")),
-            "breweryId": str(row.get("external_brewery_id") or ""),
+            "breweryUuid": str(row.get("brewery_uuid")),
             "flavorTags": row.get("flavor_tag", []) or []
         }
         for _, row in df.fillna("").iterrows()
     ]
+    
+
 
 
 

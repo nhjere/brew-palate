@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Entity
-@Table(name = "imported_beers")
+@Table(name = "bootstrapped_beers")
 public class BeerCsv {
 
     @Id
@@ -15,33 +15,27 @@ public class BeerCsv {
 
     private Double abv;
     private Double ibu;
-
-    @Column(name = "external_beer_id")
-    private String id;
-
     private String name;
     private String style;
-
-    @Column(name = "external_brewery_id")
-    private String breweryId;
-
     private Double ounces;
 
+    @Column(name = "brewery_uuid")
+    private UUID breweryUuid;
+
     @ElementCollection
-    @CollectionTable(name = "imported_beer_flavor_tags", joinColumns = @JoinColumn(name = "beer_id"))
+    @CollectionTable(name = "bootstrapped_beer_flavor_tags", joinColumns = @JoinColumn(name = "beer_id"))
     @Column(name = "flavor_tag")
     private List<String> flavorTags;
 
     public BeerCsv() {}
 
-    public BeerCsv(Double abv, Double ibu, String id, String name, String style, String breweryId, Double ounces) {
+    public BeerCsv(Double abv, Double ibu, String name, String style, Double ounces, UUID breweryUuid) {
         this.abv = abv;
         this.ibu = ibu;
-        this.id = id;
         this.name = name;
         this.style = style;
-        this.breweryId = breweryId;
         this.ounces = ounces;
+        this.breweryUuid = breweryUuid;
     }
 
     // Getters and setters
@@ -78,14 +72,6 @@ public class BeerCsv {
         this.ibu = ibu;
     }
 
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
     public String getName() {
         return name;
     }
@@ -102,13 +88,6 @@ public class BeerCsv {
         this.style = style;
     }
 
-    public String getBreweryId() {
-        return breweryId;
-    }
-
-    public void setBreweryId(String breweryId) {
-        this.breweryId = breweryId;
-    }
 
     public Double getOunces() {
         return ounces;
@@ -116,6 +95,14 @@ public class BeerCsv {
 
     public void setOunces(Double ounces) {
         this.ounces = ounces;
+    }
+
+    public UUID getBreweryUuid() {
+        return breweryUuid;
+    }
+
+    public void setBreweryUuid(UUID breweryUuid) {
+        this.breweryUuid = breweryUuid;
     }
 
 }

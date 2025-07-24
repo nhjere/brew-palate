@@ -4,9 +4,10 @@ import Header from '../components/header';
 import SearchBar from '../components/SearchBar';
 import ReviewModal from '../components/ReviewModal'
 import TastePanel from '../components/TastePanel';
-import LocationFilter from '../components/LocationFilter';
+
 import { createClient } from '@supabase/supabase-js';
 import RecPanel from '../components/RecPanel';
+import PastReviews from '../components/PastReviews';
 import { useBreweryMap } from '../context/BreweryContext';
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -98,7 +99,7 @@ function UserDashboard() {
                 params: {
                     tags: committedTags,
                     page: currentPage,
-                    size: 20
+                    size: 15
                 },
                 paramsSerializer: params => {
                     return new URLSearchParams(params).toString();
@@ -114,23 +115,16 @@ function UserDashboard() {
         fetchFilteredBeers();
     }, [committedTags, currentPage]);
 
-        // fetch entire pool of beers available
-        useEffect(() => {
-            axios.get(`http://localhost:8080/api/import/all-beers`)
-            .then(res => {
-                setBeerPool(res.data);
-            })
-            .catch(err => console.error(err));
-        }, []);
 
-        // reads in all breweries from db (previously posted from open brewery db)
-        useEffect(() => {
-            axios.get('http://localhost:8080/api/brewer/breweries/all')
-            .then(res => setBreweries(res.data))
-            .catch(err => console.error(err));
+    // reads in all breweries from db (previously posted from open brewery db)
+    useEffect(() => {
+        axios.get('http://localhost:8080/api/brewer/breweries/all')
+        .then(res => setBreweries(res.data))
+        .catch(err => console.error(err));
 
-        }, []);
-        const filteredBeers = beers;
+    }, []);
+
+    const filteredBeers = beers;
 
     return (
     
@@ -205,18 +199,18 @@ function UserDashboard() {
                 {filteredBeers.length > 0 ? (
                 filteredBeers.map((beer) => {
 
-                    const brewery = breweryMap[beer.breweryId];
+                    const brewery = breweryMap[beer.breweryUuid];
                     
                     return (
                     <div
-                        key={beer.id}
+                        key={beer.beerId}
                         className="min-h-[120px] w-full bg-red-50 border border-gray-300 rounded-lg p-4 shadow-sm flex justify-between items-center"
                     >
                         {/* Beer Info */}
                         <div className="text-left">
                         <h2 className="text-xl text-amber-800 font-bold mt-0">{beer.name}</h2>
                         <p>
-                            from {brewery?.name || 'Unknown Brewery'}
+                            from {brewery?.breweryName || 'Unknown Brewery'}
                         </p>
                         <p className="text-sm text-gray-600">
                             {brewery?.city}, {brewery?.state}
@@ -260,6 +254,7 @@ function UserDashboard() {
 
             {/* Right Sidebar */}
             <aside className="w-[240px] flex-shrink-0 bg-orange-100 p-4 space-y-4 text-left text-amber-800">
+            <PastReviews userId={userId} refreshRecs={refreshRecs}/>
             <RecPanel userId={userId} refreshRecs={refreshRecs}/>
             </aside>
         </div>

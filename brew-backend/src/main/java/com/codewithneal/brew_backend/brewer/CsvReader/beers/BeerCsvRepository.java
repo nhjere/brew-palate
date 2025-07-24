@@ -17,8 +17,8 @@ public interface BeerCsvRepository extends JpaRepository<BeerCsv, UUID> {
     @Query(
     value = """
         SELECT b.*
-        FROM imported_beers b
-        JOIN imported_beer_flavor_tags ft ON b.beer_id = ft.beer_id
+        FROM bootstrapped_beers b
+        JOIN bootstrapped_beer_flavor_tags ft ON b.beer_id = ft.beer_id
         WHERE ft.flavor_tag IN (:tags)
         GROUP BY b.beer_id
         HAVING COUNT(DISTINCT ft.flavor_tag) = :tagCount
@@ -27,8 +27,8 @@ public interface BeerCsvRepository extends JpaRepository<BeerCsv, UUID> {
         SELECT COUNT(*)
         FROM (
         SELECT b.beer_id
-        FROM imported_beers b
-        JOIN imported_beer_flavor_tags ft ON b.beer_id = ft.beer_id
+        FROM bootstrapped_beers b
+        JOIN bootstrapped_beer_flavor_tags ft ON b.beer_id = ft.beer_id
         WHERE ft.flavor_tag IN (:tags)
         GROUP BY b.beer_id
         HAVING COUNT(DISTINCT ft.flavor_tag) = :tagCount
