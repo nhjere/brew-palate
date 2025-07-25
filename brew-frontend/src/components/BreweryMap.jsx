@@ -7,75 +7,75 @@ import beer27 from "../assets/beer-27.svg";
 import houseIcon from "../assets/house_icon.svg"
 
 export default function BreweryMap({ breweries, center }) {
-  
-  const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
 
-  const [selectedBrewery, setSelectedBrewery] = useState(null);
+const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
 
-  const [viewState, setViewState] = useState({
+const [selectedBrewery, setSelectedBrewery] = useState(null);
+
+const [viewState, setViewState] = useState({
     longitude: center.lng,
     latitude: center.lat,
     zoom: 10,
-  });
+});
 
 
-  useEffect(() => {
+useEffect(() => {
     if (center) {
-      setViewState((prev) => ({
+    setViewState((prev) => ({
         ...prev,
         longitude: center.lng,
         latitude: center.lat,
-      }));
+    }));
     }
-  }, [center]);
+}, [center]);
 
-  if (!center) return null;
+if (!center) return null;
 
-  return (
+return (
     <div style={{ height: '500px', width: '100%' }}>
-      <Map
+    <Map
         mapboxAccessToken={MAPBOX_TOKEN}
         mapStyle="mapbox://styles/nhjere/cmddl0xe202l201s42sekazqp"
         style={{ width: '100%', height: '100%' }}
         {...viewState}
         onMove={(evt) => setViewState(evt.viewState)}
         onClick={(event) => {
-          const clicked = event.originalEvent?.target;
-          if (!clicked.closest('button.map-pin-button')) {
+        const clicked = event.originalEvent?.target;
+        if (!clicked.closest('button.map-pin-button')) {
             setSelectedBrewery(null);
-          }
+        }
         }}
-      >
+    >
         {/* User marker */}
         <Marker
-          longitude={center.lng}
-          latitude={center.lat}
-          color="blue">
-           <img src={houseIcon} alt="house icon" className="w-6 h-6" />
-          </Marker>
+        longitude={center.lng}
+        latitude={center.lat}
+        color="blue">
+        <img src={houseIcon} alt="house icon" className="w-6 h-6" />
+        </Marker>
 
         {/* Brewery markers */}
         {breweries.map((brewery) =>
-          brewery.longitude && brewery.latitude ? (
-          <Marker
+        brewery.longitude && brewery.latitude ? (
+        <Marker
             key={brewery.breweryId}
             longitude={brewery.longitude}
             latitude={brewery.latitude}
             anchor="bottom"
-          >
-          <button
-              onClick={() => setSelectedBrewery(brewery)}
-              className="map-pin-button"
+        >
+        <button
+            onClick={() => setSelectedBrewery(brewery)}
+            className="map-pin-button"
             >
-              <img src={beer27} alt="Brewery Icon" className="w-6 h-6" />
+            <img src={beer27} alt="Brewery Icon" className="w-6 h-6" />
             </button>
-          </Marker>
+        </Marker>
 
-          ) : null
+        ) : null
         )}
 
         {selectedBrewery && (
-          <Popup
+        <Popup
             longitude={selectedBrewery.longitude}
             latitude={selectedBrewery.latitude}
             anchor="top"
@@ -84,13 +84,13 @@ export default function BreweryMap({ breweries, center }) {
             closeOnClick={false}
             focusAfterOpen={false}
             className="text-sm"
-          >
+        >
             <div>
-              <strong>{selectedBrewery.breweryName}</strong><br />
+            <strong>{selectedBrewery.breweryName}</strong><br />
             </div>
-          </Popup>
+        </Popup>
         )}
-      </Map>
+    </Map>
     </div>
-  );
+);
 }

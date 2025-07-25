@@ -1,4 +1,4 @@
-import Header from '../components/header';
+import Header from '../components/Header';
 import LocationFilter from '../components/LocationFilter';
 import BreweryMap from '../components/BreweryMap';
 // import CrawlGenerator from '../components/CrawlGenerator';
@@ -198,7 +198,7 @@ export default function BrewerDashboard() {
                     <button
                         disabled={currentPage === 1}
                         onClick={() => setCurrentPage(currentPage - 1)}
-                        className="bg-gray-200 px-3 py-1 rounded disabled:opacity-50"
+                        className="bg-blue-100 px-4 py-2 rounded-full text-black"
                     >
                         Prev
                     </button>
@@ -208,7 +208,7 @@ export default function BrewerDashboard() {
                     <button
                         disabled={currentPage === totalPages}
                         onClick={() => setCurrentPage(currentPage + 1)}
-                        className="bg-gray-200 px-3 py-1 rounded disabled:opacity-50"
+                        className="bg-blue-100 px-4 py-2 rounded-full text-black"
                     >
                         Next
                     </button>

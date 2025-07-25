@@ -115,3 +115,19 @@ button.map-pin-button {
   color: #333 !important;
   box-shadow: none !important;
 }
+
+button.star-button {
+  outline: none !important;
+  box-shadow: none !important;
+  border: none !important;
+  background: transparent !important;
+  padding: 0;
+}
+
+button.star-button:focus,
+button.star-button:focus-visible,
+button.star-button:hover {
+  outline: none !important;
+  box-shadow: none !important;
+  border: none !important;
+}

@@ -124,29 +124,49 @@ export default function ReviewModal({ beerId, onClose, onReviewSubmit}) {
                 <div className = 'font-bold'> Post a Review! </div>
 
                 <form className="space-y-4 mt-4">
-                    {/* Sliders for Ratings */}
-                    {['overallEnjoyment'].map((field) => (
-                        <div key={field}>
-                            <label className="block text-sm font-medium capitalize mb-1">
-                                {field.replace(/([A-Z])/g, ' $1')}
-                            </label>
-                            <input
-                                type="range"
-                                className="appearance-none w-full h-2 bg-white border border-black rounded"
-                                min="1"
-                                max="5"
-                                value={reviewFormData[field]}
-                                onChange={(e) => handleRatingChange(field, parseInt(e.target.value))}
-                            />
-                            <div className="text-sm text-gray-600">Rating: {reviewFormData[field]}</div>
+
+                    {/* Stars */}
+                    <div className="flex items-center space-x-6">
+                        <label className="text-sm font-medium whitespace-nowrap">Overall Enjoyment:</label>
+                        <div className="flex gap-6">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                            <button
+                            type="button"
+                            key={star}
+                            onClick={() => handleRatingChange('overallEnjoyment', star)}
+                            className="star-button text-4xl text-yellow-600"
+                            >
+                            {reviewFormData.overallEnjoyment >= star ? '★' : '☆'}
+                            </button>
+                            ))}
                         </div>
-                    ))}
+                        </div>
+                        <div className="text-sm text-gray-600 mt-1">Rating: {reviewFormData.overallEnjoyment}</div>
+
 
                     {/* Flavor Tags */}
                     <div>
-                        <label className="block text-sm font-medium mb-1"> How would you describe it? </label>
+                        <label className="block text-sm font-bold mb-1"> Positives: </label>
                         <div className="flex flex-wrap gap-2">
-                        {["Roasty", "Winter", "Dry", "Spicy", "Sour", "Clean", "Bitter", "Fruity", "Summer", "Malty", "Light", "Refreshing", "Boozy", "Sweet", "Sessionable", "Crisp", "Hoppy", "Smooth"].map((tag) => {
+                        {[ "Balanced","Smooth","Refreshing","Bold Flavor","Light & Easy","Clean Finish"].map((tag) => {
+                            const capitalTag = tag.charAt(0).toUpperCase() + tag.slice(1).toLowerCase();
+                            return (
+                                <label key={tag} className="flex items-center space-x-2 text-sm">
+                                    <input
+                                        type="checkbox"
+                                        className="w-4 h-4 border-2 border-black rounded checked:bg-white checked:border-black focus:ring-0"
+                                        checked={reviewFormData.flavorTags.includes(tag)}
+                                        onChange={() => handleTagToggle(tag)}
+                                    />
+                                    <span>{capitalTag}</span>
+                                </label>
+                            );
+                        })}
+                        </div>
+
+                        <label className="block text-sm font-bold mb-1"> Negatives: </label>
+                        <div className="flex flex-wrap gap-2">
+                        {["Too Bitter","Too Sweet","Watery","Harsh Finish","Off Taste","Flat"].map((tag) => {
                             const capitalTag = tag.charAt(0).toUpperCase() + tag.slice(1).toLowerCase();
                             return (
                                 <label key={tag} className="flex items-center space-x-2 text-sm">

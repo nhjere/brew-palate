@@ -20,6 +20,7 @@ export const BeerProvider = ({ children }) => {
             flavorTags: beer.flavorTags,
             abv: beer.abv,
             ibu: beer.ibu,
+            breweryId: beer.breweryUuid,
             ...beer,
           };
         });
@@ -29,7 +30,7 @@ export const BeerProvider = ({ children }) => {
   }, []);
 
   return (
-    <BeerContext.Provider value={beerMap}>
+    <BeerContext.Provider value={[beerMap, setBeerMap]}>
       {children}
     </BeerContext.Provider>
   );

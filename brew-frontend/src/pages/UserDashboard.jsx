@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import Header from '../components/header';
+import Header from '../components/Header';
 import SearchBar from '../components/SearchBar';
 import ReviewModal from '../components/ReviewModal'
 import TastePanel from '../components/TastePanel';
-
+import beer27 from "../assets/beer-27.svg";
 import { createClient } from '@supabase/supabase-js';
 import RecPanel from '../components/RecPanel';
 import PastReviews from '../components/PastReviews';
@@ -27,7 +27,6 @@ function UserDashboard() {
     const [beers, setBeers] = useState([]);
     const [breweries, setBreweries] = useState([]);
     const [username, setUsername] = useState('');
-    const [beerPool, setBeerPool] = useState([]);
     const [address, setAddress] = useState('');
 
     // taste panel variables
@@ -99,7 +98,7 @@ function UserDashboard() {
                 params: {
                     tags: committedTags,
                     page: currentPage,
-                    size: 15
+                    size: 10
                 },
                 paramsSerializer: params => {
                     return new URLSearchParams(params).toString();
@@ -192,7 +191,7 @@ function UserDashboard() {
             </aside>
 
             {/* Main Content */}
-            <main className="flex-1 bg-orange-50 max-w-[800px] p-6">
+            <main className="flex-1 bg-orange-50 max-w-[800px] p-6 border-gray-300 rounded-lg  shadow-sm">
             <div className="flex flex-col gap-5 w-full">
             <h2 className="text-2xl text-left text-amber-800 font-bold"> Discover Beers </h2>
                 
@@ -204,21 +203,25 @@ function UserDashboard() {
                     return (
                     <div
                         key={beer.beerId}
-                        className="min-h-[120px] w-full bg-red-50 border border-gray-300 rounded-lg p-4 shadow-sm flex justify-between items-center"
+                        className="min-h-[120px] w-full bg-red-50 border border-gray-300 rounded-2xl p-8 shadow-sm flex justify-between items-center"
                     >
                         {/* Beer Info */}
-                        <div className="text-left">
-                        <h2 className="text-xl text-amber-800 font-bold mt-0">{beer.name}</h2>
-                        <p>
-                            from {brewery?.breweryName || 'Unknown Brewery'}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                            {brewery?.city}, {brewery?.state}
-                        </p>
-                        <p className="text-sm text-gray-800">
-                            {beer.flavorTags.map(tag => tag.charAt(0).toUpperCase() + tag.slice(1)).join(', ')}
-                        </p>
-                        </div>
+                        <div className="flex items-start gap-x-4 text-left">
+                            <img src={beer27} alt="Brewery Icon" className="w-25 h-25 object-cover object-left rounded-md" />
+
+                            <div>
+                                <h2 className="text-xl text-amber-800 font-bold mt-0">{beer.name}</h2>
+                                <p className="text-sm text-gray-700">
+                                from {brewery?.breweryName || 'Unknown Brewery'}
+                                </p>
+                                <p className="text-sm text-gray-600">
+                                {brewery?.city}, {brewery?.state}
+                                </p>
+                                <p className="text-sm text-gray-800">
+                                {beer.flavorTags.map(tag => tag.charAt(0).toUpperCase() + tag.slice(1)).join(', ')}
+                                </p>
+                            </div>
+                            </div>
 
                         {/* Style + Action */}
                         <div className="text-right">

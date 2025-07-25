@@ -6,8 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import com.codewithneal.brew_backend.brewer.CsvReader.breweries.BreweryCsv;
 import com.codewithneal.brew_backend.brewer.CsvReader.breweries.BreweryCsvImporter;
 import com.codewithneal.brew_backend.brewer.CsvReader.breweries.BreweryCsvRepository;
-import com.codewithneal.brew_backend.brewer.service.BeerService;
-import com.codewithneal.brew_backend.brewer.CsvReader.CompleteBeerDTO;
+import com.codewithneal.brew_backend.brewer.model.Beer;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -53,10 +52,24 @@ public class CsvImportController {
                     .collect(Collectors.toSet());
     }
 
+    // used by beer context (caching)
     @GetMapping("/all-beers")
     public List<BeerCsv> getAllBeers() {
         return beerCsvRepository.findAll();
     }
+
+    // fetch beer by id
+    @GetMapping("/fetchById")
+    public List<BeerCsv> getBeersById(@RequestParam List<UUID> beerIds) {
+        return beerCsvRepository.findAllById(beerIds);
+    }
+
+    // fetch all beers by brewery uuid
+    @GetMapping("/by-brewery/{breweryUuid}")
+    public List<BeerCsv> getBeersByBrewery(@PathVariable UUID breweryUuid) {
+        return beerCsvRepository.findByBreweryUuid(breweryUuid);
+    }
+
 
 
     // supports a paginated GET endpoint for .../show-beers/?page=0&size=20
@@ -110,6 +123,8 @@ public class CsvImportController {
         Pageable pageable = PageRequest.of(page, size);
         return breweryCsvRepository.findAll(pageable);
     }
+
+
 
 
 

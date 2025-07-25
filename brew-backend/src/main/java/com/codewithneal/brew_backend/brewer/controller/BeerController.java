@@ -2,7 +2,7 @@ package com.codewithneal.brew_backend.brewer.controller;
 
 import com.codewithneal.brew_backend.brewer.model.Beer;
 import com.codewithneal.brew_backend.brewer.service.BeerService;
-import com.codewithneal.brew_backend.user.dto.UserBeerDTO;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
