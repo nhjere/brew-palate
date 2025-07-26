@@ -31,10 +31,6 @@ export default function TastePanel({ flavorTags, setFlavorTags, onRefresh }) {
         onRefresh();
     };
 
-    const handleClear = () => {
-        localStorage.removeItem("userFlavorTags");
-        setFlavorTags([]);
-    };
     return (
         <section className="bg-red-50 border border-gray-300 rounded-lg p-4 shadow-sm">
             <h2 className="text-2xl font-bold mb-2">Your Taste</h2>
@@ -58,16 +54,9 @@ export default function TastePanel({ flavorTags, setFlavorTags, onRefresh }) {
                     onClick={handleRefresh}
                     className="bg-blue-200 hover:bg-blue-300 transition text-black font-bold py-2 px-4 rounded-md"
                 >
-                    Refresh
+                    Set Tags
                 </button>
 
-                <button
-                    type="submit"
-                    onClick={handleClear}
-                    className="bg-blue-200 hover:bg-blue-300 transition text-black font-bold py-2 px-4 rounded-md"
-                >
-                    Clear
-                </button>
             </div>
         </section>
     );

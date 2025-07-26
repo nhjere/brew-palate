@@ -10,6 +10,7 @@ import RecPanel from '../components/RecPanel';
 import PastReviews from '../components/PastReviews';
 import { useBreweryMap } from '../context/BreweryContext';
 import { useNavigate, useParams } from 'react-router-dom';
+import BeerFilter from '../components/BeerFilter';
 
 const supabase = createClient(
   import.meta.env.VITE_SUPABASE_URL,
@@ -18,6 +19,9 @@ const supabase = createClient(
 
 function UserDashboard() {
     
+    const [proximityCoords, setProximityCoords] = useState(null);
+    const [proximityRadius, setProximityRadius] = useState(25);
+
     // set user 
     const [userId, setUserId] = useState(null);
     const {userId: paramUserId } = useParams();
@@ -92,32 +96,36 @@ function UserDashboard() {
     
     // fetch filtered beers from csv backed db
     useEffect(() => {
-        const fetchFilteredBeers = async () => {
-            try {
-                const res = await axios.get('http://localhost:8080/api/import/filtered-beers', {
-                params: {
-                    tags: committedTags,
-                    page: currentPage,
-                    size: 10
-                },
-                paramsSerializer: params => {
-                    return new URLSearchParams(params).toString();
-                }
-                });
-                setBeers(res.data.content);
-                setTotalPages(res.data.totalPages);
-            } catch (err) {
-                console.error("Failed to fetch beers", err);
-            }
-        };
+    const fetchFilteredBeers = async () => {
+        try {
+        const res = await axios.get(`${BASE_URL}/api/import/filtered-all-beers`, {
+            params: {
+            tags: committedTags,
+            page: currentPage,
+            size: 8,
+            ...(proximityCoords && {
+                lat: proximityCoords.lat,
+                lng: proximityCoords.lng,
+                radius: proximityRadius
+            })
+            },
+            paramsSerializer: params => new URLSearchParams(params).toString()
+        });
 
-        fetchFilteredBeers();
-    }, [committedTags, currentPage]);
+        setBeers(res.data.content);
+        setTotalPages(res.data.totalPages);
+        } catch (err) {
+        console.error("Failed to fetch beers", err);
+        }
+    };
+
+    fetchFilteredBeers();
+    }, [committedTags, currentPage, proximityCoords, proximityRadius]);
 
     // resets page
     useEffect(() => {
         setCurrentPage(0);
-    }, [committedTags]);
+    }, [committedTags, proximityCoords, proximityRadius]);
 
     // reads in all breweries from db (previously posted from open brewery db)
     useEffect(() => {
@@ -179,6 +187,7 @@ function UserDashboard() {
 
             
             {/* Filter Section  */}
+
             <TastePanel
                 flavorTags={flavorTags}
                 setFlavorTags={setFlavorTags}
@@ -208,7 +217,17 @@ function UserDashboard() {
             <main className="flex-1 bg-orange-50 max-w-[800px] p-6 border-gray-300 rounded-lg  shadow-sm">
             <div className="flex flex-col gap-5 w-full">
             <h2 className="text-2xl text-left text-amber-800 font-bold"> Discover Beers </h2>
-                
+
+
+                <BeerFilter
+                committedTags={committedTags}
+                onSetProximity={({ lat, lng, radius }) => {
+                    setProximityCoords({ lat, lng });
+                    setProximityRadius(radius);
+                }}
+                inline={true}
+                />
+
                 {filteredBeers.length > 0 ? (
                 filteredBeers.map((beer) => {
 

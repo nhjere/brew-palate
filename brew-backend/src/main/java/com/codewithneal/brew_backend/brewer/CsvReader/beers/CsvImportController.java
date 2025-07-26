@@ -106,27 +106,33 @@ public class CsvImportController {
     }
     
     // calls beers in beers in user dashboard after filtering by location and tags
-    // @GetMapping("/filtered-beers")
-    // public Page<BeerCsv> getFilteredBeers(
-    //     @RequestParam(required = false) List<String> tags,
-    //     @RequestParam(defaultValue = "0") int page,
-    //     @RequestParam(defaultValue = "20") int size,
-    //     @RequestParam(required = false) Double lat,
-    //     @RequestParam(required = false) Double lng,
-    //     @RequestParam(required = false, defaultValue = "25") Double radius
-    // ) {
-    //     Pageable pageable = PageRequest.of(page, size);
+    @GetMapping("/filtered-all-beers")
+    public ResponseEntity<Page<BeerCsv>> getFilteredBeers(
+        @RequestParam(required = false) List<String> tags,
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "20") int size,
+        @RequestParam(required = false) Double lat,
+        @RequestParam(required = false) Double lng,
+        @RequestParam(defaultValue = "25") Double radius
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
 
-    //     if (lat != null && lng != null) {
-    //         return nearbyBeerService.findBeersByLocationAndTags(lat, lng, radius, tags, pageable);
-    //     }
+        if (lat != null && lng != null) {
+            return ResponseEntity.ok(
+                nearbyBeerService.findBeersByLocationAndTags(lat, lng, radius, tags, pageable)
+            );
+        }
 
-    //     if (tags == null || tags.isEmpty()) {
-    //         return beerCsvRepository.findAll(pageable);
-    //     } else {
-    //         return beerCsvRepository.findByAllTags(tags, tags.size(), pageable);
-    //     }
-    // }
+        if (tags != null && !tags.isEmpty()) {
+            return ResponseEntity.ok(
+                beerCsvRepository.findByAllTags(tags, tags.size(), pageable)
+            );
+        }
+
+        return ResponseEntity.ok(beerCsvRepository.findAll(pageable));
+    }
+
+
 
     @Autowired
     private BreweryCsvRepository breweryCsvRepository;
