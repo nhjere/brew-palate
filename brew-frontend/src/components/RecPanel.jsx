@@ -42,7 +42,7 @@ export default function Recommendations({ userId, refreshRecs }) {
 
         axios.post(
         'http://localhost:8080/api/brewer/breweries/names',
-        uniqueIds, // ✅ no need to stringify manually
+        uniqueIds,
         {
             headers: {
             'Content-Type': 'application/json',
@@ -66,7 +66,7 @@ export default function Recommendations({ userId, refreshRecs }) {
                 {beers.slice(0, 15).map((beer) => {
 
                     const breweryName = breweryMap[beer.breweryUuid];
-                    console.log(beer)
+
                         
                     return (
                     <div key={beer.beerId} className="flex flex-col">

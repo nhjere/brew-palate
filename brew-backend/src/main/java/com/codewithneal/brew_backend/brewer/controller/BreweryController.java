@@ -1,14 +1,13 @@
 package com.codewithneal.brew_backend.brewer.controller;
 
 import com.codewithneal.brew_backend.brewer.dto.BreweryDTO;
+import com.codewithneal.brew_backend.brewer.dto.NearbyBreweryDTO;
 import com.codewithneal.brew_backend.brewer.dto.BreweryMapper;
 import com.codewithneal.brew_backend.brewer.model.Brewery;
 import com.codewithneal.brew_backend.brewer.repository.BreweryRepository;
 
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.server.ResponseStatusException;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.util.ArrayList;
@@ -42,12 +41,12 @@ public class BreweryController {
 
     // calls by_dist api from open brewery db
     @GetMapping("/nearby")
-    public ResponseEntity<List<Brewery>> findNearbyBreweries(
+    public ResponseEntity<List<NearbyBreweryDTO>> findNearbyBreweries(
         @RequestParam("lat") double latitude,
         @RequestParam("lng") double longitude,
         @RequestParam(defaultValue = "25") double radius
     ) {
-        List<Brewery> nearbyBreweries = breweryRepo.findByDistance(latitude, longitude, radius);
+        List<NearbyBreweryDTO> nearbyBreweries = breweryRepo.findNearbyWithDistance(latitude, longitude, radius);
         return ResponseEntity.ok(nearbyBreweries);
     }
 

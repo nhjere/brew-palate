@@ -4,9 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import com.codewithneal.brew_backend.brewer.CsvReader.breweries.BreweryCsv;
-import com.codewithneal.brew_backend.brewer.CsvReader.breweries.BreweryCsvImporter;
 import com.codewithneal.brew_backend.brewer.CsvReader.breweries.BreweryCsvRepository;
-import com.codewithneal.brew_backend.brewer.model.Beer;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -28,6 +26,9 @@ public class CsvImportController {
 
     @Autowired
     private BeerCsvRepository beerCsvRepository;
+
+    @Autowired 
+    private NearbyBeerService nearbyBeerService;
 
     // import beers.csv
     @GetMapping("/beers")
@@ -101,23 +102,34 @@ public class CsvImportController {
             return beerCsvRepository.findAll(pageable);
         } else {
             return beerCsvRepository.findByAllTags(tags, tags.size(), pageable);
-        }
-        
+        }   
     }
     
-    
-    // import breweries.csv
-    @Autowired
-    private BreweryCsvImporter breweryCsvImporter;
+    // calls beers in beers in user dashboard after filtering by location and tags
+    // @GetMapping("/filtered-beers")
+    // public Page<BeerCsv> getFilteredBeers(
+    //     @RequestParam(required = false) List<String> tags,
+    //     @RequestParam(defaultValue = "0") int page,
+    //     @RequestParam(defaultValue = "20") int size,
+    //     @RequestParam(required = false) Double lat,
+    //     @RequestParam(required = false) Double lng,
+    //     @RequestParam(required = false, defaultValue = "25") Double radius
+    // ) {
+    //     Pageable pageable = PageRequest.of(page, size);
+
+    //     if (lat != null && lng != null) {
+    //         return nearbyBeerService.findBeersByLocationAndTags(lat, lng, radius, tags, pageable);
+    //     }
+
+    //     if (tags == null || tags.isEmpty()) {
+    //         return beerCsvRepository.findAll(pageable);
+    //     } else {
+    //         return beerCsvRepository.findByAllTags(tags, tags.size(), pageable);
+    //     }
+    // }
 
     @Autowired
     private BreweryCsvRepository breweryCsvRepository;
-
-    @PostMapping("/breweries")
-    public String importBreweries(@RequestParam(defaultValue = "src/main/resources/breweries.csv") String path) {
-        breweryCsvImporter.importFromCsv(path);
-        return "Breweries imported from: " + path;
-    }
 
     // supports a paginated GET endpoint for .../show-breweries/?page=0&size=20
     // payload found under key "content"
@@ -129,9 +141,5 @@ public class CsvImportController {
         Pageable pageable = PageRequest.of(page, size);
         return breweryCsvRepository.findAll(pageable);
     }
-
-
-
-
 
 }

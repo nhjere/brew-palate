@@ -15,6 +15,7 @@ import java.util.List;
 public interface BeerCsvRepository extends JpaRepository<BeerCsv, UUID> {
     
     List<BeerCsv> findByBreweryUuid(UUID breweryUuid);
+    List<BeerCsv> findByBreweryUuidIn(List<UUID> breweryUuids);
 
     @Query("SELECT b.flavorTags FROM BeerCsv b")
     List<List<String>> findAllFlavorTags();

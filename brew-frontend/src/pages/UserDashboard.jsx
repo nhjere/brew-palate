@@ -114,6 +114,10 @@ function UserDashboard() {
         fetchFilteredBeers();
     }, [committedTags, currentPage]);
 
+    // resets page
+    useEffect(() => {
+        setCurrentPage(0);
+    }, [committedTags]);
 
     // reads in all breweries from db (previously posted from open brewery db)
     useEffect(() => {
@@ -156,7 +160,7 @@ function UserDashboard() {
             <button
                 className="bg-red-50 w-full !font-bold py-2 rounded-md"
                 onClick={() => {
-                const url = `/brewer/dashboard?address=${encodeURIComponent(address)}`;
+                const url = `/brewery/dashboard?address=${encodeURIComponent(address)}`;
                 window.open(url, '_blank');
                 }}
             >

@@ -15,7 +15,6 @@ export default function BrewerDashboard() {
     const [filteredBreweries, setFilteredBreweries] = useState([]);
     const [distance, setDistance] = useState(25);
     const [allBreweries, setAllBreweries] = useState([]);
-    const navigate = useNavigate();
     const [mapCenter, setMapCenter] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);
     const queryParams = new URLSearchParams(location.search);
@@ -95,6 +94,11 @@ export default function BrewerDashboard() {
             params: {lat,lng,radius: distance}
             });
             setFilteredBreweries(res.data);
+            filteredBreweries.forEach((brewery, index) => {
+                console.log(`Brewery ${index + 1}:`, brewery);
+            });
+
+            
         } catch (err) {
             console.error('Error fetching nearby breweries:', err);
         }
