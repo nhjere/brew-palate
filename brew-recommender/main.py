@@ -1,6 +1,8 @@
+import logging
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, HTTPException
 from typing import List, Optional
+from fastapi.responses import JSONResponse
 import pandas as pd
 import httpx
 import uuid
@@ -34,10 +36,17 @@ def root():
 @app.get("/live-recs/{user_id}")
 async def getLiveRecs(user_id: uuid.UUID):
     url = f"{SPRING_BOOT_BASE_URL}/api/user/reviews/user/{user_id}"
-    async with httpx.AsyncClient() as client:
-        response = await client.get(url)
-        response.raise_for_status()
-        reviews_json = response.json()
+
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:  # 5 second timeout
+            response = await client.get(url)
+            response.raise_for_status()
+            reviews_json = response.json()
+
+    except httpx.HTTPError as e:
+        logging.warning(f"Request to Spring Boot failed: {e}")
+        return JSONResponse(status_code=503, content={"error": "Downstream service unavailable"})
+
 
     user_reviews_df = convertReviews(reviews_json)
     is_fallback = user_reviews_df.empty or "overallEnjoyment" not in user_reviews_df.columns

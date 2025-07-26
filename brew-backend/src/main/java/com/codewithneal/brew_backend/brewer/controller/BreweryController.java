@@ -7,12 +7,16 @@ import com.codewithneal.brew_backend.brewer.repository.BreweryRepository;
 
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 
 @RestController
@@ -54,6 +58,17 @@ public class BreweryController {
             .map(brewery -> ResponseEntity.ok(BreweryMapper.toDTO(brewery)))
             .orElse(ResponseEntity.notFound().build());
     }
+
+    @PostMapping("/names")
+    public Map<UUID, String> getBreweryNames(@RequestBody List<UUID> breweryIds) {
+        return breweryRepo.findAllById(breweryIds).stream()
+            .filter(b -> b.getBreweryName() != null && !b.getBreweryName().isBlank())
+            .collect(Collectors.toMap(
+                Brewery::getBreweryId,
+                Brewery::getBreweryName
+            ));
+    }
+
     // return all breweries
     @GetMapping("/all")
     public ResponseEntity<List<Brewery>> getAllBreweries() {

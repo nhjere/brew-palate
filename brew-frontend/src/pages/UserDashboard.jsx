@@ -162,6 +162,16 @@ function UserDashboard() {
             >
                 Find Breweries
             </button>
+            <button
+            className="bg-red-50 w-full !font-bold py-2 rounded-md"
+            onClick={async () => {
+                await supabase.auth.signOut();
+                localStorage.removeItem("user_id");
+                navigate("/login");
+            }}
+            >
+            Log Out
+            </button>
 
             
             {/* Filter Section  */}

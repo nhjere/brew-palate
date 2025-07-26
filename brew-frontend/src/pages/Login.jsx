@@ -1,7 +1,8 @@
-import Header from '../components/header';
+import Header from '../components/Header';
 import "../App.css";
 import React, {useState} from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 import { createClient } from '@supabase/supabase-js';
 
@@ -120,17 +121,18 @@ export default function Login() {
 
                         <div className="text-sm pt-2">
                             Don’t have an account?
-                            <button
-                                type="button"
-                                className="ml-1 text-amber-700 font-semibold register-link"
-                                onClick={() => navigate("/register")}>
-                                Register
-                            </button>
+                            <Link
+                            to="/register"
+                            className="text-amber-700 ml-3 font-semibold transition"
+                            >
+                            Register
+                            </Link>
+                            
                             {user && (
                             <button
                                 type="button"
                                 className="ml-1 text-amber-700 font-semibold register-link"
-                                onClick={() => navigate(`/user/dashboard/${user.id}`)}
+                                onClick={() => navigate(`/user/dashboard/${user.username}`)}
                             >
                                 Sign in as Guest
                             </button>

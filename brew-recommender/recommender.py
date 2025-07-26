@@ -114,15 +114,16 @@ def getPopularBeers(reviews_df, beers_df, num_recs):
         .reset_index()
         .rename(columns={"mean": "avg_rating", "count": "num_reviews"})
     )
-    
+
     popular_beers = beer_stats[beer_stats["num_reviews"] >= min_reviews]
     merged = popular_beers.merge(beers_df, left_on="beerId", right_on="beer_id")
     sorted_beers = merged.sort_values(by="avg_rating", ascending=False)
     diverse = sorted_beers.drop_duplicates(subset="style", keep="first")
     top_beers = diverse.head(num_recs) if len(diverse) >= num_recs else sorted_beers.head(num_recs)
 
-
-    return top_beers[["beer_id", "name", "style", "flavor_tag", "avg_rating", "num_reviews"]]
+    return top_beers[[
+        "beer_id", "name", "style", "flavor_tag", "avg_rating", "num_reviews", "brewery_uuid", "abv", "ibu", "ounces"
+    ]]
 
 def getProfileVector(user_reviews_df, beer_matrix, beer_ids):
     

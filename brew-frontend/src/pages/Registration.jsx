@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import Header from '../components/header';
+import Header from '../components/Header';
 import "../App.css";
 import { createClient } from '@supabase/supabase-js';
+import { Link } from 'react-router-dom';
 
 const supabase = createClient(
   import.meta.env.VITE_SUPABASE_URL,
@@ -20,7 +21,7 @@ export default function Registration() {
         role: '',
         address: '',
     });
-    
+
     // in-field error handling 
     const [errorMessage, setErrorMessage] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
@@ -57,6 +58,8 @@ export default function Registration() {
             return;
         }
 
+        
+
         const userId = data.user?.id;
         if (!userId) {
             setErrorMessage('No user ID returned from Supabase');
@@ -75,16 +78,25 @@ export default function Registration() {
         console.log("Sending metadata to backend...");
         const BASE_URL = import.meta.env.VITE_BACKEND_URL;
         await axios.post(`${BASE_URL}/api/user/register`, metadata);
-
+        
         setSuccessMessage('Registration successful! Please check your email to verify your account.');
-        } catch (err) {
-            console.error(err);
+        } 
+
+        catch (err) {
+            console.error("Metadata POST failed:", err);
+
+            if (err.response) {
+                console.error("Backend responded:", err.response.data);
+            }
+
             if (err.response?.status === 400 && err.response.data.includes("Username already taken")) {
                 setErrorMessage('Username already taken. Please choose another.');
             } else {
                 setErrorMessage('Metadata registration failed. Please try again.');
             }
-        }
+            }
+
+        console.log('set success message')
         
     }    
 
@@ -139,6 +151,19 @@ export default function Registration() {
                         </div>
     
                         {/* Registration form */}
+
+                        {successMessage && (
+                        <div className="bg-green-100 border border-green-500 text-green-700 p-3 rounded text-center font-semibold mb-4">
+                            {successMessage}
+                        </div>
+                        )}
+
+                        {errorMessage && (
+                        <div className="bg-red-100 border border-red-500 text-red-700 p-3 rounded text-center font-semibold mb-4">
+                            {errorMessage}
+                        </div>
+                        )}
+
                         <form className="space-y-4" onSubmit={handleRegister}>
                             <input
                                 type="email"
@@ -191,16 +216,14 @@ export default function Registration() {
                             >
                                 Register!
                             </button>
-                            
-                            {errorMessage && (
-                                <p className="text-red-600 text-xs font-medium">{errorMessage}</p>
-                            )}
 
-                            {successMessage && (
-                                <p className="text-green-600 text-xs font-medium">{successMessage}</p>
-                            )}
-                                    
-    
+                            <Link
+                            to="/login"
+                            className="text-sm pt-2 font-semibold transition"
+                            >
+                            Back to Login
+                            </Link>
+                            
                         </form>
     
                     </div>

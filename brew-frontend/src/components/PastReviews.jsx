@@ -16,6 +16,10 @@ export default function PastReviews({ userId, refreshRecs }) {
         setReviews(reviews);
 
         const uniqueBeerIds = [...new Set(reviews.map(r => r.beerId))];
+        if (uniqueBeerIds.length === 0) {
+            setBeerMap({});
+            return;
+        }
 
         const params = new URLSearchParams();
         uniqueBeerIds.forEach(id => params.append('beerIds', id));

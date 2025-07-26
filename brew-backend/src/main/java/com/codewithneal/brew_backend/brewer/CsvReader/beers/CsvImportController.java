@@ -15,7 +15,7 @@ import org.springframework.data.domain.PageRequest;
 
 import java.util.UUID;
 import java.util.stream.Collectors;
-
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -60,9 +60,15 @@ public class CsvImportController {
 
     // fetch beer by id
     @GetMapping("/fetchById")
-    public List<BeerCsv> getBeersById(@RequestParam List<UUID> beerIds) {
-        return beerCsvRepository.findAllById(beerIds);
-    }
+    public ResponseEntity<?> getBeersById(@RequestParam(required = false) List<UUID> beerIds) {
+        if (beerIds == null || beerIds.isEmpty()) {
+            return ResponseEntity.ok(Collections.emptyList());
+        }
+
+    List<BeerCsv> beers = beerCsvRepository.findAllById(beerIds);
+    return ResponseEntity.ok(beers);
+}
+
 
     // fetch all beers by brewery uuid
     @GetMapping("/by-brewery/{breweryUuid}")
