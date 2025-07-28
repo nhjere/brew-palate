@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import Header from '../components/header';
+import Header from '../components/Header';
 import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
