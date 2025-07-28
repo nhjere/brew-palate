@@ -1,0 +1,7 @@
+{
+  "build": {
+    "root": "brew-backend",
+    "buildCommand": "./mvnw package -DskipTests",
+    "startCommand": "java -jar target/brew-backend-0.0.1-SNAPSHOT.jar"
+  }
+}
