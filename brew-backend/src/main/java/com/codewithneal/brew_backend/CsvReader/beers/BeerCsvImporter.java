@@ -1,4 +1,4 @@
-package com.codewithneal.brew_backend.brewer.CsvReader.beers;
+package com.codewithneal.brew_backend.CsvReader.beers;
 
 import com.opencsv.bean.CsvToBeanBuilder;
 import org.springframework.beans.factory.annotation.Autowired;

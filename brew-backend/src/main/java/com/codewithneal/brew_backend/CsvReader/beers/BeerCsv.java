@@ -1,4 +1,4 @@
-package com.codewithneal.brew_backend.brewer.CsvReader.beers;
+package com.codewithneal.brew_backend.CsvReader.beers;
 
 import jakarta.persistence.*;
 import java.util.List;

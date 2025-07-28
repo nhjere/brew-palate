@@ -41,7 +41,7 @@ export default function Recommendations({ userId, refreshRecs }) {
         if (uniqueIds.length === 0) return;
 
         axios.post(
-        'http://localhost:8080/api/brewer/breweries/names',
+        'http://localhost:8080/api/brewer/breweries/details',
         uniqueIds,
         {
             headers: {
@@ -63,23 +63,22 @@ export default function Recommendations({ userId, refreshRecs }) {
             </p>
 
             <div className="space-y-4 text-sm font-medium">
-                {beers.slice(0, 15).map((beer) => {
+                {beers.slice(0, 10).map((beer) => {
 
-                    const breweryName = breweryMap[beer.breweryUuid];
-
+                    const breweryDetails = breweryMap[beer.breweryUuid];
+                    console.log(breweryMap)
                         
                     return (
                     <div key={beer.beerId} className="flex flex-col">
-                        <span className="font-semibold text-amber-900">{beer.name}</span>
+                        <span className="font-semibold text-amber-800">{beer.name}</span>
                         <span className="text-sm text-gray-700">
                             
                             <a href={`/brewery/${beer.breweryUuid}`} className="text-amber-800 hover:underline">
-                            {breweryName || 'Unknown Brewery'}
+                                {breweryDetails?.name || 'Unknown Brewery'}
                             </a>
-                                            
-
-
+                                        
                         </span>
+                        <span className="text-sm text-gray-700"> {breweryDetails?.city}, {breweryDetails?.state} </span>
                         <div className="text-gray-700 italic text-sm">
                         {beer?.flavorTags?.length > 0
                             ? beer.flavorTags.map(tag => tag.charAt(0).toUpperCase() + tag.slice(1)).join(', ')

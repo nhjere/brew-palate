@@ -1,10 +1,12 @@
-package com.codewithneal.brew_backend.brewer.CsvReader.beers;
+package com.codewithneal.brew_backend.CsvReader;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import com.codewithneal.brew_backend.brewer.CsvReader.breweries.BreweryCsv;
-import com.codewithneal.brew_backend.brewer.CsvReader.breweries.BreweryCsvRepository;
+import com.codewithneal.brew_backend.CsvReader.beers.BeerCsv;
+import com.codewithneal.brew_backend.CsvReader.beers.BeerCsvImporter;
+import com.codewithneal.brew_backend.CsvReader.beers.BeerCsvRepository;
+import com.codewithneal.brew_backend.CsvReader.beers.NearbyBeerService;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -132,20 +134,5 @@ public class CsvImportController {
         return ResponseEntity.ok(beerCsvRepository.findAll(pageable));
     }
 
-
-
-    @Autowired
-    private BreweryCsvRepository breweryCsvRepository;
-
-    // supports a paginated GET endpoint for .../show-breweries/?page=0&size=20
-    // payload found under key "content"
-    @GetMapping("/show-breweries")
-    public Page<BreweryCsv> getImportedBreweries(
-        @RequestParam(defaultValue = "0") int page,
-        @RequestParam(defaultValue = "20") int size
-    ) {
-        Pageable pageable = PageRequest.of(page, size);
-        return breweryCsvRepository.findAll(pageable);
-    }
 
 }

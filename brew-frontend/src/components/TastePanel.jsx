@@ -52,7 +52,7 @@ export default function TastePanel({ flavorTags, setFlavorTags, onRefresh }) {
                 <button
                     type="submit"
                     onClick={handleRefresh}
-                    className="bg-blue-200 hover:bg-blue-300 transition text-black font-bold py-2 px-4 rounded-md"
+                    className="bg-amber-800 hover:bg-amber-700 text-white font-bold py-1 px-4 rounded"
                 >
                     Set Tags
                 </button>

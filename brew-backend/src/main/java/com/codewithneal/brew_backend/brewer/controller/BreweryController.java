@@ -58,13 +58,13 @@ public class BreweryController {
             .orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping("/names")
-    public Map<UUID, String> getBreweryNames(@RequestBody List<UUID> breweryIds) {
+    @PostMapping("/details")
+    public Map<UUID, BreweryDTO> getBreweryDetails(@RequestBody List<UUID> breweryIds) {
         return breweryRepo.findAllById(breweryIds).stream()
             .filter(b -> b.getBreweryName() != null && !b.getBreweryName().isBlank())
             .collect(Collectors.toMap(
                 Brewery::getBreweryId,
-                Brewery::getBreweryName
+                BreweryMapper::toDTO
             ));
     }
 

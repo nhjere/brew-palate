@@ -64,6 +64,7 @@ export default function BeerProximity({ committedTags, onSetProximity }) {
         Search
       </button>
 
+
       </div>
     </div>
   );

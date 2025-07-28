@@ -76,10 +76,10 @@ export default function BreweryPage() {
           {beersFromBrewery.map((beer) => (
             <li
               key={beer.beerId}
-              className="bg-orange-100 border border-gray-100 p-4 rounded-lg shadow-sm"
+              className="bg-amber-800 border border-gray-100 p-4 rounded-lg shadow-sm"
             >
-              <h3 className="text-lg font-semibold text-amber-900">{beer.name}</h3>
-              <p className="text-sm text-gray-700 italic">
+              <h3 className="text-lg font-semibold text-white">{beer.name}</h3>
+              <p className="text-sm text-white italic">
                 {beer.style || 'Unknown Style'} — {beer.ounces || '?'} oz
               </p>
             </li>

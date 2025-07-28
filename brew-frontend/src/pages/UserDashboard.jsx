@@ -100,14 +100,14 @@ function UserDashboard() {
         try {
         const res = await axios.get(`${BASE_URL}/api/import/filtered-all-beers`, {
             params: {
-            tags: committedTags,
-            page: currentPage,
-            size: 8,
-            ...(proximityCoords && {
-                lat: proximityCoords.lat,
-                lng: proximityCoords.lng,
-                radius: proximityRadius
-            })
+                tags: committedTags,
+                page: currentPage,
+                size: 7,
+                ...(proximityCoords && {
+                    lat: proximityCoords.lat,
+                    lng: proximityCoords.lng,
+                    radius: proximityRadius
+                })
             },
             paramsSerializer: params => new URLSearchParams(params).toString()
         });
@@ -214,79 +214,79 @@ function UserDashboard() {
             </aside>
 
             {/* Main Content */}
-            <main className="flex-1 bg-orange-50 max-w-[800px] p-6 border-gray-300 rounded-lg  shadow-sm">
-            <div className="flex flex-col gap-5 w-full">
-            <h2 className="text-2xl text-left text-amber-800 font-bold"> Discover Beers </h2>
+            <main className="flex-1 bg-orange-50 max-w-[800px] p-6 border-gray-300 rounded-lg shadow-sm flex flex-col">
+                <div className="flex flex-col gap-5 w-full flex-grow">
+                    <h2 className="text-2xl text-left text-amber-800 font-bold"> Discover Beers </h2>
 
+                    <BeerFilter
+                    committedTags={committedTags}
+                    onSetProximity={({ lat, lng, radius }) => {
+                        setProximityCoords({ lat, lng });
+                        setProximityRadius(radius);
+                    }}
+                    inline={true}
+                    />
 
-                <BeerFilter
-                committedTags={committedTags}
-                onSetProximity={({ lat, lng, radius }) => {
-                    setProximityCoords({ lat, lng });
-                    setProximityRadius(radius);
-                }}
-                inline={true}
-                />
-
-                {filteredBeers.length > 0 ? (
-                filteredBeers.map((beer) => {
-
-                    const brewery = breweryMap[beer.breweryUuid];
-                    
-                    return (
-                    <div
-                        key={beer.beerId}
-                        className="min-h-[120px] w-full bg-red-50 border border-gray-300 rounded-2xl p-8 shadow-sm flex justify-between items-center"
-                    >
-                        {/* Beer Info */}
-                        <div className="flex items-start gap-x-4 text-left">
-                            <img src={beer27} alt="Brewery Icon" className="w-25 h-25 object-cover object-left rounded-md" />
-
-                            <div>
-                                <h2 className="text-xl text-amber-800 font-bold mt-0">{beer.name}</h2>
-                                <p className="text-sm text-gray-700">
-                                from {brewery?.breweryName || 'Unknown Brewery'}
+                    {filteredBeers.length > 0 ? (
+                    filteredBeers.map((beer) => {
+                        const brewery = breweryMap[beer.breweryUuid];
+                        return (
+                        <div
+                            key={beer.beerId}
+                            className="h-[180px] w-full bg-red-50 border border-gray-300 rounded-2xl p-6 shadow-sm flex justify-between items-center"
+                            >
+                            {/* Beer Info */}
+                            <div className="flex items-start gap-x-4 text-left w-2/3">
+                                <img src={beer27} alt="Brewery Icon" className="w-20 h-20 object-cover rounded-md flex-shrink-0" />
+                                
+                                <div className="flex flex-col justify-between h-full overflow-hidden">
+                                <h2 className="text-xl text-amber-800 font-bold leading-tight line-clamp-2 break-words">
+                                    {beer.name}
+                                </h2>
+                                <p className="text-sm text-gray-700 truncate">
+                                    from {brewery?.breweryName || 'Unknown Brewery'}
                                 </p>
                                 <p className="text-sm text-gray-600">
-                                {brewery?.city}, {brewery?.state}
+                                    {brewery?.city}, {brewery?.state}
                                 </p>
-                                <p className="text-sm text-gray-800">
-                                {beer.flavorTags.map(tag => tag.charAt(0).toUpperCase() + tag.slice(1)).join(', ')}
+                                <p className="text-sm text-gray-800 truncate">
+                                    {beer.flavorTags.map(tag => tag.charAt(0).toUpperCase() + tag.slice(1)).join(', ')}
                                 </p>
+                                </div>
+                            </div>
+
+                            {/* Style + Action */}
+                            <div className="text-right h-full flex flex-col justify-between items-end">
+                                <p className="font-medium text-gray-800">{beer.style}</p>
+                                <p className="font-medium text-gray-700">ABV = {(beer.abv * 100).toFixed(1)}%</p>
+                                <button
+                                className="bg-blue-200 px-4 py-2 rounded-full text-black"
+                                onClick={() => {
+                                    setSelectedBeerId(beer.beerId);
+                                    setShowReviewModal(true);
+                                }}
+                                >
+                                Review!
+                                </button>
                             </div>
                             </div>
 
-                        {/* Style + Action */}
-                        <div className="text-right">
-                        <p className="font-medium text-gray-800">{beer.style}</p>
-                        <p className="mb-2 font-medium text-gray-700">ABV = {(beer.abv * 100).toFixed(1)}%</p>
-                        <button
-                            className="bg-blue-200 px-4 py-2 rounded-full text-black"
-                            onClick={() => {
-                            setSelectedBeerId(beer.beerId);
-                            setShowReviewModal(true);
-                            }}
-                        >
-                            Review!
-                        </button>
-                        </div>
+                        );
+                    })
+                    ) : (
+                    <div className="text-center text-gray-600 italic pt-16">
+                        No beers found with those flavor tags.
                     </div>
-                    );
-                })
-                ) : (
-                <div className="text-center text-gray-600 italic pt-16">
-                    No beers found with those flavor tags.
-                </div>
-                )}
+                    )}
 
-                <div className="pagination-controls">
-                <button disabled={currentPage === 0} onClick={() => setCurrentPage(p => p - 1)}>Previous</button>
-                <span className="ml-2 mr-2">  {currentPage + 1} of {totalPages} </span>
-                <button disabled={currentPage === totalPages - 1} onClick={() => setCurrentPage(p => p + 1)}>Next</button>
+                    <div className="mt-auto border-t pt-4 text-center">
+                    <button disabled={currentPage === 0} onClick={() => setCurrentPage(p => p - 1)}>Previous</button>
+                    <span className="ml-2 mr-2"> {currentPage + 1} of {totalPages} </span>
+                    <button disabled={currentPage === totalPages - 1} onClick={() => setCurrentPage(p => p + 1)}>Next</button>
+                    </div>
                 </div>
+                </main>
 
-            </div>
-            </main>
 
             {/* Right Sidebar */}
             <aside className="w-[240px] flex-shrink-0 bg-orange-100 p-4 space-y-4 text-left text-amber-800">
