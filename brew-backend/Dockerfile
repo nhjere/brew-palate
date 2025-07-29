@@ -7,9 +7,6 @@ RUN mvn clean package -DskipTests
 # ---- Stage 2: Run the Spring Boot JAR ----
 FROM eclipse-temurin:21-jre
 WORKDIR /app
-
-# Use `find` to copy the built jar reliably
-COPY --from=build /app/target/*.jar app.jar
-
+COPY --from=build /app/target/app.jar app.jar
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]
