@@ -7,10 +7,11 @@ export const useBeerMap = () => useContext(BeerContext);
 
 export const BeerProvider = ({ children }) => {
   const [beerMap, setBeerMap] = useState({});
+  const BASE_URL = import.meta.env.VITE_BACKEND_URL;
 
   useEffect(() => {
     axios
-      .get("http://localhost:8080/api/import/all-beers")
+      .get(`${BASE_URL}/api/import/all-beers`)
       .then((res) => {
         const map = {};
         res.data.forEach((beer) => {

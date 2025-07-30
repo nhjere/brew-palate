@@ -13,6 +13,7 @@ export default function ReviewModal({ beerId, onClose, onReviewSubmit}) {
     const [beer, setBeer] = useState(null);
     const [successMessage, setSuccessMessage] = useState('');
     const breweryMap = useBreweryMap();
+    const BASE_URL = import.meta.env.VITE_BACKEND_URL;
     
     // useState to manage review form data
     const [reviewFormData, setReviewFormData] = useState({
@@ -29,7 +30,7 @@ export default function ReviewModal({ beerId, onClose, onReviewSubmit}) {
     // fetches beer metadata associated with beer id
     useEffect(() => {
         if (!beerId) return;
-        axios.get(`http://localhost:8080/api/import/beers/${beerId}`)
+        axios.get(`${BASE_URL}/api/import/beers/${beerId}`)
             .then(res => setBeer(res.data))
             .catch(err => console.error(err));
     }, [beerId]);

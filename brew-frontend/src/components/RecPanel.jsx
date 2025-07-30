@@ -15,6 +15,7 @@ export default function Recommendations({ userId, refreshRecs }) {
         const controller = new AbortController();
         const signal = controller.signal;
 
+        // from fastAPI service
         axios.get(`http://localhost:8001/live-recs/${userId}`, { signal })
             .then((res) => {
                 setBeers(res.data.beers || []);
@@ -35,13 +36,14 @@ export default function Recommendations({ userId, refreshRecs }) {
         };
     }, [userId, refreshRecs]);
 
+    const BASE_URL = import.meta.env.VITE_BACKEND_URL;
     useEffect(() => {
         const uniqueIds = [...new Set(beers.map(b => b.breweryUuid))].filter(id => !!id);
 
         if (uniqueIds.length === 0) return;
-
+        // from postgres db
         axios.post(
-        'http://localhost:8080/api/brewer/breweries/details',
+        `${BASE_URL}/api/brewer/breweries/details`,
         uniqueIds,
         {
             headers: {

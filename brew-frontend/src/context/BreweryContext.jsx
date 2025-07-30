@@ -7,9 +7,10 @@ export const useBreweryMap = () => useContext(BreweryContext);
 
 export const BreweryProvider = ({children}) => {
     const [breweryMap, setBreweryMap] = useState({})
+    const BASE_URL = import.meta.env.VITE_BACKEND_URL;
 
     useEffect(() => {
-    axios.get('http://localhost:8080/api/brewer/breweries/all')
+    axios.get(`${BASE_URL}/api/brewer/breweries/all`)
         .then(res => {
         const map = {};
         res.data.forEach(brewery => {

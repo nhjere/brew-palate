@@ -129,7 +129,7 @@ function UserDashboard() {
 
     // reads in all breweries from db (previously posted from open brewery db)
     useEffect(() => {
-        axios.get('http://localhost:8080/api/brewer/breweries/all')
+        axios.get(`${BASE_URL}/api/brewer/breweries/all`)
         .then(res => setBreweries(res.data))
         .catch(err => console.error(err));
 

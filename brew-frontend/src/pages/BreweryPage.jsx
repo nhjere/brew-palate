@@ -11,16 +11,17 @@ export default function BreweryPage() {
     const [beersFromBrewery, setBeersFromBrewery] = useState([]);
     const { breweryId } = useParams();
     // const [beerMap, setBeerMap] = useBeerMap();
+    const BASE_URL = import.meta.env.VITE_BACKEND_URL;
 
     useEffect(() => {
 
         if (!breweryId) return;
 
-        axios.get(`http://localhost:8080/api/brewer/breweries/${breweryId}`)
+        axios.get(`${BASE_URL}/api/brewer/breweries/${breweryId}`)
         .then(res => setBrewery(res.data))
         .catch(err => console.error('Error fetching brewery ', err));
 
-        axios.get(`http://localhost:8080/api/import/by-brewery/${breweryId}`)
+        axios.get(`${BASE_URL}/api/import/by-brewery/${breweryId}`)
         .then(res => setBeersFromBrewery(res.data))
         .catch(err => console.error('Error fetching brewery ', err));
 

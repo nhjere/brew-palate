@@ -4,10 +4,11 @@ import "../index.css"
 
 export default function TastePanel({ flavorTags, setFlavorTags, onRefresh }) {
     const [availableTags, setAvailableTags] = useState([]);
+    const BASE_URL = import.meta.env.VITE_BACKEND_URL;
 
     // Fetch available tags
     useEffect(() => {
-        axios.get('http://localhost:8080/api/import/flavor-tags')
+        axios.get(`${BASE_URL}/api/import/flavor-tags`)
             .then(res => {
                 setAvailableTags(res.data);
                 const saved = JSON.parse(localStorage.getItem('userFlavorTags')) || [];

@@ -21,7 +21,8 @@ export default function BrewerDashboard() {
 
     const [address, setAddress] = useState('');
     const isFirstLoad = useRef(true);
-
+    const BASE_URL = import.meta.env.VITE_BACKEND_URL;
+    
     // handles address loading in first spot
     useEffect(() => {
         if (isFirstLoad.current) {
@@ -90,7 +91,7 @@ export default function BrewerDashboard() {
     // fetch nearby breweries in backend w/ geocode parameters
     const fetchNearbyBreweries = async (lat, lng) => {
         try {
-            const res = await axios.get(`http://localhost:8080/api/brewer/breweries/nearby`, {
+            const res = await axios.get(`${BASE_URL}/api/brewer/breweries/nearby`, {
             params: {lat,lng,radius: distance}
             });
             setFilteredBreweries(res.data);

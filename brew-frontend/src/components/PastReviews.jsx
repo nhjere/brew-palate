@@ -5,13 +5,14 @@ import { useBeerMap } from '../context/BeerContext';
 export default function PastReviews({ userId, refreshRecs }) {
     const [reviews, setReviews] = useState([]);
     const [beerMap, setBeerMap] = useState({});
+    const BASE_URL = import.meta.env.VITE_BACKEND_URL;
 
     useEffect(() => {
     if (!userId) return;
 
     async function fetchReviewsAndBeers() {
         try {
-        const reviewsRes = await axios.get(`http://localhost:8080/api/user/reviews/user/${userId}`);
+        const reviewsRes = await axios.get(`${BASE_URL}/api/user/reviews/user/${userId}`);
         const reviews = reviewsRes.data;
         setReviews(reviews);
 
@@ -24,7 +25,7 @@ export default function PastReviews({ userId, refreshRecs }) {
         const params = new URLSearchParams();
         uniqueBeerIds.forEach(id => params.append('beerIds', id));
 
-        const beersRes = await axios.get(`http://localhost:8080/api/import/fetchById?${params.toString()}`);
+        const beersRes = await axios.get(`${BASE_URL}/api/import/fetchById?${params.toString()}`);
         
         const beerMap = {};
         beersRes.data.forEach(beer => {
