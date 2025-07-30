@@ -14,7 +14,7 @@ public class WebConfig {
             @Override
             public void addCorsMappings(@NonNull CorsRegistry registry) {
                 registry.addMapping("/**") 
-                        .allowedOrigins("http://localhost:5173","brew-palate-alpha.vercel.app")
+                        .allowedOrigins("http://localhost:5173","https://brew-frontend-one.vercel.app")
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
                         .allowedHeaders("*")
                         .allowCredentials(true);
