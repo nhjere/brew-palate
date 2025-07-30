@@ -8,60 +8,60 @@ export default function Recommendations({ userId, refreshRecs }) {
     const [isFallback, setIsFallback] = useState(false);
     const [breweryMap, setBreweryMap] = useState('');
 
-    useEffect(() => {
-        if (!userId) return;
-        // controller can cancel requests
-        const controller = new AbortController();
-        const signal = controller.signal;
-        const BASE_URL = import.meta.env.VITE_BACKEND_URL;
+    // useEffect(() => {
+    //     if (!userId) return;
+    //     // controller can cancel requests
+    //     const controller = new AbortController();
+    //     const signal = controller.signal;
+    //     const BASE_URL = import.meta.env.VITE_BACKEND_URL;
         
-        // change to REC_URL when fast api service is deployed 
-        axios.get(`${BASE_URL}/live-recs/${userId}`, { signal })
-            .then((res) => {
-                if (Array.isArray(res.data.beers)) {
-                    setBeers(res.data.beers);
-                    setIsFallback(res.data.fallback || false);
-                } else {
-                    console.warn("Unexpected response format:", res.data);
-                    setError(true);
-                }
-            })
-            .catch((err) => {
-                if (axios.isCancel(err)) {
-                    console.log("Request canceled:", err.message);
-                } else {
-                    console.error("Failed to fetch recommendations:", err.message);
-                    setError(true);
-                }
-            });
+    //     // change to REC_URL when fast api service is deployed 
+    //     axios.get(`${BASE_URL}/live-recs/${userId}`, { signal })
+    //         .then((res) => {
+    //             if (Array.isArray(res.data.beers)) {
+    //                 setBeers(res.data.beers);
+    //                 setIsFallback(res.data.fallback || false);
+    //             } else {
+    //                 console.warn("Unexpected response format:", res.data);
+    //                 setError(true);
+    //             }
+    //         })
+    //         .catch((err) => {
+    //             if (axios.isCancel(err)) {
+    //                 console.log("Request canceled:", err.message);
+    //             } else {
+    //                 console.error("Failed to fetch recommendations:", err.message);
+    //                 setError(true);
+    //             }
+    //         });
 
-        return () => controller.abort();
-    }, [userId, refreshRecs]);
+    //     return () => controller.abort();
+    // }, [userId, refreshRecs]);
 
 
-    const BASE_URL = import.meta.env.VITE_BACKEND_URL;
-    useEffect(() => {
-        const uniqueIds = [...new Set(beers.map(b => b.breweryUuid))].filter(id => !!id);
+    // const BASE_URL = import.meta.env.VITE_BACKEND_URL;
+    // useEffect(() => {
+    //     const uniqueIds = [...new Set(beers.map(b => b.breweryUuid))].filter(id => !!id);
 
-        if (uniqueIds.length === 0) return;
-        // from postgres db
-        axios.post(
-        `${BASE_URL}/api/brewer/breweries/details`,
-        uniqueIds,
-        {
-            headers: {
-            'Content-Type': 'application/json',
-            },
-        }
-        )
-        .then((res) => setBreweryMap(res.data))
-        .catch(console.error);
-    }, [beers]);
+    //     if (uniqueIds.length === 0) return;
+    //     // from postgres db
+    //     axios.post(
+    //     `${BASE_URL}/api/brewer/breweries/details`,
+    //     uniqueIds,
+    //     {
+    //         headers: {
+    //         'Content-Type': 'application/json',
+    //         },
+    //     }
+    //     )
+    //     .then((res) => setBreweryMap(res.data))
+    //     .catch(console.error);
+    // }, [beers]);
 
     return (
         <section className="bg-red-50 border border-gray-300 rounded-lg p-4 shadow-sm text-left">
             <h2 className="text-2xl font-bold mb-2">Recs</h2>
-            <p className="text-sm mb-2">
+            {/* <p className="text-sm mb-2">
                 {isFallback
                 ? "No reviews yet — here are some popular beers to try!"
                 : "Based on your tastes, try these local crafts!"}
@@ -93,7 +93,7 @@ export default function Recommendations({ userId, refreshRecs }) {
                 )}
                 
                 )}
-            </div>
+            </div> */}
         </section>
 
     );
