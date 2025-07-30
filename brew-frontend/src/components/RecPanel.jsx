@@ -10,31 +10,33 @@ export default function Recommendations({ userId, refreshRecs }) {
 
     useEffect(() => {
         if (!userId) return;
-
-        // creates controller that can cancel requests (fast API is expected to handle too many requests)
+        // controller can cancel requests
         const controller = new AbortController();
         const signal = controller.signal;
-
-        // from fastAPI service
+        
+        // change to REC_URL when fast api service is deployed 
         axios.get(`http://localhost:8001/live-recs/${userId}`, { signal })
             .then((res) => {
-                setBeers(res.data.beers || []);
-                setIsFallback(res.data.fallback);
+                if (Array.isArray(res.data.beers)) {
+                    setBeers(res.data.beers);
+                    setIsFallback(res.data.fallback || false);
+                } else {
+                    console.warn("Unexpected response format:", res.data);
+                    setError(true);
+                }
             })
             .catch((err) => {
-                // if request cancelled (useEffect called again)
                 if (axios.isCancel(err)) {
                     console.log("Request canceled:", err.message);
                 } else {
-                    console.error("Failed to fetch recommendations:", err);
+                    console.error("Failed to fetch recommendations:", err.message);
+                    setError(true);
                 }
             });
 
-        return () => {
-            // only last request served
-            controller.abort();
-        };
+        return () => controller.abort();
     }, [userId, refreshRecs]);
+
 
     const BASE_URL = import.meta.env.VITE_BACKEND_URL;
     useEffect(() => {
