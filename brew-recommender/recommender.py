@@ -6,9 +6,9 @@ import ast
 
 def loadData():
     # load and consolidate beer df
-    beers_filepath = '../beer_pool.csv'
+    beers_filepath = './data/beer_pool.csv'
     beers_df = pd.read_csv(beers_filepath)
-    tags_filepath = '../beer_ft_pool.csv'
+    tags_filepath = './data/beer_ft_pool.csv'
     tags_df = pd.read_csv(tags_filepath)
     complete_beers = pd.merge(beers_df, tags_df, on='beer_id')
     beers_df = complete_beers.groupby('beer_id').agg({
@@ -22,7 +22,7 @@ def loadData():
     }).reset_index()
 
     # load reviews df
-    reviews_filepath = '../new_reviews.csv'
+    reviews_filepath = './data/new_reviews.csv'
     reviews_df = pd.read_csv(reviews_filepath)
     reviews_df["userId"] = reviews_df["userId"].astype(str)
     reviews_df["beerId"] = reviews_df["beerId"].astype(str)
