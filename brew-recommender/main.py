@@ -15,7 +15,8 @@ def safe_float(value):
     except (TypeError, ValueError):
         return None
 
-SPRING_BOOT_BASE_URL = "http://localhost:8080"
+# CHANGE TO BASE_URL DEFINED IN ENV
+SPRING_BOOT_BASE_URL = "http://localhost:8080"  
 
 app = FastAPI()
 
