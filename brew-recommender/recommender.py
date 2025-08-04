@@ -5,12 +5,14 @@ from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.feature_extraction.text import TfidfVectorizer
 import ast
 from sqlalchemy import create_engine
+import os
+from dotenv import load_dotenv
 
-DB_USER = "postgres"
-DB_PASS = "RKQqcKIzojWjoGXJsoihsoOOyoWjHHEt"
-DB_HOST = "mainline.proxy.rlwy.net"
-DB_PORT = "37132"
-DB_NAME = "railway"
+DB_USER = os.getenv("DB_USER")
+DB_PASS = os.getenv("DB_PASS")
+DB_HOST = os.getenv("DB_HOST")
+DB_PORT = os.getenv("DB_PORT")
+DB_NAME = os.getenv("DB_NAME")
 
 engine = create_engine(f'postgresql+psycopg://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}')
 
@@ -36,7 +38,7 @@ def loadData():
     # Optional: Clean up tags
     beers_df["flavor_tag"] = beers_df["flavor_tag"].apply(lambda tags: [t for t in tags if t])
     beers_df["beer_id"] = beers_df["beer_id"].astype(str)
-    
+
     # Load reviews from the database instead of CSV if you're ready
     reviews_df = pd.read_sql("SELECT * FROM fake_reviews", engine)
     reviews_df.rename(columns={
@@ -55,36 +57,6 @@ def loadData():
     beer_vectors = vectorizeBeers(beers_df)
 
     return beers_df, reviews_df, beer_vectors
-
-
-# def loadData():
-#     # load and consolidate beer df
-#     beers_filepath = './data/beer_pool.csv'
-#     beers_df = pd.read_csv(beers_filepath)
-#     tags_filepath = './data/beer_ft_pool.csv'
-#     tags_df = pd.read_csv(tags_filepath)
-#     complete_beers = pd.merge(beers_df, tags_df, on='beer_id')
-#     beers_df = complete_beers.groupby('beer_id').agg({
-#         'abv': 'first',
-#         'brewery_uuid': 'first',
-#         'ibu': 'first',
-#         'name': 'first',
-#         'ounces': 'first',
-#         'style': 'first',
-#         'flavor_tag': lambda x: list(set(x))
-#     }).reset_index()
-
-#     # load reviews df
-#     reviews_filepath = './data/new_reviews.csv'
-#     reviews_df = pd.read_csv(reviews_filepath)
-#     reviews_df["userId"] = reviews_df["userId"].astype(str)
-#     reviews_df["beerId"] = reviews_df["beerId"].astype(str)
-#     reviews_df["flavorTags"] = reviews_df["flavorTags"].apply(ast.literal_eval)
-
-#     # vectorizes beers
-#     beer_vectors = vectorizeBeers(beers_df)
-
-#     return beers_df, reviews_df, beer_vectors
 
 def convertReviews(json_reviews):
     return pd.DataFrame(json_reviews)
