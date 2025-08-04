@@ -4,13 +4,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, HTTPException
 from typing import List, Optional
 from fastapi.responses import JSONResponse, FileResponse, HTMLResponse
-import pandas as pd
+from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.cors import ALL_METHODS
+from classes import ReviewMinimalDTO, Beer
+from recommender import addDiversity, getPopularBeers, loadData, convertReviews, getLiveRecommendations, serialize_beers
 import httpx
 import uuid
 import os
-import numpy as np
-from classes import ReviewMinimalDTO, Beer
-from recommender import addDiversity, getPopularBeers, loadData, convertReviews, getLiveRecommendations, serialize_beers
 
 # CHANGE TO BASE_URL DEFINED IN ENV
 SPRING_BOOT_BASE_URL = os.getenv("SPRING_BOOT_BASE_URL")
@@ -19,12 +19,9 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",                # Local dev (React Vite)
-        "https://brew-palate-alpha.vercel.app" # Vercel prod (make sure to include `https`)
-    ],
+    allow_origin_regex=r"(https://.*\.vercel\.app|http://localhost:5173)",
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=ALL_METHODS,
     allow_headers=["*"],
 )
 

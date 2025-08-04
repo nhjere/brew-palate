@@ -7,6 +7,7 @@ export default function Recommendations({ userId, refreshRecs }) {
     const [beers, setBeers] = useState([]);
     const [isFallback, setIsFallback] = useState(false);
     const [breweryMap, setBreweryMap] = useState('');
+    const [error, setError] = useState(false);
 
     useEffect(() => {
         if (!userId) return;
@@ -61,6 +62,8 @@ export default function Recommendations({ userId, refreshRecs }) {
     return (
         <section className="bg-red-50 border border-gray-300 rounded-lg p-4 shadow-sm text-left">
             <h2 className="text-2xl font-bold mb-2">Recs</h2>
+            {error && <p className="text-red-600">Failed to load recommendations.</p>}
+
             <p className="text-sm mb-2">
                 {isFallback
                 ? "No reviews yet — here are some popular beers to try!"
