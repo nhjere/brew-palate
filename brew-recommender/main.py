@@ -12,20 +12,17 @@ import numpy as np
 from classes import ReviewMinimalDTO, Beer
 from recommender import addDiversity, getPopularBeers, loadData, convertReviews, getLiveRecommendations, serialize_beers
 
-def safe_float(value):
-    try:
-        return float(value)
-    except (TypeError, ValueError):
-        return None
-
 # CHANGE TO BASE_URL DEFINED IN ENV
-SPRING_BOOT_BASE_URL = "http://localhost:8080"  
+SPRING_BOOT_BASE_URL = os.getenv("SPRING_BOOT_BASE_URL")
 
 app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173","brew-palate-alpha.vercel.app"],
+    allow_origins=[
+        "http://localhost:5173",                # Local dev (React Vite)
+        "https://brew-palate-alpha.vercel.app" # Vercel prod (make sure to include `https`)
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
