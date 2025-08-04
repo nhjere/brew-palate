@@ -13,10 +13,10 @@ export default function Recommendations({ userId, refreshRecs }) {
         // controller can cancel requests
         const controller = new AbortController();
         const signal = controller.signal;
-        const BASE_URL = import.meta.env.VITE_BACKEND_URL;
+        const RECOMMENDATION_URL = import.meta.env.VITE_RECOMMENDATION_BASE_URL;
         
         // change to REC_URL when fast api service is deployed 
-        axios.get(`${BASE_URL}/live-recs/${userId}`, { signal })
+        axios.get(`${RECOMMENDATION_URL}/live-recs/${userId}`, { signal })
             .then((res) => {
                 if (Array.isArray(res.data.beers)) {
                     setBeers(res.data.beers);
