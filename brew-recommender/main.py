@@ -1,11 +1,14 @@
+import ast
 import logging
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, HTTPException
 from typing import List, Optional
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse, HTMLResponse
 import pandas as pd
 import httpx
 import uuid
+import os
+import numpy as np
 from classes import ReviewMinimalDTO, Beer
 from recommender import addDiversity, getPopularBeers, loadData, convertReviews, getLiveRecommendations, serialize_beers
 
@@ -29,6 +32,46 @@ app.add_middleware(
 )
 
 beers_df, reviews_df, beer_vectors = loadData()
+
+@app.get("/preview/beers", response_class=HTMLResponse)
+def preview_beers(n: int = 5):
+    html = beers_df.head(n).to_html(classes='table table-striped', index=False)
+    return f"<html><body>{html}</body></html>"
+
+@app.get("/preview/reviews", response_class=HTMLResponse)
+def preview_reviews(n: int = 5):
+    html = reviews_df.head(n).to_html(classes='table table-striped', index=False)
+    return f"<html><body>{html}</body></html>"
+
+EXPORT_DIR = "./exports"
+os.makedirs(EXPORT_DIR, exist_ok=True)
+
+@app.get("/export/beers")
+def export_beers():
+    path = os.path.join(EXPORT_DIR, "og_beers.csv")
+    beers_df.to_csv(path, index=False)
+    return FileResponse(path, filename="og_beers.csv", media_type="text/csv")
+
+@app.get("/export/reviews")
+def export_reviews():
+    path = os.path.join(EXPORT_DIR, "og_reviews.csv")
+    reviews_df.to_csv(path, index=False)
+    return FileResponse(path, filename="og_reviews.csv", media_type="text/csv")
+
+@app.get("/debug/vectorizer")
+def debug_vectorizer():
+    nulls = beers_df["flavor_tag"].isnull().sum()
+    empties = beers_df["flavor_tag"].apply(lambda x: len(x) == 0 if isinstance(x, list) else False).sum()
+    tag_string_empty = beers_df["tag_string"].eq("").sum()
+
+    return {
+        "beers": len(beers_df),
+        "null_flavor_tags": nulls,
+        "empty_lists": empties,
+        "empty_tag_strings": tag_string_empty,
+        "vector_shape": beer_vectors.shape
+    }
+
 
 @app.get('/dashboard', response_model=List)
 def root():
@@ -62,6 +105,7 @@ async def getLiveRecs(user_id: uuid.UUID):
         "fallback": is_fallback,
         "beers": serialize_beers(recs)
     }
+
 
 # this api endpoint can be repurposed to display User's past reviews
 @app.get('/reviews/{user_id}', response_model=List[ReviewMinimalDTO])

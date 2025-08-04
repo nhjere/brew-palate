@@ -4,3 +4,17 @@
 *.iml
 *.log
 .env
+
+# Ignore sensitive files in brew-recommender
+brew-recommender/.env
+brew-recommender/__pycache__/
+brew-recommender/*.pyc
+brew-recommender/*.pyo
+brew-recommender/*.pyd
+
+# Ignore any SQLite or data files if present
+*.sqlite3
+*.db
+
+# macOS system file
+.DS_Store

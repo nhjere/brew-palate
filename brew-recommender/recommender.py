@@ -1,37 +1,90 @@
+
 import pandas as pd
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.feature_extraction.text import TfidfVectorizer
 import ast
+from sqlalchemy import create_engine
+
+DB_USER = "postgres"
+DB_PASS = "RKQqcKIzojWjoGXJsoihsoOOyoWjHHEt"
+DB_HOST = "mainline.proxy.rlwy.net"
+DB_PORT = "37132"
+DB_NAME = "railway"
+
+engine = create_engine(f'postgresql+psycopg://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}')
 
 def loadData():
-    # load and consolidate beer df
-    beers_filepath = './data/beer_pool.csv'
-    beers_df = pd.read_csv(beers_filepath)
-    tags_filepath = './data/beer_ft_pool.csv'
-    tags_df = pd.read_csv(tags_filepath)
-    complete_beers = pd.merge(beers_df, tags_df, on='beer_id')
-    beers_df = complete_beers.groupby('beer_id').agg({
-        'abv': 'first',
-        'brewery_uuid': 'first',
-        'ibu': 'first',
-        'name': 'first',
-        'ounces': 'first',
-        'style': 'first',
-        'flavor_tag': lambda x: list(set(x))
-    }).reset_index()
+    # SQL query to join and aggregate flavor tags into arrays
+    query = """
+        SELECT 
+            bp.beer_id,
+            bp.abv,
+            bp.brewery_uuid,
+            bp.ibu,
+            bp.name,
+            bp.ounces,
+            bp.style,
+            ARRAY_AGG(DISTINCT bft.flavor_tag) AS flavor_tag
+        FROM beer_pool bp
+        LEFT JOIN beer_flavor_tags bft ON bp.beer_id = bft.beer_id
+        GROUP BY bp.beer_id, bp.abv, bp.brewery_uuid, bp.ibu, bp.name, bp.ounces, bp.style
+    """
 
-    # load reviews df
-    reviews_filepath = './data/new_reviews.csv'
-    reviews_df = pd.read_csv(reviews_filepath)
+    beers_df = pd.read_sql(query, engine)
+
+    # Optional: Clean up tags
+    beers_df["flavor_tag"] = beers_df["flavor_tag"].apply(lambda tags: [t for t in tags if t])
+    beers_df["beer_id"] = beers_df["beer_id"].astype(str)
+    
+    # Load reviews from the database instead of CSV if you're ready
+    reviews_df = pd.read_sql("SELECT * FROM fake_reviews", engine)
+    reviews_df.rename(columns={
+        "user_id": "userId",
+        "beer_id": "beerId",
+        "overall_enjoyment": "overallEnjoyment",
+        "flavor_tags": "flavorTags",
+        "rating_profile": "ratingProfile"
+    }, inplace=True)
+
     reviews_df["userId"] = reviews_df["userId"].astype(str)
     reviews_df["beerId"] = reviews_df["beerId"].astype(str)
     reviews_df["flavorTags"] = reviews_df["flavorTags"].apply(ast.literal_eval)
 
-    # vectorizes beers
+    # Vectorize beers
     beer_vectors = vectorizeBeers(beers_df)
 
     return beers_df, reviews_df, beer_vectors
+
+
+# def loadData():
+#     # load and consolidate beer df
+#     beers_filepath = './data/beer_pool.csv'
+#     beers_df = pd.read_csv(beers_filepath)
+#     tags_filepath = './data/beer_ft_pool.csv'
+#     tags_df = pd.read_csv(tags_filepath)
+#     complete_beers = pd.merge(beers_df, tags_df, on='beer_id')
+#     beers_df = complete_beers.groupby('beer_id').agg({
+#         'abv': 'first',
+#         'brewery_uuid': 'first',
+#         'ibu': 'first',
+#         'name': 'first',
+#         'ounces': 'first',
+#         'style': 'first',
+#         'flavor_tag': lambda x: list(set(x))
+#     }).reset_index()
+
+#     # load reviews df
+#     reviews_filepath = './data/new_reviews.csv'
+#     reviews_df = pd.read_csv(reviews_filepath)
+#     reviews_df["userId"] = reviews_df["userId"].astype(str)
+#     reviews_df["beerId"] = reviews_df["beerId"].astype(str)
+#     reviews_df["flavorTags"] = reviews_df["flavorTags"].apply(ast.literal_eval)
+
+#     # vectorizes beers
+#     beer_vectors = vectorizeBeers(beers_df)
+
+#     return beers_df, reviews_df, beer_vectors
 
 def convertReviews(json_reviews):
     return pd.DataFrame(json_reviews)
@@ -200,11 +253,4 @@ def serialize_beers(df):
         }
         for _, row in df.fillna("").iterrows()
     ]
-    
-
-
-
-
-
-
 
