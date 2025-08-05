@@ -12,6 +12,8 @@ const supabase = createClient(
 
 export default function Registration() {
 
+    const BASE_URL = import.meta.env.VITE_BACKEND_URL;
+
     // useState manages form data
     const [formData, setFormData] = useState({
         username: '',
@@ -46,6 +48,27 @@ export default function Registration() {
             return;
         }
 
+        if (!formData.role) {
+            setErrorMessage('Please select whether you are a User or Brewer.');
+            return;
+        }
+
+        // check if username is available
+        try {
+            const usernameCheck = await axios.get(`${BASE_URL}/api/user/check-username`, {
+                params: { username: formData.username },
+            });
+
+            if (!usernameCheck.data.available) {
+                setErrorMessage('Username already taken. Please choose another.');
+                return;
+            }
+            } catch (err) {
+            console.error("Username check failed:", err);
+            setErrorMessage("Failed to verify username. Please try again.");
+            return;
+        }
+
         // Register with supabase
         const { data, error } = await supabase.auth.signUp({
             email: formData.email,
@@ -57,8 +80,6 @@ export default function Registration() {
             setErrorMessage(`Registration failed: ${error.message}`);
             return;
         }
-
-        
 
         const userId = data.user?.id;
         if (!userId) {
@@ -75,8 +96,7 @@ export default function Registration() {
             address: formData.address,
         };
 
-        console.log("Sending metadata to backend...");
-        const BASE_URL = import.meta.env.VITE_BACKEND_URL;
+        // console.log("Sending metadata to backend...");
         await axios.post(`${BASE_URL}/api/user/register`, metadata);
         
         setSuccessMessage('Registration successful! Please check your email to verify your account.');
@@ -168,7 +188,7 @@ export default function Registration() {
                             <input
                                 type="email"
                                 name="email"
-                                placeholder="Email"
+                                placeholder="Email (Login Credential)"
                                 value={formData.email}
                                 onChange={handleChange}
                                 required

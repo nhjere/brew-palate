@@ -46,7 +46,13 @@ public class UserController {
             // catches any other error
             return ResponseEntity.internalServerError().body("Registration failed");
         }
+    }
 
+    // checks if username exists in db
+    @GetMapping("/check-username")
+    public ResponseEntity<?> checkUsername(@RequestParam String username) {
+        boolean exists = userService.usernameExists(username);
+        return ResponseEntity.ok(Map.of("available", !exists));
     }
 
     // retrieve a  profile information based on a JWT (JSON Web Token) provided in the HTTP Authorization header

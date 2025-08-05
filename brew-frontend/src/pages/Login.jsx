@@ -85,6 +85,19 @@ export default function Login() {
                     </div>
                     </div>
 
+                    {/* Error Messages */}
+                    {successMessage && (
+                        <div className="bg-green-100 border border-green-500 text-green-700 p-3 rounded text-center font-semibold mb-4">
+                            {successMessage}
+                        </div>
+                    )}
+
+                    {errorMessage && (
+                        <div className="bg-red-100 border border-red-500 text-red-700 p-3 rounded text-center font-semibold mb-4">
+                            {errorMessage}
+                        </div>
+                    )}
+
                     {/* Login form */}
                     <form className="space-y-4" onSubmit={handleLogIn}>
                         <input
@@ -112,12 +125,6 @@ export default function Login() {
                             Log In
                         </button>
 
-                        {errorMessage && (
-                            <p className="text-red-600 text-sm font-medium">{errorMessage}</p>
-                        )}
-                        {successMessage && (
-                            <p className="text-green-600 text-sm font-medium">{successMessage}</p>
-                        )}
 
                         <div className="text-sm pt-2">
                             Don’t have an account?
