@@ -1,4 +1,4 @@
-import React, { use, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { createClient } from '@supabase/supabase-js';
 import { useBreweryMap } from '../context/BreweryContext';

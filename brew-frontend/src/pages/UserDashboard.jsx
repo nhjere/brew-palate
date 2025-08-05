@@ -182,7 +182,15 @@ function UserDashboard() {
                 navigate("/login");
             }}
             >
-            Log Out
+               Log Out
+            </button>
+            <button
+            className="bg-red-50 w-full !font-bold py-2 rounded-md"
+            onClick={async () => {
+                navigate("/about");
+            }}
+            >
+               About
             </button>
 
             
