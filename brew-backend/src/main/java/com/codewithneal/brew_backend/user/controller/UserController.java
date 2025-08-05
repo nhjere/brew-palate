@@ -110,7 +110,17 @@ public class UserController {
 
             // conditionally update user fields
             if (updates.containsKey("username")) {
-                updatedUser.setUsername((String) updates.get("username"));
+                if (updates.containsKey("username")) {
+                    String newUsername = (String) updates.get("username");
+                    
+                    // Don't allow change to an already-taken username
+                    Optional<User> existing = userService.getUserByUsername(newUsername);
+                    if (existing.isPresent() && !existing.get().getUserId().equals(updatedUser.getUserId())) {
+                        return ResponseEntity.status(400).body(Map.of("error", "Username already taken"));
+                    }
+
+                    updatedUser.setUsername(newUsername);
+                }
             }
             if (updates.containsKey("address")) {
                 updatedUser.setAddress((String) updates.get("address"));

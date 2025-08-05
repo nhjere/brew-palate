@@ -53,6 +53,11 @@ public class UserService {
         return userRepo.save(user);
     }
 
+    // returns a user by username
+    public Optional<User> getUserByUsername(String username) {
+        return userRepo.findByUsername(username);
+    }
+
     public boolean usernameExists(String username) {
         return userRepo.existsByUsername(username);
     }

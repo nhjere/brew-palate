@@ -62,6 +62,22 @@ function UserProfile() {
         if (!session) return;
         const token = session.access_token;
         try {
+            
+            const newUsername = formData.username.trim();
+            const currentUsername = userProfile.username;
+
+            if (newUsername !== currentUsername) {
+            const res = await axios.get(`${BASE_URL}/api/user/check-username`, {
+                params: { username: newUsername },
+            });
+
+            if (!res.data.available) {
+                alert("That username is already taken. Please choose another.");
+                return;
+            }
+        }
+
+
             await axios.patch(`${BASE_URL}/api/user/profile/update`, formData, {
                 headers: {
                     Authorization: `Bearer ${token}`,
