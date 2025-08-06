@@ -1,8 +1,7 @@
 import Header from '../components/Header'
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { useNavigate, useParams } from 'react-router-dom';
-import { useBeerMap } from '../context/BeerContext';
+import { useParams } from 'react-router-dom';
 
 export default function BreweryPage() {
     // User clicks on a brewery link and takes them to an informative page about the brewery

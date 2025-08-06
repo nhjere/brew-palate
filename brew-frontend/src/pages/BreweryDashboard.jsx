@@ -1,11 +1,9 @@
 import Header from '../components/Header';
 import LocationFilter from '../components/LocationFilter';
 import BreweryMap from '../components/BreweryMap';
-// import CrawlGenerator from '../components/CrawlGenerator';
 import { useLocation } from 'react-router-dom';
 import { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
 
 export default function BrewerDashboard() {
 

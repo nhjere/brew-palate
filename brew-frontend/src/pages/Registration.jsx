@@ -2,13 +2,8 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import Header from '../components/Header';
 import "../App.css";
-import { createClient } from '@supabase/supabase-js';
+import supabase from '../supabaseClient';
 import { Link } from 'react-router-dom';
-
-const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_ANON_KEY
-)
 
 export default function Registration() {
 

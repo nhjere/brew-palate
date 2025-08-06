@@ -1,18 +1,23 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import axios from 'axios';
 import Header from '../components/Header';
 import SearchBar from '../components/SearchBar';
 import ReviewModal from '../components/ReviewModal'
 import TastePanel from '../components/TastePanel';
 import beer27 from "../assets/beer-27.svg";
-import supabase from '../supabaseClient';
+import { createClient } from '@supabase/supabase-js';
 import RecPanel from '../components/RecPanel';
 import PastReviews from '../components/PastReviews';
 import { useBreweryMap } from '../context/BreweryContext';
 import { useNavigate, useParams } from 'react-router-dom';
 import BeerFilter from '../components/BeerFilter';
 
-function UserDashboard() {
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_ANON_KEY
+);
+
+export default function NewUserDash() {
     
     const [proximityCoords, setProximityCoords] = useState(null);
     const [proximityRadius, setProximityRadius] = useState(25);
@@ -311,5 +316,3 @@ function UserDashboard() {
         </div>
     );
 }
-
-export default UserDashboard;
