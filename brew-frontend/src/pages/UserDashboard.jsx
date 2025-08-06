@@ -76,17 +76,18 @@ function UserDashboard() {
         }
     };
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    // listens for auth state changes (login, logout, refresh, token renewal)
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
         if (session) {
-        fetchUserProfile(session);
+            fetchUserProfile(session);
         }
+    })
+
+    // if active session, fetch profile
+    supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) fetchUserProfile(session);
     });
 
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-        if (session) {
-        fetchUserProfile(session);
-        }
-    });
 
     return () => {
         authListener.subscription.unsubscribe();

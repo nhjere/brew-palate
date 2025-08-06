@@ -54,11 +54,16 @@ export default function Login() {
             return;
         }
 
-        // console.log('User ', data.user, 'logged in')
-        setUser(data.user);
-        setSuccessMessage('Login successful!')
-        navigate(`/user/dashboard/${data.user.id}`);
-
+        // waits for session hydration before routing user to dashboard
+        const { data: authListener } = supabase.auth.onAuthStateChange((_, session) => {
+            if (session) {
+            // persist user, then redirect
+            setUser(session.user);
+            navigate(`/user/dashboard/${session.user.id}`);
+            authListener.subscription.unsubscribe(); 
+            }
+        });
+    
     }
 
 
