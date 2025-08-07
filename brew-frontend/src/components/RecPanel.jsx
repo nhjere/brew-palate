@@ -71,7 +71,7 @@ export default function Recommendations({ userId, refreshRecs }) {
             </p>
 
             <div className="space-y-4 text-sm font-medium">
-                {beers.slice(0, 10).map((beer) => {
+                {beers.slice(0, 12).map((beer) => {
 
                     const breweryDetails = breweryMap[beer.breweryUuid];
                     console.log(breweryMap)

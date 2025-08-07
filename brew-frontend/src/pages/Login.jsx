@@ -124,7 +124,7 @@ export default function Login() {
                         </button>
 
 
-                        <div className="text-sm pt-2">
+                        <div className="text-sm text-center pt-2">
                             Don’t have an account?
                             <Link
                             to="/register"

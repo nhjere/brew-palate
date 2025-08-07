@@ -135,23 +135,23 @@ function UserDashboard() {
 
     return (
     
-        <div className="min-h-screen bg-amber-50 flex flex-col">
+        <div className="w-full bg-orange-100 py-6 overflow-x-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between bg-orange-100 p-4 shadow-md">
+        <div className="flex items-center justify-between bg-orange-100 px-4">
             <Header />
-            <div className="w-5/6">
+            <div className="ml-45 w-4/5 ">
             <SearchBar />
             </div>
-            <div className="text-lg text-amber-800 font-semibold ml-2">
+            <div className="text-lg ml-5 text-amber-800 font-semibold">
             Welcome, {username}!
             </div>
         </div>
 
         {/* Main Layout */}
-        <div className="flex flex-row w-full max-w-screen-xl mx-auto min-h-[500px]">
+        <div className="max-w-screen-2xl mx-auto px-4 flex gap-2 min-w-0">
 
             {/* Left Sidebar */}
-            <aside className="w-[240px] flex-shrink-0 bg-orange-100 p-4 space-y-4 text-left text-amber-800">
+            <aside className="w-[270px] max-w-[270px] flex-shrink-0  bg-orange-100 p-4 space-y-4 text-left text-amber-800">
             <button 
                 className="bg-red-50 w-full !font-bold py-2 rounded-md"
                 onClick= {() => {
@@ -162,7 +162,7 @@ function UserDashboard() {
                 My Profile
             </button>
             <button
-                className="bg-red-50 w-full !font-bold py-2 rounded-md"
+                className="bg-red-50 w-full !font-bold py-2 rounded-md "
                 onClick={() => {
                 const url = `/brewery/dashboard?address=${encodeURIComponent(address)}`;
                 window.open(url, '_blank');
@@ -203,7 +203,7 @@ function UserDashboard() {
                 <h2 className="text-2xl font-bold mb-2">Breweries</h2>
                 <p className="text-sm mb-2">Check out these local craft breweries:</p>
                 <ul className="list-disc list-outside pl-5 space-y-1 text-sm font-medium">
-                {breweries.slice(0, 20).map((brewery) => (
+                {breweries.slice(0, 22).map((brewery) => (
                     <li key={brewery.breweryId}>
                     <a
                         href={`/brewery/${brewery.breweryId}`}
@@ -218,7 +218,7 @@ function UserDashboard() {
             </aside>
 
             {/* Main Content */}
-            <main className="flex-1 bg-orange-50 max-w-[800px] p-6 border-gray-300 rounded-lg shadow-sm flex flex-col">
+            <main className="flex-1 min-w-0 overflow-y-auto flex flex-col  p-4 bg-orange-50 rounded-lg shadow-sm border border-gray-300 mt-4">
                 <div className="flex flex-col gap-5 w-full flex-grow">
                     <h2 className="text-2xl text-left text-amber-800 font-bold"> Discover Beers </h2>
 
@@ -293,7 +293,7 @@ function UserDashboard() {
 
 
             {/* Right Sidebar */}
-            <aside className="w-[240px] flex-shrink-0 bg-orange-100 p-4 space-y-4 text-left text-amber-800">
+            <aside className="w-[270px] max-w-[270px] flex-shrink-0  bg-orange-100 p-4 space-y-4 text-left text-amber-800">
             <PastReviews userId={userId} refreshRecs={refreshRecs}/>
             <RecPanel userId={userId} refreshRecs={refreshRecs}/>
             </aside>

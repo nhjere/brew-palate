@@ -115,15 +115,15 @@ function UserProfile() {
 
 
     return (
-        <div className="min-h-screen bg-amber-50 flex flex-col">
-        <div className="flex items-center justify-between bg-orange-100 p-4 shadow-md">
+        <div className="min-h-screen bg-orange-100 flex flex-col">
+        <div className="flex items-center justify-between bg-orange-100 p-4">
             <Header />
         </div>
 
-        <div className="flex flex-col items-center justify-start p-6 w-full max-w-screen-md mx-auto">
+        <div className="flex flex-col items-center justify-start p-6 w-full max-w-screen-md mx-auto text-center">
             {userProfile ? (
-            <div className="bg-white w-full rounded-lg shadow-md p-6 border border-gray-300">
-                <h2 className="text-xl font-bold text-amber-800 mb-4">User Information</h2>
+            <div className="bg-red-50 w-full rounded-lg shadow-md p-6 border border-gray-300">
+                <h2 className="text-xl font-bold text-amber-800 mb-4">Your Profile</h2>
 
                 {isEditing ? (
                     <div className="space-y-4">

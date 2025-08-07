@@ -7,8 +7,9 @@ import Registration from './pages/Registration'
 import NoPage from './pages/NoPage';
 import BreweryPage from './pages/BreweryPage';
 import About from './pages/About';
-import './App.css'
-import './index.css'
+import NewUserDash from './NewLayout/NewUserDash'
+
+
 import { BreweryProvider } from './context/BreweryContext';
 import { BeerProvider } from './context/BeerContext';
 
@@ -19,6 +20,9 @@ function App() {
         <Router>
           <Routes>
             <Route path="/" element={<Navigate to="/login" replace />} />
+            {/* temp mock up  */}
+            <Route path="/temp-dash" element={<NewUserDash />} />
+
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Registration />} />
             <Route path="/about" element={<About />} />

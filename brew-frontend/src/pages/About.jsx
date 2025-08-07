@@ -3,23 +3,20 @@ import Header from '../components/Header';
 
 export default function About() {    
     return (
-        <div>
-            <div className="flex items-center justify-between bg-orange-100 p-4 shadow-md">
+        <div className=" min-h-screen bg-orange-100 flex flex-col">
+            <div className="flex items-center justify-between p-4 ">
                 <Header />
-
             </div>
 
-            <div className="flex flex-row w-full text-left max-w-screen-xl mx-auto min-h-[500px]">
-                <main className="flex-1 bg-orange-50 max-w p-6 border-gray-300 shadow-sm flex flex-col space-y-6 text-amber-900">
-
-                    <section className='text-lg'>
+            <div className="flex flex-row w-full h-full text-left max-w-screen-xl mx-auto min-h-[500px]">
+                <main className="flex-1  max-w p-6 border-gray-300 flex flex-col space-y-6 text-amber-900 bg-red-50 w-full rounded-lg shadow-md">
+                
+                    <section className='text-xl'>
 
                         <p>
                             <strong >BrewPalate</strong> is a full-stack beer discovery platform enabling users to find, review, and receive personalized recommendations for craft beers using ML-powered taste profiling.
                         </p>
-                        <p className="mt-4">
-                            <strong>Our Mission:</strong> To transform how craft beer lovers explore seasonal and small-batch brews by providing a tailored, data-driven experience—while empowering microbreweries with real-time customer feedback and batch-level analytics to guide brewing decisions.
-                        </p>
+                        
                     </section>
 
                     <section>
