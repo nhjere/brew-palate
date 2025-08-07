@@ -38,7 +38,7 @@ export default function NewHeader() {
             </div>
 
             {/* Avatar */}
-            <Link to={`/user/profile/${userId}`} className="flex items-center justify-center space-x-3">
+            <Link to={`/user/profile/${userId}`} className="flex items-center mr-5 justify-center  space-x-3">
                 <img
                     src={avatar}
                     alt="BrewPalate Logo"
