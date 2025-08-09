@@ -5,6 +5,7 @@ import ReviewModal from '../components/ReviewModal'
 import NewTastePanel from './NewTastePanel.jsx';
 import NewPastReviews from './NewPastReviews.jsx';
 import NewRecPanel from './NewRecPanel.jsx'
+import NewProximity from './NewProximity.jsx'
 import beer27 from "../assets/beer-27.svg";
 import supabase from '../supabaseClient';
 import RecPanel from '../components/RecPanel'
@@ -144,13 +145,22 @@ return (
       {/* Sidebar */}
       <aside className="w-full md:w-[240px] flex-shrink-0 space-y-4 gap-x-20">
         <NewTastePanel
-          flavorTags={flavorTags}
-          setFlavorTags={setFlavorTags}
-          onRefresh={() => setCommittedTags(flavorTags)}
+            flavorTags={flavorTags}
+            setFlavorTags={setFlavorTags}
+            onRefresh={() => setCommittedTags(flavorTags)}
+        />
+        <NewProximity
+            committedTags={committedTags}
+            onSetProximity={({ lat, lng, radius }) => {
+                setProximityCoords({ lat, lng });
+                setProximityRadius(radius);
+            }}
+            inline={true}
         />
 
-          <NewPastReviews userId={userId} refreshRecs={refreshRecs} />
-          <NewRecPanel userId={userId} refreshRecs={refreshRecs} />
+        <NewPastReviews userId={userId} refreshRecs={refreshRecs} />
+        <NewRecPanel userId={userId} refreshRecs={refreshRecs} />
+
 
       </aside>
 
@@ -158,29 +168,21 @@ return (
       <main className="flex-1 flex flex-col space-y-4 overflow-x-hidden ml-10">
         <h2 className="text-2xl font-bold text-amber-800">Discover Beers</h2>
 
-        {/* <BeerFilter
-          className="max-w-full"
-          committedTags={committedTags}
-          onSetProximity={({ lat, lng, radius }) => {
-            setProximityCoords({ lat, lng });
-            setProximityRadius(radius);
-          }}
-          inline={true}
-        /> */}
-
         {beers.length > 0 ? (
           beers.map((beer) => {
             const brewery = breweryMap[beer.breweryUuid];
             return (
               <div
                 key={beer.beerId}
-                className="flex flex-col md:flex-row md:items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-[#4e2105] to-[#241200] text-white shadow-md w-full"
+                className="flex flex-col md:flex-row md:items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-[#4e2105] to-[#241200] text-white shadow-md h-[180px] w-full"
               >
                 <div className="flex items-center gap-4 w-full md:w-2/3">
                   <img src={beer27} alt="Beer" className="w-24 h-24 rounded object-cover" />
                   <div className="flex flex-col">
                     <h3 className="text-xl font-bold">{beer.name}</h3>
-                    <p className="text-sm text-white/80">From {brewery?.breweryName || 'Unknown Brewery'}</p>
+                    <p className="text-sm text-white/80 font-semibold">From {brewery?.breweryName || 'Unknown Brewery'}</p>
+                    <p className="text-sm text-white/80"> {brewery?.city} , {brewery?.state}</p>
+                    <p className="text-sm text-white/80"> {beer.flavorTags.map(tag => tag.charAt(0).toUpperCase() + tag.slice(1)).join(', ')}</p>
                   </div>
                 </div>
                 <div className="text-right flex flex-col items-end gap-2 mt-4 md:mt-0">
