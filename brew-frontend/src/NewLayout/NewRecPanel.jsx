@@ -3,12 +3,11 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/20/solid';
 
-export default function Recommendations({ withShell, userId, refreshRecs }) {
+export default function Recs({ withShell, userId, refreshRecs }) {
     const [beers, setBeers] = useState([]);
     const [isFallback, setIsFallback] = useState(false);
     const [breweryMap, setBreweryMap] = useState('');
     const [error, setError] = useState(false);
-    const [isOpen, setIsOpen] = useState(false); 
 
     useEffect(() => {
         if (!userId) return;

@@ -7,6 +7,7 @@ import NewPastReviews from './NewPastReviews.jsx';
 import NewRecPanel from './NewRecPanel.jsx'
 import NewProximity from './NewProximity.jsx'
 import PanelShell from './PanelShell.jsx';
+import RecCards from './RecCards.jsx'
 import beer27 from "../assets/beer-27.svg";
 import supabase from '../supabaseClient';
 import RecPanel from '../components/RecPanel'
@@ -102,7 +103,7 @@ export default function NewUserDash() {
             params: {
                 tags: committedTags,
                 page: currentPage,
-                size: 7,
+                size: 4,
                 ...(proximityCoords && {
                     lat: proximityCoords.lat,
                     lng: proximityCoords.lng,
@@ -179,71 +180,90 @@ return (
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col space-y-4 overflow-x-hidden ml-10">
-        <h2 className="text-2xl font-bold text-amber-800">Discover Beers</h2>
+        <main className="flex flex-col gap-5 w-full flex-grow">
+        <h2 className="text-2xl font-bold text-amber-900">Discover Beers</h2>
 
-        {beers.length > 0 ? (
-          beers.map((beer) => {
-            const brewery = breweryMap[beer.breweryUuid];
-            return (
-              <div
-                key={beer.beerId}
-                className="flex flex-col md:flex-row md:items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-[#4e2105] to-[#241200] text-white shadow-md h-[180px] w-full"
-              >
-                <div className="flex items-center gap-4 w-full md:w-2/3">
-                  <img src={beer27} alt="Beer" className="w-24 h-24 rounded object-cover" />
-                  <div className="flex flex-col">
-                    <h3 className="text-xl font-bold">{beer.name}</h3>
-                    <p className="text-sm text-white/80 font-semibold">From {brewery?.breweryName || 'Unknown Brewery'}</p>
-                    <p className="text-sm text-white/80"> {brewery?.city} , {brewery?.state}</p>
-                    <p className="text-sm text-white/80"> {beer.flavorTags.map(tag => tag.charAt(0).toUpperCase() + tag.slice(1)).join(', ')}</p>
-                  </div>
-                </div>
-                <div className="text-right flex flex-col items-end gap-2 mt-4 md:mt-0">
-                  <div>
-                    <p className="text-sm font-medium">{beer.style}</p>
-                    <p className="text-sm">ABV = {(beer.abv * 100).toFixed(1)}%</p>
-                  </div>
-                  <button
-                    className="bg-blue-200 hover:bg-blue-300 text-black px-4 py-1 rounded-full font-semibold"
-                    onClick={() => {
-                      setSelectedBeerId(beer.beerId);
-                      setShowReviewModal(true);
-                    }}
-                  >
-                    Review!
-                  </button>
-                </div>
-              </div>
-            );
-          })
-        ) : (
-          <div className="text-center text-gray-600 italic pt-16">
-            No beers found with those flavor tags.
-          </div>
-        )}
+        {/* 2-row layout: results (1fr) + pagination (auto) */}
+        <section className="grid grid-rows-[1fr_auto] min-h-[1240px]">
+            {/* ^ adjust 140px to your header + top spacing */}
 
-        {/* Pagination */}
-        <div className="mt-4 border-t pt-4 text-center w-full">
-          <button
-            disabled={currentPage === 0}
-            onClick={() => setCurrentPage((p) => p - 1)}
-            className="px-4 py-1 text-sm font-medium text-gray-700 disabled:opacity-50"
-          >
-            <span className="mr-1">&larr;</span> 
-          </button>
-          <span className="mx-2 text-sm text-gray-600">
-            Page {currentPage + 1} of {totalPages}
-          </span>
-          <button
-            disabled={currentPage === totalPages - 1}
-            onClick={() => setCurrentPage((p) => p + 1)}
-            className="px-4 py-1 text-sm font-medium text-gray-700 disabled:opacity-50"
-          >
-             <span className="ml-1">&rarr;</span>
-          </button>
-        </div>
-      </main>
+            {/* Results scroll inside this row */}
+            <div className="overflow-y-auto space-y-4 pr-1">
+            {beers.length > 0 ? (
+                beers.map((beer) => {
+                const brewery = breweryMap[beer.breweryUuid];
+                return (
+                    <div
+                    key={beer.beerId}
+                    className="flex flex-col md:flex-row md:items-center justify-between p-4
+                                rounded-2xl bg-gradient-to-r from-[#4e2105] to-[#241200]
+                                text-white shadow-md h-[180px] w-full"
+                    >
+                        <div className="flex items-center gap-4 w-full md:w-2/3">
+                        <img src={beer27} alt="Beer" className="w-24 h-24 rounded object-cover" />
+                        <div className="flex flex-col">
+                            <h3 className="text-xl font-bold">{beer.name}</h3>
+                            <p className="text-sm text-white/80 font-semibold">From {brewery?.breweryName || 'Unknown Brewery'}</p>
+                            <p className="text-sm text-white/80"> {brewery?.city} , {brewery?.state}</p>
+                            <p className="text-sm text-white/80"> {beer.flavorTags.map(tag => tag.charAt(0).toUpperCase() + tag.slice(1)).join(', ')}</p>
+                        </div>
+                        </div>
+                        <div className="text-right flex flex-col items-end gap-2 mt-4 md:mt-0">
+                        <div>
+                            <p className="text-sm font-medium">{beer.style}</p>
+                            <p className="text-sm">ABV = {(beer.abv * 100).toFixed(1)}%</p>
+                        </div>
+                        <button
+                            className="bg-blue-200 hover:bg-blue-300 text-black px-4 py-1 rounded-full font-semibold"
+                            onClick={() => {
+                            setSelectedBeerId(beer.beerId);
+                            setShowReviewModal(true);
+                            }}
+                        >
+                            Review!
+                        </button>
+                        </div>
+                    </div>
+                );
+                })
+            ) : (
+                <div className="flex items-center justify-center h-full">
+                <div className="text-center text-gray-600 italic">
+                    No beers found with those flavor tags.
+                </div>
+                </div>
+            )}
+            </div>
+
+
+            <div>
+                <RecCards withShell={false} userId={userId} refreshRecs={refreshRecs} />
+            </div>
+
+            {/* Pagination row — always at bottom of the section */}
+            <div className="border-t pt-4 text-center w-full bg-[#fff4e6]">
+            <button
+                disabled={currentPage === 0}
+                onClick={() => setCurrentPage((p) => p - 1)}
+                className="px-4 py-1 text-sm font-medium text-gray-700 disabled:opacity-50"
+            >
+                <span className="mr-1">&larr;</span>
+            </button>
+            <span className="mx-2 text-sm text-gray-600">
+                Page {currentPage + 1} of {totalPages ?? 1}
+            </span>
+            <button
+                disabled={currentPage === (totalPages ?? 1) - 1}
+                onClick={() => setCurrentPage((p) => p + 1)}
+                className="px-4 py-1 text-sm font-medium text-gray-700 disabled:opacity-50"
+            >
+                <span className="ml-1">&rarr;</span>
+            </button>
+            </div>
+        </section>
+
+        </main>
+
     </div>
 
     {showReviewModal && (
@@ -253,7 +273,10 @@ return (
         onReviewSubmit={() => setRefreshRecs((prev) => !prev)}
       />
     )}
+
   </div>
+
+  
 );
 
 }
