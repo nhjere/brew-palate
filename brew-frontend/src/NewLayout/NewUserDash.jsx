@@ -6,6 +6,7 @@ import NewTastePanel from './NewTastePanel.jsx';
 import NewPastReviews from './NewPastReviews.jsx';
 import NewRecPanel from './NewRecPanel.jsx'
 import NewProximity from './NewProximity.jsx'
+import PanelShell from './PanelShell.jsx';
 import beer27 from "../assets/beer-27.svg";
 import supabase from '../supabaseClient';
 import RecPanel from '../components/RecPanel'
@@ -144,11 +145,7 @@ return (
       
       {/* Sidebar */}
       <aside className="w-full md:w-[240px] flex-shrink-0 space-y-4 gap-x-20">
-        <NewTastePanel
-            flavorTags={flavorTags}
-            setFlavorTags={setFlavorTags}
-            onRefresh={() => setCommittedTags(flavorTags)}
-        />
+        
         <NewProximity
             committedTags={committedTags}
             onSetProximity={({ lat, lng, radius }) => {
@@ -158,9 +155,26 @@ return (
             inline={true}
         />
 
-        <NewPastReviews userId={userId} refreshRecs={refreshRecs} />
-        <NewRecPanel userId={userId} refreshRecs={refreshRecs} />
+        <PanelShell id="taste" title="Your Taste" capClass="max-h-64">
+            <NewTastePanel
+                withShell={false}
+                flavorTags={flavorTags}
+                setFlavorTags={setFlavorTags}
+                onRefresh={() => setCommittedTags(flavorTags)}
+            />
+        </PanelShell>
 
+        <PanelShell id="reviews" title="Past Reviews" capClass="max-h-64">
+            <NewPastReviews 
+                withShell={false}
+                userId={userId} 
+                refreshRecs={refreshRecs} 
+            />
+        </PanelShell>
+
+        <PanelShell id="recs" title="Your Recs" capClass="max-h-64">
+            <NewRecPanel withShell={false} userId={userId} refreshRecs={refreshRecs} />
+        </PanelShell>
 
       </aside>
 

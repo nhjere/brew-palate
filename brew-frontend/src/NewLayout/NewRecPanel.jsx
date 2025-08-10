@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/20/solid';
 
-export default function Recommendations({ userId, refreshRecs }) {
+export default function Recommendations({ withShell, userId, refreshRecs }) {
     const [beers, setBeers] = useState([]);
     const [isFallback, setIsFallback] = useState(false);
     const [breweryMap, setBreweryMap] = useState('');
@@ -60,62 +60,49 @@ export default function Recommendations({ userId, refreshRecs }) {
         .catch(console.error);
     }, [beers]);
 
-    return (
-        <div className="w-full bg-white rounded-2xl overflow-hidden border shadow-md transition-all">
-            {/* Top Toggle Bar */}
-            <div
-                className="flex items-center justify-between px-4 py-2 text-xl font-semibold cursor-pointer"
-                onClick={() => setIsOpen(prev => !prev)}
-            >
-                <span>Recommendations</span>
-                {isOpen ? (
-                    <ChevronUpIcon className="w-4 h-4 text-amber-900" />
-                ) : (
-                    <ChevronDownIcon className="w-4 h-4 text-amber-900" />
-                )}
-            </div>
+    if (!withShell) { 
 
-            {/* Dropdown Recommendation List */}
-            {isOpen && (
-                <div className="px-4 pb-4 pt-2 text-amber-900 border-gray-400">
-                    {error ? (
-                        <p className="text-red-600">Failed to load recommendations.</p>
-                    ) : (
-                        <>
-                            <p className="text-sm mb-2">
-                                {isFallback
-                                    ? "No reviews yet — here are some popular beers to try!"
-                                    : "Based on your tastes, try these local crafts!"}
-                            </p>
-                            <div className="space-y-4 text-sm font-medium  overflow-y-auto custom-scrollbar pr-1">
-                                {beers.slice(0, 8).map((beer) => {
-                                    const breweryDetails = breweryMap[beer.breweryUuid];
-                                    return (
-                                        <div key={beer.beerId} className="flex flex-col">
-                                            <span className="font-semibold text-amber-800">{beer.name}</span>
-                                            <span className="text-sm text-gray-700">
-                                                <a href={`/brewery/${beer.breweryUuid}`} className="text-amber-800 hover:underline">
-                                                    {breweryDetails?.name || 'Unknown Brewery'}
-                                                </a>
-                                            </span>
-                                            <span className="text-sm text-gray-700">
-                                                {breweryDetails?.city}, {breweryDetails?.state}
-                                            </span>
-                                            <div className="text-gray-700 italic text-sm">
-                                                {beer?.flavorTags?.length > 0
-                                                    ? beer.flavorTags.map(tag =>
-                                                        tag.charAt(0).toUpperCase() + tag.slice(1)
-                                                    ).join(', ')
-                                                    : 'N/A'}
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </>
-                    )}
-                </div>
+        return (
+
+        <div className="text-amber-900 border-gray-400">
+            {error ? (
+                <p className="text-red-600">Failed to load recommendations.</p>
+            ) : (
+                <>
+                    <p className="text-sm mb-2">
+                        {isFallback
+                            ? "No reviews yet — here are some popular beers to try!"
+                            : "Based on your tastes, try these local crafts!"}
+                    </p>
+                    <div className="space-y-4 text-sm font-medium  overflow-y-auto custom-scrollbar pr-1">
+                        {beers.slice(0, 8).map((beer) => {
+                            const breweryDetails = breweryMap[beer.breweryUuid];
+                            return (
+                                <div key={beer.beerId} className="flex flex-col">
+                                    <span className="font-semibold text-amber-800">{beer.name}</span>
+                                    <span className="text-sm text-gray-700">
+                                        <a href={`/brewery/${beer.breweryUuid}`} className="text-amber-800 hover:underline">
+                                            {breweryDetails?.name || 'Unknown Brewery'}
+                                        </a>
+                                    </span>
+                                    <span className="text-sm text-gray-700">
+                                        {breweryDetails?.city}, {breweryDetails?.state}
+                                    </span>
+                                    <div className="text-gray-700 italic text-sm">
+                                        {beer?.flavorTags?.length > 0
+                                            ? beer.flavorTags.map(tag =>
+                                                tag.charAt(0).toUpperCase() + tag.slice(1)
+                                            ).join(', ')
+                                            : 'N/A'}
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </>
             )}
         </div>
-    );
-}
+    )}
+    }
+    
+
