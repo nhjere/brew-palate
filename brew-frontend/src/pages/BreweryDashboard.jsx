@@ -1,4 +1,4 @@
-import Header from '../components/Header';
+import NewHeader from '../NewLayout/NewHeader';
 import LocationFilter from '../components/LocationFilter';
 import BreweryMap from '../components/BreweryMap';
 import { useLocation } from 'react-router-dom';
@@ -23,203 +23,143 @@ export default function BrewerDashboard() {
     
     // handles address loading in first spot
     useEffect(() => {
-        if (isFirstLoad.current) {
-            const queryAddress = queryParams.get('address');
-            const stored = localStorage.getItem('brew_address');
-
-            if (queryAddress) {
-                setAddress(queryAddress);
-                localStorage.setItem('brew_address', queryAddress);
-            } else if (stored) {
-                setAddress(stored);
-            } else {
-                setAddress('Austin');
-            }
-
-            isFirstLoad.current = false;
-        }
+        if (!isFirstLoad.current) return;
+        const queryAddress = queryParams.get('address');
+        const stored = localStorage.getItem('brew_address');
+        const base = queryAddress || stored || 'Austin';
+        isFirstLoad.current = false;
+        refetchNearby(base, distance);
     }, []);
 
+    // useEffect(() => {
+    //     if (!address) return;
+    //     refetchNearby(undefined, distance);
+    // }, [distance]);
+
     // store new value when user updates address
-    const handleAddressChange = async (newAddress) => {
-    try {
-        const res = await axios.get(
-        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(newAddress)}.json`,
-        { params: { access_token: MAPBOX_TOKEN } }
-        );
-
-        const coords = res.data.features[0]?.center;
-
-        if (coords) {
+    const handleAddressChange = (newAddress) => {
         setAddress(newAddress);
         localStorage.setItem('brew_address', newAddress);
-        } else {
-            alert("Invalid address. Please enter a more specific location.");
-        }
-        } catch (err) {
-            console.error("Geocoding failed:", err);
-            alert("Unable to verify address. Please try again.");
-        }
-    };
-    
+        };
 
-    // geo code address -> long, lat 
-    useEffect(() => {
-    const fetchCoords = async () => {
-        if (!address) return;
-        const res = await axios.get(
-            `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json`,
-            {
-                params: {
-                access_token: MAPBOX_TOKEN,
-                },
-            }
-        );
-        // extract lat, long from the mapbox api response
-        const coords = res.data.features[0]?.center;
-        if (coords) {
-        const [lng, lat] = coords;
-        fetchNearbyBreweries(lat, lng);
-        setMapCenter({lat, lng})
-        }
-    };
-    fetchCoords();
-    }, [address, distance]);
+    // add this unified fetch (accepts optional override)
+    const refetchNearby = async (overrideAddress, overrideRadius) => {
+        const addr = overrideAddress ?? address;
+        const radius = overrideRadius ?? distance;
+        if (!addr) return;
 
-    // fetch nearby breweries in backend w/ geocode parameters
-    const fetchNearbyBreweries = async (lat, lng) => {
         try {
-            const res = await axios.get(`${BASE_URL}/api/brewer/breweries/nearby`, {
-            params: {lat,lng,radius: distance}
-            });
-            setFilteredBreweries(res.data);
-            filteredBreweries.forEach((brewery, index) => {
-                console.log(`Brewery ${index + 1}:`, brewery);
-            });
-
-            
-        } catch (err) {
-            console.error('Error fetching nearby breweries:', err);
-        }
-    }; 
-
-    // retrigger a search
-    const refetchNearby = () => {
-    if (!address) return;
-
-    axios
-        .get(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json`, {
-        params: {
-            access_token: MAPBOX_TOKEN,
-            autocomplete: true
-        }
-        })
-        .then((res) => {
-        const coords = res.data.features[0]?.center;
-        if (coords) {
+            const geo = await axios.get(
+            `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(addr)}.json`,
+            { params: { access_token: MAPBOX_TOKEN, autocomplete: true } }
+            );
+            const coords = geo.data.features[0]?.center;
+            if (!coords) return;
             const [lng, lat] = coords;
-            fetchNearbyBreweries(lat, lng);
-        }
-        })
-        .catch((err) => {
-        console.error('Error geocoding address:', err);
-        });
-    };
 
+            if (addr !== address) {
+            setAddress(addr);
+            localStorage.setItem('brew_address', addr);
+            }
+
+            setMapCenter({ lat, lng });
+            setCurrentPage(1);
+
+            const nearby = await axios.get(`${BASE_URL}/api/brewer/breweries/nearby`, {
+            params: { lat, lng, radius }
+            });
+            setFilteredBreweries(nearby.data);
+        } catch (err) {
+            console.error('Search failed:', err);
+        }
+    };
 
     // brewery table pages logic 
-    const breweriesPerPage = 11;
+    const breweriesPerPage = 8;
     const startIdx = (currentPage - 1) * breweriesPerPage;
     const currentPageBreweries = filteredBreweries.slice(startIdx, startIdx + breweriesPerPage);
     const totalPages = Math.ceil(filteredBreweries.length / breweriesPerPage);
             
-
-    return (
-        <div className="min-h-screen bg-orange-100">
-
-        <div className="p-4">
-            <Header />
-            <div className="mt-2">
+return (
+    <div className="min-h-screen w-full overflow-x-hidden bg-[#fff4e6] flex flex-col">
+        <NewHeader />
+        <div className="px-4">
             <LocationFilter
-                address={address}
-                onAddressChange={handleAddressChange}
-                distance={distance}
-                setDistance={setDistance}
-                breweries={allBreweries}
-                onFilter={setFilteredBreweries}
-                onSearch={refetchNearby}
+            address={address}
+            onAddressChange={handleAddressChange}
+            distance={distance}
+            setDistance={setDistance}
+            onSearch={(addr, rad) => refetchNearby(addr, rad)}
             />
-            </div>
+
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 px-4 pb-8">
-
-            <div className="lg:col-span-3">
-            <section className="bg-orange-50 border border-gray-300 rounded-lg p-4 shadow-sm h-full">
-                <h2 className="text-xl font-semibold mb-2">Map View</h2>
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 px-4 pb-8 mt-4">
+            <section className="lg:col-span-3 w-full bg-orange-50 p-4 rounded-2xl overflow-hidden border shadow-md transition-all">
+                <h2 className="text-xl font-bold text-amber-900 mb-2">Map View</h2>
                 {mapCenter && (
-                <BreweryMap 
-                    breweries={filteredBreweries}
-                    center={mapCenter}
-                />
+                <div className="overflow-hidden rounded-xl ring-1 ring-amber-800">
+                    <BreweryMap breweries={filteredBreweries} center={mapCenter} />
+                </div>
                 )}
             </section>
-            </div>
 
-            <div className="lg:col-span-2">
-            <section className="bg-orange-50 border border-gray-300 rounded-lg p-4 shadow-sm">
-                <h2 className="text-xl font-semibold mb-2">Nearby Breweries</h2>
-                <table className="min-w-full table-auto border border-gray-300 text-sm">
-                <thead className="bg-orange-100">
-                    <tr>
-                    <th className="px-4 py-2 text-left">Name</th>
-                    <th className="px-4 py-2 text-left">Distance (mi)</th>
+            <section className="lg:col-span-2 bg-orange-50 p-4 rounded-2xl overflow-hidden border shadow-md transition-all">
+                <h2 className="text-xl font-bold text-amber-900 mb-3">Nearby Breweries</h2>
+
+                <div className="max-h-[560px] overflow-y-auto pr-1 custom-scrollbar">
+                <table className="w-full text-sm">
+                    <thead className="sticky top-0 bg-amber-900 backdrop-blur rounded-lg">
+                    <tr className="text-white">
+                        <th className="px-4 py-2 text-left  font-semibold">Name</th>
+                        <th className="px-4 py-2 text-left  font-semibold">Distance</th>
                     </tr>
-                </thead>
-                    <tbody>
-                        {currentPageBreweries.map((brewery) => (
-                        <tr key={brewery.breweryId} className="border-t">
-                            <td className="px-4 py-2">
+                    </thead>
+                    <tbody className="divide-y divide-amber-900/40">
+                    {currentPageBreweries.map((b) => (
+                        <tr key={b.breweryId} className="hover:bg-amber-900/10">
+                        <td className="px-4 py-2">
                             <a
-                                href={`/brewery/${brewery.breweryId}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-amber-800 hover:underline"
+                            href={`/brewery/${b.breweryId}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-amber-950 font-medium hover:underline"
                             >
-                                {brewery.breweryName}
+                            {b.breweryName}
                             </a>
-                            </td>
-                            <td className="px-4 py-2">
-                            {brewery.distance ? brewery.distance.toFixed(2) : 'N/A'}
-                            </td>
+                            <div className="text-[11px] text-amber-900/80">
+                            {b.city && b.state ? `${b.city}, ${b.state}` : ''}
+                            </div>
+                        </td>
+                        <td className="px-4 py-2 text-amber-950">
+                            {b.distance ? `${b.distance.toFixed(1)} mi` : '—'}
+                        </td>
                         </tr>
-                        ))}
+                    ))}
                     </tbody>
                 </table>
+                </div>
 
-                <div className="flex justify-between items-center mt-4 text-sm">
-                    <button
-                        disabled={currentPage === 1}
-                        onClick={() => setCurrentPage(currentPage - 1)}
-                        className="bg-blue-100 px-4 py-2 rounded-full text-black"
-                    >
-                        Prev
-                    </button>
-
-                    <span>Page {currentPage} of {totalPages}</span>
-
-                    <button
-                        disabled={currentPage === totalPages}
-                        onClick={() => setCurrentPage(currentPage + 1)}
-                        className="bg-blue-100 px-4 py-2 rounded-full text-black"
-                    >
-                        Next
-                    </button>
+                <div className="mt-4 flex items-center justify-between text-sm">
+                <button
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage((p) => p - 1)}
+                    className="rounded-full px-4 py-2 ring-1 ring-amber-900 bg-amber-900 text-white disabled:opacity-40"
+                >
+                    Prev
+                </button>
+                <span className="text-amber-950">Page {currentPage} of {totalPages || 1}</span>
+                <button
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage((p) => p + 1)}
+                    className="rounded-full px-4 py-2 ring-1 ring-amber-900 bg-amber-900 text-white disabled:opacity-40"
+                >
+                    Next
+                </button>
                 </div>
             </section>
-            </div>
+        </div>
+    </div>
+);
 
-        </div>
-        </div>
-    );
 }

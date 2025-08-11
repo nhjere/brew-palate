@@ -1,6 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { TagIcon } from '@heroicons/react/20/solid';
 
 export default function Recommendations({ userId, refreshRecs }) {
     const [beers, setBeers] = useState([]);
@@ -60,14 +61,14 @@ export default function Recommendations({ userId, refreshRecs }) {
 
 
     return (
-    <section className="mt-6 max-w-250">
+    <section className="max-w-250">
         <div className="flex items-baseline gap-3 mb-4">
         <h2 className="text-2xl font-bold text-amber-900">
             Recommended Beers
         </h2>
         {isFallback && (
-            <span className="text-sm px-2 py-1 rounded border border-amber-300 text-amber-700 bg-amber-50">
-            Getting to know your taste — showing starter picks
+            <span className="text-center text-amber-800">
+            We are getting to know your taste so review some beers! Here are some starter picks:
             </span>
         )}
         </div>
@@ -79,7 +80,7 @@ export default function Recommendations({ userId, refreshRecs }) {
         )}
 
         {!error && beers.length > 0 && (
-        <div className="flex gap-5 overflow-x-auto w-scrollbar-thin scrollbar-thumb-amber-300 scrollbar-track-transparent">
+        <div className="flex gap-5 overflow-x-auto custom-scrollbar !h-5px">
             {beers.slice(0, 10).map((beer) => (
             <div key={beer.beerId} className="flex-shrink-0 w-80">
                 <BeerCard beer={beer} brewery={breweryMap?.[beer.breweryUuid]} />
@@ -92,71 +93,43 @@ export default function Recommendations({ userId, refreshRecs }) {
 
 
 function BeerCard({ beer, brewery }) {
-  // beer fields: { beerId, name, style, abv, tags?: string[], breweryUuid }
-  // brewery fields: { breweryName, city, state, distanceMi? }
-  const name = beer?.name ?? 'Untitled Beer';
-  const style = beer?.style ?? '—';
-  const abv = (beer?.abv ?? null);
-  const tags = Array.isArray(beer?.tags) ? beer.tags : [];
-
-  const breweryName = brewery?.breweryName ?? 'Unknown Brewery';
-  const location =
-    brewery?.city && brewery?.state ? `${brewery.city}, ${brewery.state}` : '';
-  const distanceLabel =
-    typeof brewery?.distanceMi === 'number'
-      ? ` • ${brewery.distanceMi.toFixed(1)} mi`
-      : '';
 
     return (
-        <article className="rounded-2xl border border-amber-200 bg-[#fff7ec] shadow-sm p-5 grid grid-rows-[auto_auto_1fr_auto] gap-2 min-h-[220px]">
+        <article className="w-full bg-red-50 rounded-2xl overflow-hidden border transition-all shadow-sm mb-5 p-5 grid min-h-[220px]">
         {/* Title */}
-        <h3 className="text-2xl font-extrabold text-amber-900 leading-tight line-clamp-2">
-            {name}
-        </h3>
+        <div className="text-xl font-extrabold text-amber-900">
+            {beer?.name}
+        </div>
 
         {/* Brewery + meta */}
-        <div className="text-amber-800/90">
-            <div className="font-semibold">{breweryName}</div>
-            <div className="text-sm">
-            {location}
-            {distanceLabel}
+        <div className="text-amber-800 mt-1">
+            <a href={`/brewery/${beer.breweryUuid}`}>
+                {brewery?.name || 'Unknown Brewery'}
+            </a>
+            <div className="text-s mt-1">
+                {brewery?.city} , {brewery?.state}
             </div>
-            <div className="text-sm mt-1">
-            {style !== '—' ? style : ''}{abv ? ` • ABV ${Number(abv) * (Number(abv) <= 1 ? 100 : 1)}%` : ''}
+            <div className="text-s mt-1">
+                {beer.style} • ABV = {(beer.abv * 100).toFixed(1)}%
             </div>
         </div>
 
         {/* Tags */}
         <div className="flex flex-wrap gap-2 mt-1">
-            {tags.slice(0, 6).map((t) => (
+            {beer.flavorTags.slice(0, 6).map((tag) => (
             <span
-                key={t}
-                className="px-3 py-1 rounded-full text-sm border border-amber-300 bg-amber-50 text-amber-800"
-            >
-                {t}
+                key={tag}
+                className="px-3 py-1 h-8 rounded-full text-sm border border-amber-300 bg-amber-50 text-amber-800">
+                {tag.charAt(0).toUpperCase() + tag.slice(1)}
             </span>
             ))}
-            {tags.length === 0 && (
-            <span className="px-3 py-1 rounded-full text-sm border border-amber-200 text-amber-500">
+            {beer.flavorTags.length === 0 && (
+            <span className="px-3 py-1 rounded-full text-sm border border-amber-300 bg-amber-50 text-amber-800">
                 No flavor tags
             </span>
             )}
         </div>
 
-        {/* CTA */}
-        <div className="mt-3">
-            <button
-            type="button"
-            className="ml-auto block rounded-lg border border-amber-300 bg-amber-100 hover:bg-amber-200 text-amber-900 font-semibold px-4 py-2 transition"
-            onClick={() => {
-                // TODO: open your Review modal here
-                // openReviewModal(beer)
-                console.log('Review click', beer?.beerId || beer?.id);
-            }}
-            >
-            Review
-            </button>
-        </div>
         </article>
     );
     }

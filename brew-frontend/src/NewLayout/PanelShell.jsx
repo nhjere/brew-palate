@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/20/solid";
 
-export default function PanelShell({ id, title, children, capClass = "max-h-60" }) {
+export default function PanelShell({ id, title, children, capClass = "max-h-60", summary }) {
 
     const [open, setOpen] = useState(false);
 
@@ -23,13 +23,27 @@ export default function PanelShell({ id, title, children, capClass = "max-h-60" 
                 onClick={() => setOpen(v => !v)}
             >
                 <span>{title}</span>
+                
                 {open ? (
                 <ChevronUpIcon className="w-4 h-4 text-amber-900" />
                 ) : (
                 <ChevronDownIcon className="w-4 h-4 text-amber-900" />
                 )}
+ 
             </div>
-
+            {Array.isArray(summary) && (
+                <div className="ml-3 flex items-center gap-1.5 overflow-x-auto no-scrollbar max-w-[100%]">
+                {summary.slice(0, 4).map(tag => (
+                    <span
+                    key={tag}
+                    className="px-2.5 mb-3 py-0.5 rounded-full text-xs border border-amber-300 bg-amber-50 text-amber-800 whitespace-nowrap"
+                    >
+                    {tag.charAt(0).toUpperCase() + tag.slice(1)}
+                    </span>
+                ))}
+                </div>
+            )}
+        
             {/* Content */}
             {open && (
                 <div className="px-4 pb-4 pt-1 text-amber-900">
@@ -38,6 +52,8 @@ export default function PanelShell({ id, title, children, capClass = "max-h-60" 
                 </div>
                 </div>
             )}
+
+            
             </div>
     );
 }

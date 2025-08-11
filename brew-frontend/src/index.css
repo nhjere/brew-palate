@@ -82,21 +82,19 @@ button.register-link:focus {
   outline: none;
 }
 
-.custom-scrollbar::-webkit-scrollbar {
-  width: 10px;
-  height: 30px;
+.custom-scrollbar {
+  scrollbar-width: thin;                 /* Firefox */
+  scrollbar-color: #d1a97a transparent;  /* thumb, track */
 }
-
-
+.custom-scrollbar::-webkit-scrollbar {    /* WebKit */
+  height: 6px;                            /* thickness */
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: #a25d0f51; 
-  border-radius: 6px;
-  border: 2px solid transparent; 
-  background-clip: content-box;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: #a25d0f;
+  background-color: #d1a97a;              /* match your palette */
+  border-radius: 9999px;
 }
 
 button.map-pin-button {
