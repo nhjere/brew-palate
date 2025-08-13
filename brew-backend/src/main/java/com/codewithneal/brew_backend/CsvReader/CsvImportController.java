@@ -55,6 +55,12 @@ public class CsvImportController {
                     .collect(Collectors.toSet());
     }
 
+    // get all beer styles
+    // @GetMapping("/styles")
+    // public Set<String> getAllStyles() {
+
+    // }
+
     // used by beer context (caching)
     @GetMapping("/all-beers")
     public List<BeerCsv> getAllBeers() {

@@ -6,7 +6,7 @@ import Registration from './pages/Registration'
 import NoPage from './pages/NoPage';
 import BreweryPage from './pages/BreweryPage';
 import About from './pages/About';
-import NewUserDash from './Pages/NewUserDash'
+import UserDashboard from './Pages/UserDashboard'
 
 
 import { BreweryProvider } from './context/BreweryContext';
@@ -22,7 +22,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Registration />} />
             <Route path="/about" element={<About />} />
-            <Route path="/user/dashboard/:userId" element={<NewUserDash />} />
+            <Route path="/user/dashboard/:userId" element={<UserDashboard />} />
             <Route path="/user/profile/:userId" element={<UserProfile />} />
             <Route path="/brewery/dashboard" element={<BreweryDashboard />} />
             <Route path="/brewery/:breweryId" element={<BreweryPage />} /> 

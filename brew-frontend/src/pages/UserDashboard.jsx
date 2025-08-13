@@ -15,8 +15,6 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 export default function NewUserDash() {
     
-    const [proximityCoords, setProximityCoords] = useState(null);
-    const [proximityRadius, setProximityRadius] = useState(25);
 
     // set user 
     const [userId, setUserId] = useState(null);
@@ -32,6 +30,10 @@ export default function NewUserDash() {
     // taste panel variables
     const [flavorTags, setFlavorTags] = useState([]);
     const [committedTags, setCommittedTags] = useState([]);
+
+    // beer proximity variables
+    const [proximityCoords, setProximityCoords] = useState(null);
+    const [proximityRadius, setProximityRadius] = useState(25);
 
     // review modal variables
     const [selectedBeerId, setSelectedBeerId] = useState(null);
@@ -168,12 +170,7 @@ return (
             </PanelShell>
 
             <PanelShell id="taste" title="Your Style" capClass="max-h-64" summary={committedTags}>
-                <TastePanel
-                    withShell={false}
-                    flavorTags={flavorTags}
-                    setFlavorTags={setFlavorTags}
-                    onRefresh={(tags) => setCommittedTags(tags)}
-                />
+                    Coming Soon
             </PanelShell>
 
             <PanelShell id="reviews" title="Past Reviews" capClass="max-h-64">
