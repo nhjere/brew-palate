@@ -166,6 +166,15 @@ return (
                 />
             </PanelShell>
 
+            <PanelShell id="taste" title="Your Style" capClass="max-h-64" summary={committedTags}>
+                <NewTastePanel
+                    withShell={false}
+                    flavorTags={flavorTags}
+                    setFlavorTags={setFlavorTags}
+                    onRefresh={(tags) => setCommittedTags(tags)}
+                />
+            </PanelShell>
+
             <PanelShell id="reviews" title="Past Reviews" capClass="max-h-64">
                 <NewPastReviews 
                     withShell={false}
@@ -174,9 +183,6 @@ return (
                 />
             </PanelShell>
             
-            <PanelShell id="recs" title="Your Recs" capClass="max-h-64">
-                <NewRecPanel withShell={false} userId={userId} refreshRecs={refreshRecs} />
-            </PanelShell>
 
         </aside>
 
@@ -202,7 +208,7 @@ return (
                             <img src={beer27} alt="Beer" className="w-24 h-24 rounded object-cover" />
                             <div className="flex flex-col">
                                 <h3 className="text-xl font-bold">{beer.name}</h3>
-                                <p className="text-l text-white/80 font-semibold">From {brewery?.breweryName || 'Unknown Brewery'}</p>
+                                <a href={`/brewery/${beer.breweryUuid}`} className="text-l !text-white/80 font-semibold">From {brewery?.breweryName || 'Unknown Brewery'}</a>
                                 <p className="text-l text-white/80"> {brewery?.city} , {brewery?.state}</p>
                                 <p className="flex flex-wrap gap-2 mt-1">
                                     {beer.flavorTags.slice(0, 6).map((tag) => (

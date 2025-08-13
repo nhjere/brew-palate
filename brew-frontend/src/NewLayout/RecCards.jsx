@@ -80,58 +80,63 @@ export default function Recommendations({ userId, refreshRecs }) {
         )}
 
         {!error && beers.length > 0 && (
-        <div className="flex gap-5 overflow-x-auto custom-scrollbar !h-5px">
-            {beers.slice(0, 10).map((beer) => (
-            <div key={beer.beerId} className="flex-shrink-0 w-80">
-                <BeerCard beer={beer} brewery={breweryMap?.[beer.breweryUuid]} />
-            </div>
-            ))}
+        <div className="grid grid-flow-col auto-cols-[20rem] gap-5 overflow-x-auto custom-scrollbar pb-3">
+        {beers.slice(0, 10).map((beer) => (
+            <BeerCard
+            key={beer.beerId}
+            beer={beer}
+            brewery={breweryMap?.[beer.breweryUuid]}
+            />
+        ))}
         </div>
-        )}
-    </section>
+                )}
+            </section>
     );
 
 
 function BeerCard({ beer, brewery }) {
 
     return (
-        <article className="w-full bg-red-50 rounded-2xl overflow-hidden border transition-all shadow-sm mb-5 p-5 grid min-h-[220px]">
-        {/* Title */}
-        <div className="text-xl font-extrabold text-amber-900">
-            {beer?.name}
-        </div>
+        <article
+        className="w-full bg-red-50 rounded-2xl overflow-hidden border shadow-sm p-5 flex flex-col h-full"
+        >
+            {/* Title */}
+            <div className="text-xl font-extrabold text-amber-900">
+                {beer?.name}
+            </div>
 
-        {/* Brewery + meta */}
-        <div className="text-amber-800 mt-1">
-            <a href={`/brewery/${beer.breweryUuid}`}>
+            {/* Brewery + meta */}
+            <div className="text-amber-800 mt-1">
+                <a href={`/brewery/${beer.breweryUuid}`} className="font-medium">
                 {brewery?.name || 'Unknown Brewery'}
-            </a>
-            <div className="text-s mt-1">
-                {brewery?.city} , {brewery?.state}
-            </div>
-            <div className="text-s mt-1">
+                </a>
+                <div className="text-s mt-1">
+                {brewery?.city}, {brewery?.state}
+                </div>
+                <div className="text-s mt-1">
                 {beer.style} • ABV = {(beer.abv * 100).toFixed(1)}%
+                </div>
             </div>
-        </div>
 
-        {/* Tags */}
-        <div className="flex flex-wrap gap-2 mt-1">
-            {beer.flavorTags.slice(0, 6).map((tag) => (
-            <span
-                key={tag}
-                className="px-3 py-1 h-8 rounded-full text-sm border border-amber-300 bg-amber-50 text-amber-800">
-                {tag.charAt(0).toUpperCase() + tag.slice(1)}
-            </span>
-            ))}
-            {beer.flavorTags.length === 0 && (
-            <span className="px-3 py-1 rounded-full text-sm border border-amber-300 bg-amber-50 text-amber-800">
-                No flavor tags
-            </span>
-            )}
-        </div>
-
+            {/* Tags */}
+            <div className="flex flex-wrap gap-2 mt-3">
+                {beer.flavorTags.slice(0, 6).map((tag) => (
+                <span
+                    key={tag}
+                    className="px-3 py-1 h-8 rounded-full text-sm border border-amber-300 bg-amber-50 text-amber-800"
+                >
+                    {tag.charAt(0).toUpperCase() + tag.slice(1)}
+                </span>
+                ))}
+                {beer.flavorTags.length === 0 && (
+                <span className="px-3 py-1 rounded-full text-sm border border-amber-300 bg-amber-50 text-amber-800">
+                    No flavor tags
+                </span>
+                )}
+            </div>
         </article>
-    );
+
+        );
     }
 
 }

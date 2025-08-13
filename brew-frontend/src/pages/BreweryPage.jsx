@@ -43,7 +43,7 @@ export default function BreweryPage() {
       <main className="max-w-3xl mx-auto py-12 px-4 space-y-10">
 
         <section className="bg-red-50 rounded-2xl text-center shadow-md border border-gray-200 p-8 space-y-4">
-          <h2 className="text-4xl text-amber-800 font-bold">{brewery.name}</h2>
+          <h2 className="text-4xl text-amber-900 font-bold">{brewery.name}</h2>
           <p className="text-gray-800 text-lg italic">
             {brewery.brewery_type?.charAt(0).toUpperCase() + brewery.brewery_type?.slice(1)} Brewery
           </p>
@@ -69,14 +69,14 @@ export default function BreweryPage() {
         </section>
 
         <section className="bg-red-50 rounded-2xl shadow-md border border-gray-200 p-8 space-y-6">
-          <h2 className="text-3xl text-center text-amber-800 font-bold">Brews</h2>
+          <h2 className="text-3xl text-center text-amber-900 font-bold">Brews</h2>
 
           {beersFromBrewery.length > 0 ? (
             <ul className="space-y-4">
               {beersFromBrewery.map((beer) => (
                 <li
                   key={beer.beerId}
-                  className="bg-amber-800 border border-gray-100 p-4 rounded-lg shadow-sm"
+                  className="bg-amber-900 border border-gray-100 p-4 rounded-lg shadow-sm"
                 >
                   <h3 className="text-lg font-semibold text-white">{beer.name}</h3>
                   <p className="text-sm text-white italic">

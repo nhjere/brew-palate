@@ -21,12 +21,11 @@ function App() {
           <Routes>
             <Route path="/" element={<Navigate to="/login" replace />} />
             {/* temp mock up  */}
-            <Route path="/temp-dash" element={<NewUserDash />} />
-
+            {/* <Route path="/temp-dash" element={<NewUserDash />} /> */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Registration />} />
             <Route path="/about" element={<About />} />
-            <Route path="/user/dashboard/:userId" element={<UserDashboard />} />
+            <Route path="/user/dashboard/:userId" element={<NewUserDash />} />
             <Route path="/user/profile/:userId" element={<UserProfile />} />
             <Route path="/brewery/dashboard" element={<BreweryDashboard />} />
             <Route path="/brewery/:breweryId" element={<BreweryPage />} /> 

@@ -5,7 +5,7 @@ import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/20/solid';
 export default function BeerProximity({ committedTags, onSetProximity }) {
   const [address, setAddress] = useState('');
   const [distance, setDistance] = useState(25);
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(true);
 
   const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
   const BASE_URL = import.meta.env.VITE_BACKEND_URL;

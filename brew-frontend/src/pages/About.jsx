@@ -1,17 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import Header from '../components/Header';
+import NewHeader from '../NewLayout/NewHeader';
 
 export default function About() {    
     return (
-        <div className=" min-h-screen bg-orange-100 flex flex-col">
-            <div className="flex items-center justify-between p-4 ">
-                <Header />
-            </div>
+        <div className=" min-h-screen bg-[#fff4e6] flex flex-col">
+
+            <NewHeader />
+
 
             <div className="flex flex-row w-full h-full text-left max-w-screen-xl mx-auto min-h-[500px]">
-                <main className="flex-1  max-w p-6 border-gray-300 flex flex-col space-y-6 text-amber-900 bg-red-50 w-full rounded-lg shadow-md">
+                <main className="flex-1  max-w bg-white rounded-2xl overflow-hidden border shadow-md transition-all p-6">
                 
-                    <section className='text-xl'>
+                    <section className='text-xl mb-5 '>
 
                         <p>
                             <strong >BrewPalate</strong> is a full-stack beer discovery platform enabling users to find, review, and receive personalized recommendations for craft beers using ML-powered taste profiling.
@@ -19,7 +19,7 @@ export default function About() {
                         
                     </section>
 
-                    <section>
+                    <section className='mb-5'>
                         <h2 className="text-xl font-semibold mb-2">Features</h2>
                         <ul className="list-disc list-inside space-y-1">
                             <li>Browse curated beer listings with style, ABV, and flavor tag details</li>
@@ -40,7 +40,7 @@ export default function About() {
                             <li>Brewery dashboards for managing beer listings and viewing feedback</li>
                             <li>Expanded recommender engine with improved user review training</li>
                         </ul>
-                        <p className=" text-xl font-semibold mt-10">
+                        <p className=" text-xl font-semibold mt-5">
                             Our goal is to build a connected craft beer community where users share authentic feedback and breweries grow through real-time insights and meaningful engagement.
                         </p>
                     </section>

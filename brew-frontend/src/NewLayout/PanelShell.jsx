@@ -3,7 +3,7 @@ import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/20/solid";
 
 export default function PanelShell({ id, title, children, capClass = "max-h-60", summary }) {
 
-    const [open, setOpen] = useState(false);
+    const [open, setOpen] = useState(true);
 
     // remember state per panel
     useEffect(() => {

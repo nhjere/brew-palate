@@ -96,7 +96,7 @@ export default function ReviewModal({ beerId, onClose, onReviewSubmit}) {
 
     return (
         <div className="fixed top-0 left-0 w-full h-full bg-black/50 z-50 flex items-center justify-center">
-            <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-lg text-amber-800 relative text-left h-3/4 overflow-y-auto">
+            <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-3/7 text-amber-800 relative text-left h-3/4 overflow-y-auto">
                 {beer ? (
                     <>
                     {(() => { 
@@ -122,14 +122,15 @@ export default function ReviewModal({ beerId, onClose, onReviewSubmit}) {
                     <p>Loading beer info...</p>
                 )}
 
-                <div className = 'font-bold'> Post a Review! </div>
+
 
                 <form className="space-y-4 mt-4">
 
+
                     {/* Stars */}
                     <div className="flex items-center space-x-6">
-                        <label className="text-sm font-medium whitespace-nowrap">Overall Enjoyment:</label>
-                        <div className="flex gap-6">
+                        <label className="text-lg font-semibold whitespace-nowrap">Your Overall Enjoyment:</label>
+                        <div className="flex gap-6 text-xl">
                             {[1, 2, 3, 4, 5].map((star) => (
                             <button
                             type="button"
@@ -142,17 +143,17 @@ export default function ReviewModal({ beerId, onClose, onReviewSubmit}) {
                             ))}
                         </div>
                         </div>
-                        <div className="text-sm text-gray-600 mt-1">Rating: {reviewFormData.overallEnjoyment}</div>
+                        {/* <div className="text-sm text-gray-600 mt-1">Rating: {reviewFormData.overallEnjoyment}</div> */}
 
 
                     {/* Flavor Tags */}
                     <div>
                         <label className="block text-sm font-bold mb-1"> Positives: </label>
-                        <div className="flex flex-wrap gap-2">
+                        <div className="flex flex-wrap gap-2 mb-5">
                         {[ "Balanced","Smooth","Refreshing","Bold Flavor","Light & Easy","Clean Finish"].map((tag) => {
                             const capitalTag = tag.charAt(0).toUpperCase() + tag.slice(1).toLowerCase();
                             return (
-                                <label key={tag} className="flex items-center space-x-2 text-sm">
+                                <label key={tag} className="flex items-center space-x-2 text-sm ">
                                     <input
                                         type="checkbox"
                                         className="w-4 h-4 border-2 border-black rounded checked:bg-white checked:border-black focus:ring-0"
