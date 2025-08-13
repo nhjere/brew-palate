@@ -139,14 +139,19 @@ export default function NewUserDash() {
     const filteredBeers = beers;
 
 return (
-  <div className="min-h-screen w-full overflow-x-hidden bg-[#fff4e6] flex flex-col">
+  <div className="min-h-screen w-full overflow-x-hidden bg-[#fff4e6] flex flex-col
+                pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
     <NewHeader />
 
     <div className='flex flex-col'> 
-        <div className="w-full max-w-screen-xl mx-auto flex flex-wrap md:flex-nowrap gap-4 p-4">
+        <div className="w-full max-w-screen-xl mx-auto p-4
+                flex flex-wrap md:flex-nowrap
+                gap-4 md:gap-10 items-start">
+
         
         {/* Sidebar */}
-        <aside className="w-full md:w-[240px] flex-shrink-0 space-y-4 gap-x-20">
+        <aside className="w-full md:w-[260px] flex-shrink-0 space-y-4
+                  mx-auto md:mx-0 md:pr-4">
             
             <NewProximity
                 committedTags={committedTags}
@@ -190,19 +195,20 @@ return (
             <main className="flex flex-col gap-5 w-full flex-grow">
             <h2 className="text-2xl font-bold text-amber-900">Discover Beers</h2>
 
-            {/* 2-row layout: results (1fr) + pagination (auto) */}
             <section className="grid grid-rows-[1fr_auto] min-h-[850px]">
-                {/* ^ adjust 140px to your header + top spacing */}
 
-                {/* Results scroll inside this row */}
-                <div className="overflow-y-auto space-y-4 pr-1">
+                {/* Beer Cards */}
+                <div className="overflow-y-auto space-y-4 pr-1 pb-16 md:pb-4">
                 {beers.length > 0 ? (
                     beers.map((beer) => {
                     const brewery = breweryMap[beer.breweryUuid];
                     return (
                         <div
                         key={beer.beerId}
-                        className="flex flex-col md:flex-row md:items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-[#4e2105] to-[#241200] text-white shadow-md h-[180px] w-full"
+                        className="flex flex-col md:flex-row md:items-center justify-between
+                            p-4 rounded-2xl bg-gradient-to-r from-[#4e2105] to-[#241200] text-white
+                            shadow-md w-full
+                            h-auto md:h-[180px]"
                         >
                             <div className="flex items-center gap-4 w-full md:w-2/3">
                             <img src={beer27} alt="Beer" className="w-24 h-24 rounded object-cover" />
@@ -253,7 +259,7 @@ return (
                 )}
                 </div>
 
-                {/* Pagination row — always at bottom of the section */}
+                {/* Pagination */}
                 <div className="border-t pt-4 text-center w-full bg-[#fff4e6]">
                 <button
                     disabled={currentPage === 0}
