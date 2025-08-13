@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import NewSearch from './NewSearch';
+import Search from './Search';
 import bp_logo from '../assets/final_logo.png';
 import avatar from "../assets/avatar.svg"; 
 
@@ -33,7 +33,7 @@ export default function NewHeader() {
                     About
                 </Link>
 
-                <NewSearch className='width-4/5'/>
+                <Search className='width-4/5'/>
 
             </div>
 

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import Header from '../components/Header';
+import Header from '../components/Title';
 import "../App.css";
 import supabase from '../supabaseClient';
 import { Link } from 'react-router-dom';
@@ -118,7 +118,7 @@ export default function Registration() {
 
     return (
         <>
-            <div className="min-h-screen bg-orange-100 flex flex-col items-center justify-center px-4">
+            <div className="min-h-screen bg-[#fff4e6] flex flex-col items-center justify-center px-4">
                 {/* Site Title */}
                 <div className="text-center mb-10">
                     < Header />
@@ -130,7 +130,7 @@ export default function Registration() {
                 {/* Main content */}
                 <main className="w-full max-w-3xl p-2">
                     <div className="flex flex-col w-full">
-                    <div className="w-full bg-red-50 border border-gray-300 rounded-lg p-6 shadow-sm">
+                    <div className="w-full bg-white border border-gray-300 rounded-lg p-6 shadow-sm">
                         {/* Header row and toggle */}
                         <div className="flex justify-between items-start mb-4">
                         <div className="text-left">
@@ -234,7 +234,7 @@ export default function Registration() {
 
                             <Link
                             to="/login"
-                            className="text-sm pt-2 font-semibold transition"
+                            className="text-sm block text-center center pt-2 font-semibold transition"
                             >
                             Back to Login
                             </Link>

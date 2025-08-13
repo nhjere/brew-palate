@@ -1,20 +1,16 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import NewHeader from './NewHeader';
-import ReviewModal from '../components/ReviewModal'
-import NewTastePanel from './NewTastePanel.jsx';
-import NewPastReviews from './NewPastReviews.jsx';
-import NewRecPanel from './NewRecPanel.jsx'
-import NewProximity from './NewProximity.jsx'
-import PanelShell from './PanelShell.jsx';
-import RecCards from './RecCards.jsx'
+import FullHeader from '../components/FullHeader.jsx';
+import ReviewModal from '../components/ReviewModal.jsx'
+import TastePanel from '../components/TastePanel.jsx';
+import PastReviews from '../components/PastReviews.jsx';
+import BeerProximity from '../components/BeerProximity.jsx'
+import PanelShell from '../components/PanelShell.jsx';
+import RecCards from '../components/RecCards.jsx'
 import beer27 from "../assets/beer-27.svg";
-import supabase from '../supabaseClient';
-import RecPanel from '../components/RecPanel'
-import { useBreweryMap } from '../context/BreweryContext';
+import supabase from '../supabaseClient.js';
+import { useBreweryMap } from '../context/BreweryContext.jsx';
 import { useNavigate, useParams } from 'react-router-dom';
-
-import BeerFilter from '../components/BeerFilter';
 
 
 export default function NewUserDash() {
@@ -141,7 +137,7 @@ export default function NewUserDash() {
 return (
   <div className="min-h-screen w-full overflow-x-hidden bg-[#fff4e6] flex flex-col
                 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
-    <NewHeader />
+    <FullHeader />
 
     <div className='flex flex-col'> 
         <div className="w-full max-w-screen-xl mx-auto p-4
@@ -153,7 +149,7 @@ return (
         <aside className="w-full md:w-[260px] flex-shrink-0 space-y-4
                   mx-auto md:mx-0 md:pr-4">
             
-            <NewProximity
+            <BeerProximity
                 committedTags={committedTags}
                 onSetProximity={({ lat, lng, radius }) => {
                     setProximityCoords({ lat, lng });
@@ -163,7 +159,7 @@ return (
             />
 
             <PanelShell id="taste" title="Your Taste" capClass="max-h-64" summary={committedTags}>
-                <NewTastePanel
+                <TastePanel
                     withShell={false}
                     flavorTags={flavorTags}
                     setFlavorTags={setFlavorTags}
@@ -172,7 +168,7 @@ return (
             </PanelShell>
 
             <PanelShell id="taste" title="Your Style" capClass="max-h-64" summary={committedTags}>
-                <NewTastePanel
+                <TastePanel
                     withShell={false}
                     flavorTags={flavorTags}
                     setFlavorTags={setFlavorTags}
@@ -181,7 +177,7 @@ return (
             </PanelShell>
 
             <PanelShell id="reviews" title="Past Reviews" capClass="max-h-64">
-                <NewPastReviews 
+                <PastReviews 
                     withShell={false}
                     userId={userId} 
                     refreshRecs={refreshRecs} 
@@ -215,7 +211,7 @@ return (
                             <div className="flex flex-col">
                                 <h3 className="text-xl font-bold">{beer.name}</h3>
                                 <a href={`/brewery/${beer.breweryUuid}`} className="text-l !text-white/80 font-semibold">From {brewery?.breweryName || 'Unknown Brewery'}</a>
-                                <p className="text-l text-white/80"> {brewery?.city} , {brewery?.state}</p>
+                                <p className="text-l text-white/80"> {brewery?.city}, {brewery?.state}</p>
                                 <p className="flex flex-wrap gap-2 mt-1">
                                     {beer.flavorTags.slice(0, 6).map((tag) => (
                                     <span

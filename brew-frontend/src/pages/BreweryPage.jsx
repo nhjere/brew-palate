@@ -1,4 +1,4 @@
-import Header from '../components/Header'
+import FullHeader from '../components/FullHeader'
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
@@ -35,14 +35,12 @@ export default function BreweryPage() {
         
 
         return(
-    <div className="min-h-screen bg-orange-100">
-      <div className="bg-orange-100 px-6 py-4">
-        <Header />
-      </div>
+    <div className="min-h-screen bg-[#fff4e6]">
+        <FullHeader />
 
       <main className="max-w-3xl mx-auto py-12 px-4 space-y-10">
 
-        <section className="bg-red-50 rounded-2xl text-center shadow-md border border-gray-200 p-8 space-y-4">
+        <section className="bg-white rounded-2xl text-center shadow-md border border-gray-200 p-8 space-y-4">
           <h2 className="text-4xl text-amber-900 font-bold">{brewery.name}</h2>
           <p className="text-gray-800 text-lg italic">
             {brewery.brewery_type?.charAt(0).toUpperCase() + brewery.brewery_type?.slice(1)} Brewery
@@ -68,7 +66,7 @@ export default function BreweryPage() {
           </div>
         </section>
 
-        <section className="bg-red-50 rounded-2xl shadow-md border border-gray-200 p-8 space-y-6">
+        <section className="bg-white rounded-2xl shadow-md border border-gray-200 p-8 space-y-6">
           <h2 className="text-3xl text-center text-amber-900 font-bold">Brews</h2>
 
           {beersFromBrewery.length > 0 ? (

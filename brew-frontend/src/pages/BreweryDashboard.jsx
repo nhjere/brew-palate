@@ -1,4 +1,4 @@
-import NewHeader from '../NewLayout/NewHeader';
+import FullHeader from '../components/FullHeader';
 import LocationFilter from '../components/LocationFilter';
 import BreweryMap from '../components/BreweryMap';
 import { useLocation } from 'react-router-dom';
@@ -82,7 +82,7 @@ export default function BrewerDashboard() {
             
 return (
     <div className="min-h-screen w-full overflow-x-hidden bg-[#fff4e6] flex flex-col">
-        <NewHeader />
+        <FullHeader />
         <div className="px-4">
             <LocationFilter
             address={address}

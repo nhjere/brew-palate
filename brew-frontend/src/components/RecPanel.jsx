@@ -1,9 +1,9 @@
 
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { useBreweryMap } from '../context/BreweryContext';
+import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/20/solid';
 
-export default function Recommendations({ userId, refreshRecs }) {
+export default function Recs({ withShell, userId, refreshRecs }) {
     const [beers, setBeers] = useState([]);
     const [isFallback, setIsFallback] = useState(false);
     const [breweryMap, setBreweryMap] = useState('');
@@ -59,45 +59,49 @@ export default function Recommendations({ userId, refreshRecs }) {
         .catch(console.error);
     }, [beers]);
 
-    return (
-        <section className="bg-red-50 border border-gray-300 rounded-lg p-4 shadow-sm text-left">
-            <h2 className="text-2xl font-bold mb-2">Recs</h2>
-            {error && <p className="text-red-600">Failed to load recommendations.</p>}
+    if (!withShell) { 
 
-            <p className="text-sm mb-2">
-                {isFallback
-                ? "No reviews yet — here are some popular beers to try!"
-                : "Based on your tastes, try these local crafts!"}
-            </p>
+        return (
 
-            <div className="space-y-4 text-sm font-medium">
-                {beers.slice(0, 12).map((beer) => {
-
-                    const breweryDetails = breweryMap[beer.breweryUuid];
-                    console.log(breweryMap)
-                        
-                    return (
-                    <div key={beer.beerId} className="flex flex-col">
-                        <span className="font-semibold text-amber-800">{beer.name}</span>
-                        <span className="text-sm text-gray-700">
-                            
-                            <a href={`/brewery/${beer.breweryUuid}`} className="text-amber-800 hover:underline">
-                                {breweryDetails?.name || 'Unknown Brewery'}
-                            </a>
-                                        
-                        </span>
-                        <span className="text-sm text-gray-700"> {breweryDetails?.city}, {breweryDetails?.state} </span>
-                        <div className="text-gray-700 italic text-sm">
-                        {beer?.flavorTags?.length > 0
-                            ? beer.flavorTags.map(tag => tag.charAt(0).toUpperCase() + tag.slice(1)).join(', ')
-                            : 'N/A'}
-                        </div>
+        <div className="text-amber-900 border-gray-400">
+            {error ? (
+                <p className="text-red-600">Failed to load recommendations.</p>
+            ) : (
+                <>
+                    <p className="text-sm mb-2">
+                        {isFallback
+                            ? "No reviews yet — here are some popular beers to try!"
+                            : "Based on your tastes, try these local crafts!"}
+                    </p>
+                    <div className="space-y-4 text-sm font-medium  overflow-y-auto custom-scrollbar pr-1">
+                        {beers.slice(0, 8).map((beer) => {
+                            const breweryDetails = breweryMap[beer.breweryUuid];
+                            return (
+                                <div key={beer.beerId} className="flex flex-col">
+                                    <span className="font-semibold text-amber-800">{beer.name}</span>
+                                    <span className="text-sm text-gray-700">
+                                        <a href={`/brewery/${beer.breweryUuid}`} className="text-amber-800 hover:underline">
+                                            {breweryDetails?.name || 'Unknown Brewery'}
+                                        </a>
+                                    </span>
+                                    <span className="text-sm text-gray-700">
+                                        {breweryDetails?.city}, {breweryDetails?.state}
+                                    </span>
+                                    <div className="text-gray-700 italic text-sm">
+                                        {beer?.flavorTags?.length > 0
+                                            ? beer.flavorTags.map(tag =>
+                                                tag.charAt(0).toUpperCase() + tag.slice(1)
+                                            ).join(', ')
+                                            : 'N/A'}
+                                    </div>
+                                </div>
+                            );
+                        })}
                     </div>
-                )}
-                
-                )}
-            </div>
-        </section>
+                </>
+            )}
+        </div>
+    )}
+    }
+    
 
-    );
-}

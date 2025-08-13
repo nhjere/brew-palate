@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import NewHeader from '../NewLayout/NewHeader';
+
+import FullHeader from '../components/FullHeader';
 
 export default function About() {    
     return (
         <div className=" min-h-screen bg-[#fff4e6] flex flex-col">
 
-            <NewHeader />
+            <FullHeader />
 
 
             <div className="flex flex-row w-full h-full text-left max-w-screen-xl mx-auto min-h-[500px]">

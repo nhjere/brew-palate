@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import NewHeader from '../NewLayout/NewHeader';
+import NewHeader from '../components/FullHeader';
 import supabase from '../supabaseClient';
 import { useNavigate, useParams } from 'react-router-dom';
 
