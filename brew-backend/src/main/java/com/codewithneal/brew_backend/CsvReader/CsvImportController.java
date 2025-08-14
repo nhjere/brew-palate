@@ -6,7 +6,6 @@ import org.springframework.web.bind.annotation.*;
 import com.codewithneal.brew_backend.CsvReader.beers.BeerCsv;
 import com.codewithneal.brew_backend.CsvReader.beers.BeerCsvImporter;
 import com.codewithneal.brew_backend.CsvReader.beers.BeerCsvRepository;
-import com.codewithneal.brew_backend.CsvReader.beers.NearbyBeerService;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -29,8 +28,6 @@ public class CsvImportController {
     @Autowired
     private BeerCsvRepository beerCsvRepository;
 
-    @Autowired 
-    private NearbyBeerService nearbyBeerService;
 
     // import beers.csv
     @GetMapping("/beers")
@@ -121,24 +118,33 @@ public class CsvImportController {
         @RequestParam(defaultValue = "20") int size,
         @RequestParam(required = false) Double lat,
         @RequestParam(required = false) Double lng,
-        @RequestParam(defaultValue = "25") Double radius
+        @RequestParam(defaultValue = "25") Double radius // miles from UI
     ) {
         Pageable pageable = PageRequest.of(page, size);
 
-        if (lat != null && lng != null) {
-            return ResponseEntity.ok(
-                nearbyBeerService.findBeersByLocationAndTags(lat, lng, radius, tags, pageable)
-            );
+        // miles -> meters for PostGIS geography
+        final double radiusMeters = radius * 1609.344;
+
+        final boolean hasGeo  = lat != null && lng != null;
+        final boolean hasTags = tags != null && !tags.isEmpty();
+
+        Page<BeerCsv> out;
+
+        if (hasGeo && hasTags) {
+            String[] arr = tags.stream().map(String::toLowerCase).toArray(String[]::new);
+            out = beerCsvRepository.findNearbyAndByAllTags(lat, lng, radiusMeters, arr, arr.length, pageable);
+        } else if (hasGeo) {
+            out = beerCsvRepository.findNearbyOnly(lat, lng, radiusMeters, pageable);
+        } else if (hasTags) {
+            String[] arr = tags.stream().map(String::toLowerCase).toArray(String[]::new);
+            out = beerCsvRepository.findByAllTagsPageable(arr, arr.length, pageable);
+        } else {
+            out = beerCsvRepository.findAll(pageable);
         }
 
-        if (tags != null && !tags.isEmpty()) {
-            return ResponseEntity.ok(
-                beerCsvRepository.findByAllTags(tags, tags.size(), pageable)
-            );
-        }
-
-        return ResponseEntity.ok(beerCsvRepository.findAll(pageable));
+        return ResponseEntity.ok(out);
     }
+
 
 
 }

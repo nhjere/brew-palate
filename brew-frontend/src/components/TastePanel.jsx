@@ -34,7 +34,7 @@ useEffect(() => {
 
 const handleRefresh = () => {
 	setFlavorTags(tempTags)
-	localStorage.setItem('userFlavorTags', JSON.stringify(flavorTags));
+	localStorage.setItem('userFlavorTags', JSON.stringify(tempTags));
 	onRefresh?.(tempTags);
 };
 
