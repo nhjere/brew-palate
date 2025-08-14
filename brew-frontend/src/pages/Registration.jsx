@@ -18,7 +18,8 @@ export default function Registration() {
         role: '',
         address: '',
     });
-
+    
+    // comment
     // in-field error handling 
     const [errorMessage, setErrorMessage] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
