@@ -6,7 +6,7 @@ import Registration from './pages/Registration'
 import NoPage from './pages/NoPage';
 import BreweryPage from './pages/BreweryPage';
 import About from './pages/About';
-import UserDashboard from './Pages/UserDashboard'
+import UserDashboard from './pages/UserDashboard'
 
 
 import { BreweryProvider } from './context/BreweryContext';
