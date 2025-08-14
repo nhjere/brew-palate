@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import com.codewithneal.brew_backend.CsvReader.beers.BeerCsv;
 import com.codewithneal.brew_backend.CsvReader.beers.BeerCsvImporter;
 import com.codewithneal.brew_backend.CsvReader.beers.BeerCsvRepository;
+import com.codewithneal.brew_backend.CsvReader.beers.BeerListItem;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -111,39 +112,41 @@ public class CsvImportController {
     }
     
     // calls beers in beers in user dashboard after filtering by location and tags
-    @GetMapping("/filtered-all-beers")
-    public ResponseEntity<Page<BeerCsv>> getFilteredBeers(
-        @RequestParam(required = false) List<String> tags,
-        @RequestParam(defaultValue = "0") int page,
-        @RequestParam(defaultValue = "20") int size,
-        @RequestParam(required = false) Double lat,
-        @RequestParam(required = false) Double lng,
-        @RequestParam(defaultValue = "25") Double radius // miles from UI
-    ) {
-        Pageable pageable = PageRequest.of(page, size);
 
-        // miles -> meters for PostGIS geography
-        final double radiusMeters = radius * 1609.344;
+@GetMapping("/filtered-all-beers")
+public ResponseEntity<Page<BeerListItem>> getFilteredBeers(
+    @RequestParam(required = false) List<String> tags,
+    @RequestParam(defaultValue = "0") int page,
+    @RequestParam(defaultValue = "20") int size,
+    @RequestParam(required = false) Double lat,
+    @RequestParam(required = false) Double lng,
+    @RequestParam(defaultValue = "25") Double radius // miles
+) {
+    Pageable pageable = PageRequest.of(page, size);
 
-        final boolean hasGeo  = lat != null && lng != null;
-        final boolean hasTags = tags != null && !tags.isEmpty();
+    final boolean hasGeo  = lat != null && lng != null;
+    final boolean hasTags = tags != null && !tags.isEmpty();
 
-        Page<BeerCsv> out;
+    final double radiusMeters = radius * 1609.344;
 
-        if (hasGeo && hasTags) {
-            String[] arr = tags.stream().map(String::toLowerCase).toArray(String[]::new);
-            out = beerCsvRepository.findNearbyAndByAllTags(lat, lng, radiusMeters, arr, arr.length, pageable);
-        } else if (hasGeo) {
-            out = beerCsvRepository.findNearbyOnly(lat, lng, radiusMeters, pageable);
-        } else if (hasTags) {
-            String[] arr = tags.stream().map(String::toLowerCase).toArray(String[]::new);
-            out = beerCsvRepository.findByAllTagsPageable(arr, arr.length, pageable);
-        } else {
-            out = beerCsvRepository.findAll(pageable);
-        }
+    Page<BeerListItem> out;
 
-        return ResponseEntity.ok(out);
+    if (hasGeo && hasTags) {
+        String[] arr = tags.stream().map(String::toLowerCase).toArray(String[]::new);
+        out = beerCsvRepository.findNearbyWithAnyTagsList(lat, lng, radiusMeters, arr, pageable);
+    } else if (hasGeo) {
+        out = beerCsvRepository.findNearbyList(lat, lng, radiusMeters, pageable);
+    } else if (hasTags) {
+        String[] arr = tags.stream().map(String::toLowerCase).toArray(String[]::new);
+        out = beerCsvRepository.findByAnyTagsList(arr, pageable);
+    } else {
+        // NEW: no params -> show first page of everything
+        out = beerCsvRepository.findAllList(pageable);
     }
+
+    return ResponseEntity.ok(out);
+}
+
 
 
 

@@ -48,116 +48,149 @@ public interface BeerCsvRepository extends JpaRepository<BeerCsv, UUID> {
     Pageable pageable
     );
 
-
-    // A) Nearby only (no tags), distance sorted (miles -> meters inside controller)
+    // A) Nearby only
     @Query(value = """
-        SELECT b.*
-        FROM bootstrapped_beers b
-        JOIN brewery_profiles bp ON bp.brewery_id = b.brewery_uuid
-        WHERE ST_DWithin(
-        bp.geog,
-        ST_SetSRID(ST_MakePoint(:lng,:lat),4326)::geography,
-        :radiusMeters
+        WITH nearby AS (
+        SELECT bp.brewery_id,
+                ST_Distance(bp.geog, ST_SetSRID(ST_MakePoint(:lng,:lat),4326)::geography) AS dist_m
+        FROM brewery_profiles bp
+        WHERE ST_DWithin(bp.geog, ST_SetSRID(ST_MakePoint(:lng,:lat),4326)::geography, :radiusMeters)
         )
-        ORDER BY ST_Distance(
-        bp.geog,
-        ST_SetSRID(ST_MakePoint(:lng,:lat),4326)::geography
-        ) ASC
+        SELECT
+        b.beer_id        AS "beerId",
+        b.name           AS "name",
+        b.abv            AS "abv",
+        b.ibu            AS "ibu",
+        b.style          AS "style",
+        b.brewery_uuid   AS "breweryUuid",
+        (n.dist_m / 1609.344) AS "distanceMiles",
+        COALESCE(ARRAY_AGG(DISTINCT ft.flavor_tag)
+                FILTER (WHERE ft.flavor_tag IS NOT NULL), '{}') AS "flavorTags"
+        FROM bootstrapped_beers b
+        JOIN nearby n ON n.brewery_id = b.brewery_uuid
+        LEFT JOIN bootstrapped_beer_flavor_tags ft ON ft.beer_id = b.beer_id
+        GROUP BY b.beer_id, b.name, b.abv, b.ibu, b.style, b.brewery_uuid, n.dist_m
+        ORDER BY n.dist_m ASC
         """,
         countQuery = """
+        WITH nearby AS (
+        SELECT bp.brewery_id
+        FROM brewery_profiles bp
+        WHERE ST_DWithin(bp.geog, ST_SetSRID(ST_MakePoint(:lng,:lat),4326)::geography, :radiusMeters)
+        )
         SELECT COUNT(*)
         FROM bootstrapped_beers b
-        JOIN brewery_profiles bp ON bp.brewery_id = b.brewery_uuid
-        WHERE ST_DWithin(
-        bp.geog,
-        ST_SetSRID(ST_MakePoint(:lng,:lat),4326)::geography,
-        :radiusMeters
-        )
+        JOIN nearby n ON n.brewery_id = b.brewery_uuid
         """,
         nativeQuery = true)
-    Page<BeerCsv> findNearbyOnly(
-        @Param("lat") double lat,
-        @Param("lng") double lng,
-        @Param("radiusMeters") double radiusMeters,
-        Pageable pageable);
+    Page<BeerListItem> findNearbyList(
+    @Param("lat") double lat,
+    @Param("lng") double lng,
+    @Param("radiusMeters") double radiusMeters,
+    Pageable pageable);
 
 
-     // B) Nearby + beer must contain ALL selected tags (AND semantics)
+
+    // B) Nearby with any selected tags
     @Query(value = """
-        SELECT b.*
-        FROM bootstrapped_beers b
-        JOIN (
-        SELECT b.beer_id,
-                MIN(ST_Distance(
-                bp.geog, ST_SetSRID(ST_MakePoint(:lng,:lat),4326)::geography
-                )) AS dist
-        FROM bootstrapped_beers b
-        JOIN brewery_profiles bp ON bp.brewery_id = b.brewery_uuid
-        JOIN bootstrapped_beer_flavor_tags ft ON ft.beer_id = b.beer_id
-        WHERE ST_DWithin(
-            bp.geog,
-            ST_SetSRID(ST_MakePoint(:lng,:lat),4326)::geography,
-            :radiusMeters
+        WITH nearby AS (
+        SELECT bp.brewery_id,
+                ST_Distance(bp.geog, ST_SetSRID(ST_MakePoint(:lng,:lat),4326)::geography) AS dist_m
+        FROM brewery_profiles bp
+        WHERE ST_DWithin(bp.geog, ST_SetSRID(ST_MakePoint(:lng,:lat),4326)::geography, :radiusMeters)
         )
-        AND ft.flavor_tag = ANY(:tags)
-        GROUP BY b.beer_id
-        HAVING COUNT(DISTINCT ft.flavor_tag) = :tagCount
-        ) s ON s.beer_id = b.beer_id
-        ORDER BY s.dist ASC
+        SELECT
+        b.beer_id        AS "beerId",
+        b.name           AS "name",
+        b.abv            AS "abv",
+        b.ibu            AS "ibu",
+        b.style          AS "style",
+        b.brewery_uuid   AS "breweryUuid",
+        (MIN(n.dist_m) / 1609.344) AS "distanceMiles",
+        COALESCE(ARRAY_AGG(DISTINCT ft2.flavor_tag)
+                FILTER (WHERE ft2.flavor_tag IS NOT NULL), '{}') AS "flavorTags"
+        FROM bootstrapped_beers b
+        JOIN nearby n ON n.brewery_id = b.brewery_uuid
+        JOIN bootstrapped_beer_flavor_tags ft ON ft.beer_id = b.beer_id
+        LEFT JOIN bootstrapped_beer_flavor_tags ft2 ON ft2.beer_id = b.beer_id
+        WHERE lower(ft.flavor_tag) = ANY(:tags)
+        GROUP BY b.beer_id, b.name, b.abv, b.ibu, b.style, b.brewery_uuid
+        ORDER BY MIN(n.dist_m) ASC
         """,
         countQuery = """
-        SELECT COUNT(*)
-        FROM (
-        SELECT b.beer_id
-        FROM bootstrapped_beers b
-        JOIN brewery_profiles bp ON bp.brewery_id = b.brewery_uuid
-        JOIN bootstrapped_beer_flavor_tags ft ON ft.beer_id = b.beer_id
-        WHERE ST_DWithin(
-            bp.geog,
-            ST_SetSRID(ST_MakePoint(:lng,:lat),4326)::geography,
-            :radiusMeters
+        WITH nearby AS (
+        SELECT bp.brewery_id
+        FROM brewery_profiles bp
+        WHERE ST_DWithin(bp.geog, ST_SetSRID(ST_MakePoint(:lng,:lat),4326)::geography, :radiusMeters)
         )
-        AND ft.flavor_tag = ANY(:tags)
-        GROUP BY b.beer_id
-        HAVING COUNT(DISTINCT ft.flavor_tag) = :tagCount
-        ) x
+        SELECT COUNT(DISTINCT b.beer_id)
+        FROM bootstrapped_beers b
+        JOIN nearby n ON n.brewery_id = b.brewery_uuid
+        JOIN bootstrapped_beer_flavor_tags ft ON ft.beer_id = b.beer_id
+        WHERE lower(ft.flavor_tag) = ANY(:tags)
         """,
         nativeQuery = true)
-    Page<BeerCsv> findNearbyAndByAllTags(
-        @Param("lat") double lat,
-        @Param("lng") double lng,
-        @Param("radiusMeters") double radiusMeters,
-        @Param("tags") String[] tags,
-        @Param("tagCount") long tagCount,
-        Pageable pageable);
+    Page<BeerListItem> findNearbyWithAnyTagsList(
+    @Param("lat") double lat,
+    @Param("lng") double lng,
+    @Param("radiusMeters") double radiusMeters,
+    @Param("tags") String[] tags,
+    Pageable pageable);
 
 
-    // C) Tags-only (keep this for “no location” case)
-    @Query(
-        value = """
-        SELECT b.*
+
+    // C) Tags-only (no location)
+    @Query(value = """
+        SELECT
+        b.beer_id      AS "beerId",
+        b.name         AS "name",
+        b.abv          AS "abv",
+        b.ibu          AS "ibu",
+        b.style        AS "style",
+        b.brewery_uuid AS "breweryUuid",
+        NULL::double precision AS "distanceMiles",
+        COALESCE(ARRAY_AGG(DISTINCT ft2.flavor_tag)
+                FILTER (WHERE ft2.flavor_tag IS NOT NULL), '{}') AS "flavorTags"
         FROM bootstrapped_beers b
-        JOIN bootstrapped_beer_flavor_tags ft ON b.beer_id = ft.beer_id
-        WHERE ft.flavor_tag = ANY(:tags)
-        GROUP BY b.beer_id
-        HAVING COUNT(DISTINCT ft.flavor_tag) = :tagCount
+        JOIN bootstrapped_beer_flavor_tags ft ON ft.beer_id = b.beer_id
+        LEFT JOIN bootstrapped_beer_flavor_tags ft2 ON ft2.beer_id = b.beer_id
+        WHERE lower(ft.flavor_tag) = ANY(:tags)
+        GROUP BY b.beer_id, b.name, b.abv, b.ibu, b.style, b.brewery_uuid
         """,
         countQuery = """
-        SELECT COUNT(*)
-        FROM (
-            SELECT b.beer_id
-            FROM bootstrapped_beers b
-            JOIN bootstrapped_beer_flavor_tags ft ON b.beer_id = ft.beer_id
-            WHERE ft.flavor_tag = ANY(:tags)
-            GROUP BY b.beer_id
-            HAVING COUNT(DISTINCT ft.flavor_tag) = :tagCount
-        ) matched
+        SELECT COUNT(DISTINCT b.beer_id)
+        FROM bootstrapped_beers b
+        JOIN bootstrapped_beer_flavor_tags ft ON ft.beer_id = b.beer_id
+        WHERE lower(ft.flavor_tag) = ANY(:tags)
         """,
-        nativeQuery = true
-    )
-    Page<BeerCsv> findByAllTagsPageable(
-        @Param("tags") String[] tags,
-        @Param("tagCount") long tagCount,
-        Pageable pageable);
-    
+        nativeQuery = true)
+    Page<BeerListItem> findByAnyTagsList(
+    @Param("tags") String[] tags,
+    Pageable pageable);
+
+
+    // D: all beers (no filters)
+
+    @Query(value = """
+        SELECT
+        b.beer_id      AS "beerId",
+        b.name         AS "name",
+        b.abv          AS "abv",
+        b.ibu          AS "ibu",
+        b.style        AS "style",
+        b.brewery_uuid AS "breweryUuid",
+        NULL::double precision AS "distanceMiles",
+        COALESCE(ARRAY_AGG(DISTINCT ft.flavor_tag)
+                FILTER (WHERE ft.flavor_tag IS NOT NULL), '{}') AS "flavorTags"
+        FROM bootstrapped_beers b
+        LEFT JOIN bootstrapped_beer_flavor_tags ft ON ft.beer_id = b.beer_id
+        GROUP BY b.beer_id, b.name, b.abv, b.ibu, b.style, b.brewery_uuid
+        ORDER BY b.name ASC
+        """,
+        countQuery = """
+        SELECT COUNT(*) FROM bootstrapped_beers
+        """,
+        nativeQuery = true)
+    Page<BeerListItem> findAllList(Pageable pageable);
+
 }
