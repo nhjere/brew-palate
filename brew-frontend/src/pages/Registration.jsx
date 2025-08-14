@@ -19,7 +19,6 @@ export default function Registration() {
         address: '',
     });
     
-    // comment
     // in-field error handling 
     const [errorMessage, setErrorMessage] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
