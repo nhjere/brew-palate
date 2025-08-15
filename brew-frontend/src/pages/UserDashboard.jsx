@@ -3,6 +3,7 @@ import axios from 'axios';
 import FullHeader from '../components/FullHeader.jsx';
 import ReviewModal from '../components/ReviewModal.jsx'
 import TastePanel from '../components/TastePanel.jsx';
+import YourStyle from '../components/StylePanel.jsx';
 import PastReviews from '../components/PastReviews.jsx';
 import BeerProximity from '../components/BeerProximity.jsx'
 import PanelShell from '../components/PanelShell.jsx';
@@ -30,6 +31,12 @@ export default function NewUserDash() {
     // taste panel variables
     const [flavorTags, setFlavorTags] = useState([]);
     const [committedTags, setCommittedTags] = useState([]);
+
+    // style panel variables
+    const [selectedStyles, setSelectedStyles] = useState(
+        JSON.parse(localStorage.getItem('userStyles') || '[]')
+        );
+    const [committedStyles, setCommittedStyles] = useState([]);
 
     // beer proximity variables
     const [proximityCoords, setProximityCoords] = useState(null);
@@ -169,8 +176,13 @@ return (
                 />
             </PanelShell>
 
-            <PanelShell id="taste" title="Your Style" capClass="max-h-64" summary={committedTags}>
-                    Coming Soon
+            <PanelShell id="style" title="Your Style" capClass="max-h-64" summary={committedStyles}>
+            <YourStyle
+                withShell={false}
+                selectedStyles={selectedStyles}
+                setSelectedStyles={setSelectedStyles}
+                onRefresh={(styles) => setCommittedStyles(styles)}
+            />
             </PanelShell>
 
             <PanelShell id="reviews" title="Past Reviews" capClass="max-h-64">

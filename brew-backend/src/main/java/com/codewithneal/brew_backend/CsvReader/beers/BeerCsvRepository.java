@@ -20,33 +20,29 @@ public interface BeerCsvRepository extends JpaRepository<BeerCsv, UUID> {
     @Query("SELECT b.flavorTags FROM BeerCsv b")
     List<List<String>> findAllFlavorTags();
 
-    @Query(
-    value = """
-        SELECT b.*
-        FROM bootstrapped_beers b
-        JOIN bootstrapped_beer_flavor_tags ft ON b.beer_id = ft.beer_id
-        WHERE ft.flavor_tag IN (:tags)
-        GROUP BY b.beer_id
-        HAVING COUNT(DISTINCT ft.flavor_tag) = :tagCount
-        """,
-    countQuery = """
-        SELECT COUNT(*)
+    // Find unique flavor tags
+    @Query(value = """
+        SELECT DISTINCT LOWER(ft.flavor_tag)
+        FROM bootstrapped_beer_flavor_tags ft
+        WHERE ft.flavor_tag IS NOT NULL AND ft.flavor_tag <> ''
+        ORDER BY LOWER(ft.flavor_tag)
+        """, nativeQuery = true)
+    List<String> findAllUniqueFlavorTags();
+
+    // BeerCsvRepository.java
+    // BeerCsvRepository.java
+    @Query(value = """
+        SELECT style
         FROM (
-        SELECT b.beer_id
-        FROM bootstrapped_beers b
-        JOIN bootstrapped_beer_flavor_tags ft ON b.beer_id = ft.beer_id
-        WHERE ft.flavor_tag IN (:tags)
-        GROUP BY b.beer_id
-        HAVING COUNT(DISTINCT ft.flavor_tag) = :tagCount
-        ) matched
-        """,
-    nativeQuery = true
-    )
-    Page<BeerCsv> findByAllTags(
-    @Param("tags") List<String> tags,
-    @Param("tagCount") long tagCount,
-    Pageable pageable
-    );
+            SELECT DISTINCT TRIM(style) AS style
+            FROM bootstrapped_beers
+            WHERE style IS NOT NULL AND TRIM(style) <> ''
+        ) s
+        ORDER BY LOWER(style)
+        """, nativeQuery = true)
+    List<String> findAllUniqueStyles();
+
+
 
     // A) Nearby only
     @Query(value = """
