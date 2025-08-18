@@ -84,6 +84,7 @@ public class CsvImportController {
     @GetMapping("/filtered-all-beers")
     public ResponseEntity<Page<BeerListItem>> getFilteredBeers(
         @RequestParam(required = false) List<String> tags,
+        @RequestParam(required = false) List<String> styles,   // NEW
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "20") int size,
         @RequestParam(required = false) Double lat,
@@ -92,28 +93,56 @@ public class CsvImportController {
     ) {
         Pageable pageable = PageRequest.of(page, size);
 
-        final boolean hasGeo  = lat != null && lng != null;
-        final boolean hasTags = tags != null && !tags.isEmpty();
+        final boolean hasGeo    = lat != null && lng != null;
+        final boolean hasTags   = tags != null && !tags.isEmpty();
+        final boolean hasStyles = styles != null && !styles.isEmpty();
 
         final double radiusMeters = radius * 1609.344;
 
         Page<BeerListItem> out;
 
-        if (hasGeo && hasTags) {
-            String[] arr = tags.stream().map(String::toLowerCase).toArray(String[]::new);
-            out = beerCsvRepository.findNearbyWithAnyTagsList(lat, lng, radiusMeters, arr, pageable);
+        if (hasGeo && hasTags && hasStyles) {
+            String[] tagArr = tags.stream().map(String::toLowerCase).toArray(String[]::new);
+            String[] stylePatterns = styles.stream()
+                .map(s -> "%" + s.toLowerCase() + "%").toArray(String[]::new);
+            out = beerCsvRepository.findNearbyWithAnyTagsAndAnyStylesList(
+                    lat, lng, radiusMeters, tagArr, stylePatterns, pageable);
+
+        } else if (hasGeo && hasTags) {
+            String[] tagArr = tags.stream().map(String::toLowerCase).toArray(String[]::new);
+            out = beerCsvRepository.findNearbyWithAnyTagsList(lat, lng, radiusMeters, tagArr, pageable);
+
+        } else if (hasGeo && hasStyles) {
+            String[] stylePatterns = styles.stream()
+                .map(s -> "%" + s.toLowerCase() + "%").toArray(String[]::new);
+            out = beerCsvRepository.findNearbyWithAnyStylesList(
+                    lat, lng, radiusMeters, stylePatterns, pageable);
+
         } else if (hasGeo) {
             out = beerCsvRepository.findNearbyList(lat, lng, radiusMeters, pageable);
+
+        } else if (hasTags && hasStyles) {
+            String[] tagArr = tags.stream().map(String::toLowerCase).toArray(String[]::new);
+            String[] stylePatterns = styles.stream()
+                .map(s -> "%" + s.toLowerCase() + "%").toArray(String[]::new);
+            out = beerCsvRepository.findByAnyTagsAndAnyStylesList(tagArr, stylePatterns, pageable);
+
         } else if (hasTags) {
-            String[] arr = tags.stream().map(String::toLowerCase).toArray(String[]::new);
-            out = beerCsvRepository.findByAnyTagsList(arr, pageable);
+            String[] tagArr = tags.stream().map(String::toLowerCase).toArray(String[]::new);
+            out = beerCsvRepository.findByAnyTagsList(tagArr, pageable);
+
+        } else if (hasStyles) {
+            String[] stylePatterns = styles.stream()
+                .map(s -> "%" + s.toLowerCase() + "%").toArray(String[]::new);
+            out = beerCsvRepository.findByAnyStylesList(stylePatterns, pageable);
+
         } else {
-            // NEW: no params -> show first page of everything
             out = beerCsvRepository.findAllList(pageable);
         }
 
         return ResponseEntity.ok(out);
     }
+
 
 
 

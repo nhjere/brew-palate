@@ -1,73 +1,88 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 
-export default function StylePanel({
-  selectedStyles,
-  setSelectedStyles,
-  onRefresh,
-  withShell = true,
-}) {
-  const BASE_URL = import.meta.env.VITE_BACKEND_URL;
+const POPULAR_STYLE_FAMILIES = ['Lager','Ale','IPA','Stout','Porter','Pilsner','Wheat','Belgian','Amber / Red','American'];
 
-  const [availableStyles, setAvailableStyles] = useState([]);
-  const [tempStyles, setTempStyles] = useState([]);
+export default function StylePanel({selectedStyles,setSelectedStyles,onRefresh,withShell = true,}) {
+	const BASE_URL = import.meta.env.VITE_BACKEND_URL;
 
-  useEffect(() => {
-    axios
-      .get(`${BASE_URL}/api/import/styles`)
-      .then((res) => setAvailableStyles(res.data || []))
-      .catch((err) => console.error(err));
-  }, []);
+	const [availableStyles, setAvailableStyles] = useState([]);
+	const [tempStyles, setTempStyles] = useState([]);
 
-  useEffect(() => {
-    setTempStyles(selectedStyles || []);
-  }, [selectedStyles]);
+	// initialize temp from committed
+	useEffect(() => {
+		setTempStyles(selectedStyles || []);
+	}, [selectedStyles]);
 
-  const handleStyleChange = (style) => {
-    setTempStyles((prev) =>
-      prev.includes(style) ? prev.filter((s) => s !== style) : [...prev, style]
-    );
-  };
+	// updates temp styles on checklist change
+	const handleStyleToggle = (style) => {
+		setTempStyles((prev) =>
+		prev.includes(style) ? prev.filter((s) => s !== style) : [...prev, style]
+		);
+	};
 
-  const handleRefresh = () => {
-    setSelectedStyles(tempStyles);
-    localStorage.setItem('userStyles', JSON.stringify(tempStyles));
-    onRefresh?.(tempStyles);
-  };
+	// applies styles
+	const handleApply = () => {
+		setSelectedStyles(tempStyles);
+		localStorage.setItem('userStyles', JSON.stringify(tempStyles));
+		onRefresh?.(tempStyles);
+	};
 
-  if (!withShell) {
-    return (
-      <div>
-        <div className="text-amber-900">
-          <p className="text-sm mb-2">Which styles are you looking for?</p>
 
-          <ul className="space-y-2 text-sm">
-            {availableStyles.map((style) => (
-              <label key={style} className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  className="w-4 h-4 border-2 border-black rounded checked:bg-white checked:border-black focus:ring-0"
-                  checked={tempStyles.includes(style)}
-                  onChange={() => handleStyleChange(style)}
-                />
-                <span>{style}</span>
-              </label>
-            ))}
-          </ul>
+	useEffect(() => {
+		axios
+		.get(`${BASE_URL}/api/import/styles`)
+		.then((res) => setAvailableStyles(res.data || []))
+		.catch((err) => console.error(err));
+	}, []);
 
-          <div className="flex justify-center pt-4">
-            <button
-              onClick={handleRefresh}
-              className="bg-blue-200 hover:bg-blue-300 text-black font-bold py-1 px-4 rounded"
-            >
-              Set Styles
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
+	const handleStyleChange = (style) => {
+		setTempStyles((prev) =>
+		prev.includes(style) ? prev.filter((s) => s !== style) : [...prev, style]
+		);
+	};
 
-  // If you ever render with shell=true, keep it simple (PanelShell provides the shell usually)
-  return null;
+	const handleRefresh = () => {
+		setSelectedStyles(tempStyles);
+		localStorage.setItem('userStyles', JSON.stringify(tempStyles));
+		onRefresh?.(tempStyles);
+		// Print each item in tempStyles
+		tempStyles.forEach((style, idx) => {
+			console.log(`Style ${idx}: ${style}`);
+		});
+	};
+
+	if (!withShell) {
+		return (
+		<div className="text-amber-900 flex flex-col max-h-60 overflow-hidden">
+
+			<p className="text-sm mb-2 shrink-0">Which styles are you looking for?</p>
+
+			<ul className="space-y-2 text-sm overflow-y-auto pr-1 flex-1">
+				{POPULAR_STYLE_FAMILIES.map((style) => (
+				<label key={style} className="flex items-center space-x-2">
+					<input
+					type="checkbox"
+					className="w-4 h-4 border-2 border-black rounded checked:bg-white checked:border-black focus:ring-0"
+					checked={tempStyles.includes(style)}
+					onChange={() => handleStyleChange(style)}
+					/>
+					<span>{style}</span>
+				</label>
+				))}
+			</ul>
+
+			<div className="pt-4 shrink-0">
+			<button
+				onClick={handleRefresh}
+				className="w-full bg-blue-200 hover:bg-blue-300 text-black font-semibold py-2 rounded-md"
+			>
+				Set Styles
+			</button>
+			</div>
+		</div>
+		);
+	}
+
+	return null;
 }

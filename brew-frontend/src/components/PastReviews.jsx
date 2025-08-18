@@ -52,7 +52,7 @@ export default function NewPastReviews({ withShell = true, userId, refreshRecs }
         {reviews.length === 0 ? (
             <p className="text-gray-600 italic">No reviews yet... start reviewing to get recommendations!</p>
         ) : (
-            <div className="space-y-4 text-sm font-medium !no-scrollbar">
+            <div className="space-y-4 text-sm font-medium !no-scrollbar pr-2">
                 {[...reviews].reverse().map((review) => {
                     const beer = beerMap[review.beerId];
                     const stars = '★'.repeat(review.overallEnjoyment) + '☆'.repeat(5 - review.overallEnjoyment);

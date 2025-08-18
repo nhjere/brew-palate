@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/20/solid";
 
-export default function PanelShell({ id, title, children, capClass = "max-h-60", summary }) {
+export default function PanelShell({ id, title, children, capClass = "max-h-56", summary }) {
 
     const [open, setOpen] = useState(true);
 

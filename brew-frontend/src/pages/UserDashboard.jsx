@@ -100,22 +100,37 @@ export default function NewUserDash() {
     }, []);
 
     
-    // fetch filtered beers from csv backed db
     useEffect(() => {
     const fetchFilteredBeers = async () => {
         try {
+        const params = {
+            tags: committedTags,
+            styles: committedStyles,
+            page: currentPage,
+            size: 4,
+            ...(proximityCoords && {
+            lat: proximityCoords.lat,
+            lng: proximityCoords.lng,
+            radius: proximityRadius,
+            }),
+        };
+
+        // repeat keys for arrays: ?tags=a&tags=b&styles=Lager&styles=IPA
+        const paramsSerializer = (p) => {
+            const usp = new URLSearchParams();
+            if (p.page != null) usp.set('page', p.page);
+            if (p.size != null) usp.set('size', p.size);
+            if (p.lat != null) usp.set('lat', p.lat);
+            if (p.lng != null) usp.set('lng', p.lng);
+            if (p.radius != null) usp.set('radius', p.radius);
+            (p.tags || []).forEach(t => usp.append('tags', t));
+            (p.styles || []).forEach(s => usp.append('styles', s));   // ← NEW
+            return usp.toString();
+        };
+
         const res = await axios.get(`${BASE_URL}/api/import/filtered-all-beers`, {
-            params: {
-                tags: committedTags,
-                page: currentPage,
-                size: 4,
-                ...(proximityCoords && {
-                    lat: proximityCoords.lat,
-                    lng: proximityCoords.lng,
-                    radius: proximityRadius
-                })
-            },
-            paramsSerializer: params => new URLSearchParams(params).toString()
+            params,
+            paramsSerializer,
         });
 
         setBeers(res.data.content);
@@ -126,12 +141,12 @@ export default function NewUserDash() {
     };
 
     fetchFilteredBeers();
-    }, [committedTags, currentPage, proximityCoords, proximityRadius]);
+    }, [committedTags, committedStyles,currentPage,proximityCoords,proximityRadius]);
 
     // resets page
     useEffect(() => {
         setCurrentPage(0);
-    }, [committedTags, proximityCoords, proximityRadius]);
+    }, [committedTags, committedStyles, proximityCoords, proximityRadius])
 
     // reads in all breweries from db (previously posted from open brewery db)
     useEffect(() => {
@@ -167,7 +182,7 @@ return (
                 inline={true}
             />
 
-            <PanelShell id="taste" title="Your Taste" capClass="max-h-64" summary={committedTags}>
+            <PanelShell id="taste" title="Your Taste" capClass="max-h-60" summary={committedTags}>
                 <TastePanel
                     withShell={false}
                     flavorTags={flavorTags}
@@ -176,7 +191,7 @@ return (
                 />
             </PanelShell>
 
-            <PanelShell id="style" title="Your Style" capClass="max-h-64" summary={committedStyles}>
+            <PanelShell id="style" title="Your Style" capClass="max-h-60" summary={committedStyles}>
             <YourStyle
                 withShell={false}
                 selectedStyles={selectedStyles}
@@ -185,7 +200,7 @@ return (
             />
             </PanelShell>
 
-            <PanelShell id="reviews" title="Past Reviews" capClass="max-h-64">
+            <PanelShell id="reviews" title="Past Reviews" capClass="max-h-60">
                 <PastReviews 
                     withShell={false}
                     userId={userId} 
@@ -214,7 +229,7 @@ return (
                                         p-4 rounded-2xl bg-gradient-to-r from-[#4e2105] to-[#241200] text-white
                                         shadow-md w-full h-auto md:h-[180px]"
                             >
-                            {/* Mug: fixed X from left, flush with bottom */}
+
                             <div className="absolute bottom-0 left-90 w-100 h-32 overflow-hidden rounded-xl pointer-events-none">
                                 <img
                                 src={beer_mug}
@@ -223,7 +238,6 @@ return (
                                 />
                             </div>
 
-                            {/* Left content — add right/left padding if needed to avoid overlap */}
                             <div className="flex items-center gap-4 w-full md:w-2/3 pr-40">
                                 <div className="flex flex-col">
                                 <h3 className="text-xl font-bold">{beer.name}</h3>
@@ -249,7 +263,6 @@ return (
                                 </div>
                             </div>
 
-                            {/* Right content */}
                             <div className="text-right flex flex-col items-end gap-2 mt-4 md:mt-0 z-10">
                                 <div>
                                 <p className="text-sm font-medium">{beer.style}</p>
@@ -267,7 +280,7 @@ return (
                 ) : (
                     <div className="flex items-center justify-center h-full">
                     <div className="text-center text-gray-600 italic">
-                        No beers found with those flavor tags.
+                        No beers found with those search parameters.
                     </div>
                     </div>
                 )}

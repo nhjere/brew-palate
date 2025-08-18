@@ -19,7 +19,7 @@ const handleNearbyBeerSearch = async () => {
 
 	const [lng, lat] = geo.data.features[0].center;
 
-	await axios.get(`${BASE_URL}/api/import/filtered-beers`, {
+	await axios.get(`${BASE_URL}/api/import/filtered-all-beers`, {
 		params: {
 		lat,
 		lng,
