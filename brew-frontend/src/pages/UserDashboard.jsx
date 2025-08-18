@@ -8,7 +8,7 @@ import PastReviews from '../components/PastReviews.jsx';
 import BeerProximity from '../components/BeerProximity.jsx'
 import PanelShell from '../components/PanelShell.jsx';
 import RecCards from '../components/RecCards.jsx'
-import beer27 from "../assets/beer-27.svg";
+import beer_mug from "../assets/beer_mug.png";
 import supabase from '../supabaseClient.js';
 import { useBreweryMap } from '../context/BreweryContext.jsx';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -209,23 +209,34 @@ return (
                     const brewery = breweryMap[beer.breweryUuid];
                     return (
                         <div
-                        key={beer.beerId}
-                        className="flex flex-col md:flex-row md:items-center justify-between
-                            p-4 rounded-2xl bg-gradient-to-r from-[#4e2105] to-[#241200] text-white
-                            shadow-md w-full
-                            h-auto md:h-[180px]"
-                        >
-                            <div className="flex items-center gap-4 w-full md:w-2/3">
-                            <img src={beer27} alt="Beer" className="w-24 h-24 rounded object-cover" />
-                            <div className="flex flex-col">
+                            key={beer.beerId}
+                            className="relative flex flex-col md:flex-row md:items-center justify-between
+                                        p-4 rounded-2xl bg-gradient-to-r from-[#4e2105] to-[#241200] text-white
+                                        shadow-md w-full h-auto md:h-[180px]"
+                            >
+                            {/* Mug: fixed X from left, flush with bottom */}
+                            <div className="absolute bottom-0 left-90 w-100 h-32 overflow-hidden rounded-xl pointer-events-none">
+                                <img
+                                src={beer_mug}
+                                alt=""
+                                className="w-full h-full object-cover object-top scale-[2.6]"
+                                />
+                            </div>
+
+                            {/* Left content — add right/left padding if needed to avoid overlap */}
+                            <div className="flex items-center gap-4 w-full md:w-2/3 pr-40">
+                                <div className="flex flex-col">
                                 <h3 className="text-xl font-bold">{beer.name}</h3>
-                                <a href={`/brewery/${beer.breweryUuid}`} className="text-l !text-white/80 font-semibold">From {brewery?.breweryName || 'Unknown Brewery'}</a>
-                                <p className="text-l text-white/80"> {brewery?.city}, {brewery?.state}</p>
+                                <a href={`/brewery/${beer.breweryUuid}`} className="text-l !text-white/80 font-semibold">
+                                    From {brewery?.breweryName || 'Unknown Brewery'}
+                                </a>
+                                <p className="text-l text-white/80">{brewery?.city}, {brewery?.state}</p>
                                 <p className="flex flex-wrap gap-2 mt-1">
                                     {beer.flavorTags.slice(0, 6).map((tag) => (
                                     <span
                                         key={tag}
-                                        className="px-3 py-1 rounded-full text-sm border border-amber-300 bg-amber-50 text-amber-800">
+                                        className="px-3 py-1 rounded-full text-sm border border-amber-300 bg-amber-50 text-amber-800"
+                                    >
                                         {tag.charAt(0).toUpperCase() + tag.slice(1)}
                                     </span>
                                     ))}
@@ -235,25 +246,23 @@ return (
                                     </span>
                                     )}
                                 </p>
+                                </div>
                             </div>
-                            </div>
-                            <div className="text-right flex flex-col items-end gap-2 mt-4 md:mt-0">
-                            <div>
+
+                            {/* Right content */}
+                            <div className="text-right flex flex-col items-end gap-2 mt-4 md:mt-0 z-10">
+                                <div>
                                 <p className="text-sm font-medium">{beer.style}</p>
                                 <p className="text-sm">ABV = {(beer.abv * 100).toFixed(1)}%</p>
-                            </div>
-                            <button
+                                </div>
+                                <button
                                 className="bg-blue-200 hover:bg-blue-300 text-black px-4 py-1 rounded-full font-semibold"
-                                onClick={() => {
-                                setSelectedBeerId(beer.beerId);
-                                setShowReviewModal(true);
-                                }}
-                            >
+                                onClick={() => { setSelectedBeerId(beer.beerId); setShowReviewModal(true); }}
+                                >
                                 Review!
-                            </button>
+                                </button>
                             </div>
-                        </div>
-                    );
+                        </div> );
                     })
                 ) : (
                     <div className="flex items-center justify-center h-full">
