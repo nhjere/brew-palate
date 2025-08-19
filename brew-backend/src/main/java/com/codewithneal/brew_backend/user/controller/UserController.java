@@ -59,6 +59,29 @@ public class UserController {
     @Value("${supabase.jwt.secret}")
         private String jwtSecret;
 
+    // login endpoint to return registration info (returns WHO I AM to login)
+    @GetMapping("/me")
+    public ResponseEntity<?> me(@RequestHeader(value = "Authorization", required = false) String authHeader) {
+        String token = extractBearerToken(authHeader);
+        if (token == null) return ResponseEntity.status(401).body(Map.of("error", "Missing or invalid Authorization header"));
+
+        Optional<UUID> uid = verifyAndGetUserId(token);
+        if (uid.isEmpty()) return ResponseEntity.status(401).body(Map.of("error", "Invalid token"));
+
+        Optional<User> userOpt = userService.getUserById(uid.get());
+        if (userOpt.isEmpty()) return ResponseEntity.status(404).body(Map.of("error", "User not found"));
+
+        User user = userOpt.get();
+        return ResponseEntity.ok(Map.of(
+            "userId", user.getUserId(),
+            "username", user.getUsername(),
+            "address", user.getAddress(),
+            "role", user.getRole()
+        ));
+    }
+    
+
+    // returns user data from backend (just username and address for now) when opening Userdashboard
     @GetMapping("/profile")
     public ResponseEntity<?> getUserProfile(@RequestHeader("Authorization") String authHeader) {
         String token = authHeader.replace("Bearer ", "");
@@ -80,7 +103,6 @@ public class UserController {
             return ResponseEntity.ok(Map.of(
                 "username", user.getUsername(),
                 "address", user.getAddress()
-                // add anything else
             ));
         } catch (Exception e) {
             return ResponseEntity.status(401).body(Map.of("error", "Invalid token"));
@@ -131,6 +153,24 @@ public class UserController {
             return ResponseEntity.ok(updatedUser);
         } catch (Exception e) {
             return ResponseEntity.status(401).body(Map.of("error", "Invalid token or update failed"));
+        }
+    }
+
+
+    // UTILITY FUNCTIONS
+
+
+    private String extractBearerToken(String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) return null;
+        return authHeader.substring("Bearer ".length());
+    }
+
+    private Optional<UUID> verifyAndGetUserId(String token) {
+        try {
+            DecodedJWT jwt = JWT.require(Algorithm.HMAC256(jwtSecret)).build().verify(token);
+            return Optional.of(UUID.fromString(jwt.getSubject())); // supabase user UUID in "sub"
+        } catch (Exception e) {
+            return Optional.empty();
         }
     }
  

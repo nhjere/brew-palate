@@ -12,7 +12,7 @@ public class UserRegistrationDTO {
     public UserRegistrationDTO(UUID userId, String username, String role, String address) {
         this.userId = userId;
         this.username = username;
-        this.role = "user";
+        this.role = role;
         this.address = address;
     }
 

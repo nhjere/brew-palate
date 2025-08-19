@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { createClient } from '@supabase/supabase-js';
-import { useBreweryMap } from '../context/BreweryContext';
+import { useBreweryMap } from '../../context/BreweryContext';
 
 // supabase auth config
 const supabase = createClient(

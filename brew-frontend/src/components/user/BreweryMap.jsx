@@ -3,9 +3,9 @@ import Map, { Marker , Popup} from 'react-map-gl';
 
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { useEffect, useState } from 'react';
-import beer27 from "../assets/beer-27.svg";
-import beerkeg from "../assets/beer-keg-real.svg";
-import houseIcon from "../assets/house_icon.svg";
+import beer27 from "../../assets/beer-27.svg";
+import beerkeg from "../../assets/beer-keg-real.svg";
+import houseIcon from "../../assets/house_icon.svg";
 
 export default function BreweryMap({ breweries, center }) {
 

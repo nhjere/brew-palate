@@ -1,6 +1,6 @@
-import FullHeader from '../components/FullHeader';
-import LocationFilter from '../components/LocationFilter';
-import BreweryMap from '../components/BreweryMap';
+import FullHeader from '../components/user/UserHeader';
+import LocationFilter from '../components/user/LocationFilter';
+import BreweryMap from '../components/user/BreweryMap';
 import { useLocation } from 'react-router-dom';
 import { useEffect, useState, useRef } from 'react';
 import axios from 'axios';

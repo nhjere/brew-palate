@@ -93,6 +93,7 @@ export default function Registration() {
 
         // console.log("Sending metadata to backend...");
         await axios.post(`${BASE_URL}/api/user/register`, metadata);
+        console.log(metadata)
         
         setSuccessMessage('Registration successful! Please check your email to verify your account.');
         } 

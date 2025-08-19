@@ -1,8 +1,8 @@
-import FullHeader from '../components/FullHeader'
+import UserHeader from '../components/user/UserHeader'
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
-import ReviewModal from '../components/ReviewModal';
+import ReviewModal from '../components/user/ReviewModal';
 
 export default function BreweryPage() {
     // User clicks on a brewery link and takes them to an informative page about the brewery
@@ -38,15 +38,9 @@ export default function BreweryPage() {
         console.log('Beer: ', beer);
     });
 
-        
-
-        
-  
-
-
     return (
     <div className="min-h-screen bg-[#fff4e6]">
-      <FullHeader />
+      <UserHeader />
 
       <main className="max-w-3xl mx-auto py-12 px-4 space-y-10">
         <section className="bg-white rounded-2xl text-center shadow-md border border-gray-200 p-8 space-y-4">

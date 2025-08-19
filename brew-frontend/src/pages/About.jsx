@@ -1,5 +1,5 @@
 
-import FullHeader from '../components/FullHeader';
+import FullHeader from '../components/user/UserHeader';
 
 export default function About() {    
     return (

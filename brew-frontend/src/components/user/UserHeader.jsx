@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import Search from './Search';
-import bp_logo from '../assets/final_logo.png';
-import avatar from "../assets/avatar.svg"; 
+import bp_logo from '../../assets/final_logo.png';
+import avatar from "../../assets/avatar.svg"; 
 
 export default function NewHeader() {
     const userId = localStorage.getItem('user_id');

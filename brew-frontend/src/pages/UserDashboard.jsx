@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import FullHeader from '../components/FullHeader.jsx';
-import ReviewModal from '../components/ReviewModal.jsx'
-import TastePanel from '../components/TastePanel.jsx';
-import YourStyle from '../components/StylePanel.jsx';
-import PastReviews from '../components/PastReviews.jsx';
-import BeerProximity from '../components/BeerProximity.jsx'
-import PanelShell from '../components/PanelShell.jsx';
-import RecCards from '../components/RecCards.jsx'
+import FullHeader from '../components/user/UserHeader.jsx';
+import ReviewModal from '../components/user/ReviewModal.jsx'
+import TastePanel from '../components/user/TastePanel.jsx';
+import YourStyle from '../components/user/StylePanel.jsx';
+import PastReviews from '../components/user/PastReviews.jsx';
+import BeerProximity from '../components/user/BeerProximity.jsx'
+import PanelShell from '../components/user/PanelShell.jsx';
+import RecCards from '../components/user/RecCards.jsx'
 import beer_mug from "../assets/beer_mug.png";
 import supabase from '../supabaseClient.js';
 import { useBreweryMap } from '../context/BreweryContext.jsx';

@@ -1,6 +1,7 @@
 import Header from '../components/Title';
 import "../App.css";
 import React, {useState} from 'react';
+import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import supabase from '../supabaseClient';
@@ -9,6 +10,9 @@ export default function Login() {
 
     const navigate = useNavigate();
     const [user, setUser] = useState(null);
+    const [brewer, setBrewer] = useState(null);
+
+    const BASE_URL = import.meta.env.VITE_BACKEND_URL;
 
     // creates state object called form data (only email and password for login)
     const [formData, setFormData] = useState({
@@ -38,7 +42,7 @@ export default function Login() {
 
         const {data, error} = await supabase.auth.signInWithPassword({
             email: formData.email,
-            password: formData.password
+            password: formData.password,
         })
 
         if (error) {
@@ -47,16 +51,35 @@ export default function Login() {
             return;
         }
 
+        const { data: sessionData } = await supabase.auth.getSession();
+        const session = sessionData?.session;
+        if (!session) return setErrorMessage('No session returned');
+
+        const userId = session.user.id;
+        const accessToken = session.access_token;
+
         // waits for session hydration before routing user to dashboard
-        const { data: authListener } = supabase.auth.onAuthStateChange((_, session) => {
+        const { data: authListener } = supabase.auth.onAuthStateChange(async (_, session) => {
             if (session) {
-            // persist user, then redirect
-            setUser(session.user);
-            navigate(`/user/dashboard/${session.user.id}`);
-            authListener.subscription.unsubscribe(); 
+                setUser(session.user);
+                try {
+                const token = session.access_token;
+                const res = await axios.get(`${BASE_URL}/api/user/me`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                const { role } = res.data;
+                navigate(role === 'brewer'
+                    ? `/brewer/dashboard/${session.user.id}`
+                    : `/user/dashboard/${session.user.id}`
+                );
+                } catch (e) {
+                setErrorMessage('Unable to fetch user role. Please try again.');
+                } finally {
+                authListener.subscription.unsubscribe();
+                }
             }
         });
-    
+
     }
 
 
@@ -133,15 +156,6 @@ export default function Login() {
                             Register
                             </Link>
                             
-                            {user && (
-                            <button
-                                type="button"
-                                className="ml-1 text-amber-700 font-semibold register-link"
-                                onClick={() => navigate(`/user/dashboard/${user.username}`)}
-                            >
-                                Sign in as Guest
-                            </button>
-                            )}
                         </div>
                     </form>
 
