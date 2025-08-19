@@ -21,7 +21,7 @@ export default function NewHeader() {
             {/* Nav + Search */}
             <div className="flex items-center space-x-6 flex-grow justify-center">
                 <Link
-                    to={`/brewery/dashboard`}
+                    to={`/user/find-breweries`}
                     className="text-md font-medium !text-amber-900 hover:underline ml-10"
                 >
                     Find Breweries

@@ -31,11 +31,6 @@ export default function BrewerDashboard() {
         refetchNearby(base, distance);
     }, []);
 
-    // useEffect(() => {
-    //     if (!address) return;
-    //     refetchNearby(undefined, distance);
-    // }, [distance]);
-
     // store new value when user updates address
     const handleAddressChange = (newAddress) => {
         setAddress(newAddress);
@@ -120,10 +115,10 @@ return (
                         <tr key={b.breweryId} className="hover:bg-amber-900/10">
                         <td className="px-4 py-2">
                             <a
-                            href={`/brewery/${b.breweryId}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-amber-950 font-medium hover:underline"
+                                href={`/brewery/${b.breweryId}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-amber-950 font-medium hover:underline"
                             >
                             {b.breweryName}
                             </a>

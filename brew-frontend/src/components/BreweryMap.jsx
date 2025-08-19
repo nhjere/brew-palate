@@ -87,7 +87,13 @@ export default function BreweryMap({ breweries, center }) {
                 className="text-sm"
             >
                 <div>
-                <strong>{selectedBrewery.breweryName}</strong><br />
+                <a
+                    href={`/brewery/${selectedBrewery.breweryId}`}
+                    className="font-bold text-blue-600 hover:underline"
+                >
+                    {selectedBrewery.breweryName}
+                </a>
+                <br />
                 </div>
             </Popup>
             )}

@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login'
 import UserProfile from './pages/UserProfile'
-import BreweryDashboard from './pages/BreweryDashboard'
+import FindBreweries from './pages/FindBreweries'
 import Registration from './pages/Registration'
 import NoPage from './pages/NoPage';
 import BreweryPage from './pages/BreweryPage';
@@ -24,7 +24,7 @@ function App() {
             <Route path="/about" element={<About />} />
             <Route path="/user/dashboard/:userId" element={<UserDashboard />} />
             <Route path="/user/profile/:userId" element={<UserProfile />} />
-            <Route path="/brewery/dashboard" element={<BreweryDashboard />} />
+            <Route path="/user/find-breweries" element={<FindBreweries />} />
             <Route path="/brewery/:breweryId" element={<BreweryPage />} /> 
             <Route path="*" element={<NoPage />} />
           </Routes>
