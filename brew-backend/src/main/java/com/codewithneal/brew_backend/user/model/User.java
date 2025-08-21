@@ -1,72 +1,50 @@
 package com.codewithneal.brew_backend.user.model;
-import jakarta.persistence.*;
-// import jakarta.validation.constraints.Max;
-// import jakarta.validation.constraints.Min;
-// import jakarta.validation.constraints.NotNull;
-// import jakarta.validation.constraints.Size;
 
+import jakarta.persistence.*;
 import java.util.UUID;
 
 @Entity
 @Table(name = "user_profiles")
 public class User {
 
-    public User() {
-        // JPA requires a no-arg constructor
-    }
+    public User() {}
 
     @Id
-    @Column(name = "user_id")
+    @Column(name = "user_id", nullable = false, updatable = false)
     private UUID userId;
 
     @Column(name = "username")
     private String username;
-    
+
     @Column(name = "role")
     private String role;
 
     @Column(name = "address")
     private String address;
 
-    // holds all user meta data created upon registration
-    public User(UUID userId, String username, String role, String address) {
-        this.userId = userId;
-        this.username = username;
-        this.role = role;
-        this.address = address;
-    }
+    // NEW fields to “remember” the brewery
+    @Column(name = "has_brewery", nullable = false)
+    private boolean hasBrewery = false;
 
-    public UUID getUserId() {
-        return userId;
-    }
+    @Column(name = "brewery_id")
+    private UUID breweryId; // nullable
 
-    public void setUserId(UUID userId) {
-        this.userId = userId;
-    }
+    // getters/setters
+    public UUID getUserId() { return userId; }
+    public void setUserId(UUID userId) { this.userId = userId; }
 
-    public String getUsername() {
-        return username;
-    }
+    public String getUsername() { return username; }
+    public void setUsername(String username) { this.username = username; }
 
-    public void setUsername(String username) {
-        this.username = username;
-    }
+    public String getRole() { return role; }
+    public void setRole(String role) { this.role = role; }
 
-    public String getRole() {
-        return role;
-    }
+    public String getAddress() { return address; }
+    public void setAddress(String address) { this.address = address; }
 
-    public void setRole(String role) {
-        this.role = role;
-    }
+    public boolean isHasBrewery() { return hasBrewery; }
+    public void setHasBrewery(boolean hasBrewery) { this.hasBrewery = hasBrewery; }
 
-    public String getAddress() {
-        return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
-    }
-    
-
+    public UUID getBreweryId() { return breweryId; }
+    public void setBreweryId(UUID breweryId) { this.breweryId = breweryId; }
 }

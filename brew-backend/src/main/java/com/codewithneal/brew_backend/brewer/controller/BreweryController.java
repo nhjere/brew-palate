@@ -5,11 +5,15 @@ import com.codewithneal.brew_backend.brewer.dto.NearbyBreweryDTO;
 import com.codewithneal.brew_backend.brewer.dto.BreweryMapper;
 import com.codewithneal.brew_backend.brewer.model.Brewery;
 import com.codewithneal.brew_backend.brewer.repository.BreweryRepository;
+import com.codewithneal.brew_backend.user.repository.UserRepository;
+import com.codewithneal.brew_backend.user.model.User;
 
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
+import java.util.Optional;
 import org.springframework.http.ResponseEntity;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -23,21 +27,65 @@ import java.util.stream.Collectors;
 public class BreweryController {
 
     private final BreweryRepository breweryRepo;
+    private final UserRepository userRepo;
 
-    public BreweryController(BreweryRepository breweryRepo) {
-
+    public BreweryController(BreweryRepository breweryRepo, UserRepository userRepo) {
         this.breweryRepo = breweryRepo;
+        this.userRepo = userRepo;
     }
 
-    @PostMapping()
-    public ResponseEntity<List<Brewery>> createBreweries(@RequestBody List<BreweryDTO> breweryDTOs) {
-        List<Brewery> breweries = breweryDTOs.stream()
-        .map(BreweryMapper::toEntity)
-        .toList();
+    // creates a brewery and sets the user to owning a brewery
+    @PostMapping("/create")
+    public ResponseEntity<BreweryDTO> createBrewery(
+        @RequestHeader("X-User-Id") String userIdHeader,
+        @RequestBody BreweryDTO dto
+    ) {
+        // Convert header to UUID (Supabase user id is a UUID string)
+        UUID userId = UUID.fromString(userIdHeader);
 
-        List<Brewery> saved = breweryRepo.saveAll(breweries);
-        return ResponseEntity.ok(saved);
+        Brewery entity = BreweryMapper.fromCreateDTO(dto); 
+        entity.setLatitude(null);
+        entity.setLongitude(null);
+
+        Brewery saved = breweryRepo.save(entity);
+
+        // remember it on the user profile
+        userRepo.setHasBreweryAndId(userId, saved.getBreweryId());
+
+        return ResponseEntity
+            .created(URI.create("/api/brewer/breweries/" + saved.getBreweryId()))
+            .body(BreweryMapper.toDTO(saved));
     }
+
+    // GET /api/brewer/breweries/status
+    @GetMapping("/status")
+    public ResponseEntity<Map<String, Object>> brewerStatus(
+        @RequestHeader("X-User-Id") String userIdHeader
+    ) {
+        UUID userId = UUID.fromString(userIdHeader);
+
+        // 1) find user profile
+        Optional<User> userOpt = userRepo.findById(userId);
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.ok(Map.of("hasBrewery", false));
+        }
+
+        User user = userOpt.get();
+        if (!user.isHasBrewery() || user.getBreweryId() == null) {
+            return ResponseEntity.ok(Map.of("hasBrewery", false));
+        }
+
+        // 2) load the brewery metadata and map to DTO
+        return breweryRepo.findById(user.getBreweryId())
+            .map(b -> ResponseEntity.ok(Map.of(
+                "hasBrewery", true,
+                "brewery", BreweryMapper.toDTO(b)   // { id/name/city/state/... }
+            )))
+            .orElse(ResponseEntity.ok(Map.of("hasBrewery", false)));
+    }
+
+
+
 
     // calls by_dist api from open brewery db
     @GetMapping("/nearby")

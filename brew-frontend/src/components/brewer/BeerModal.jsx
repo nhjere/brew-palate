@@ -40,14 +40,6 @@ export default function BeerModal({ onClose, onReviewSubmit}) {
         }));
     };
 
-    // handler for comment change
-    const handleCommentChange = (e) => {
-        setReviewFormData(prev => ({
-            ...prev,
-            comment: e.target.value
-        }));
-    };
-
     // handler for flavor tags
     const handleTagToggle = (tag) => {
         setReviewFormData(prev => {
@@ -61,7 +53,7 @@ export default function BeerModal({ onClose, onReviewSubmit}) {
     
     return (
         <div className="fixed inset-0 z-50 bg-black/50 flex flex-col md:items-center md:justify-center">
-            <div className="bg-white text-amber-800 relative w-full h-auto p-4 rounded-none overflow-auto
+            <div className="bg-white text-amber-800 relative w-full h-auto p-4 rounded-none overflow-auto 
                             md:w-[720px] md:h-[60vh] md:rounded-2xl md:p-6 md:shadow-lg">
 
 

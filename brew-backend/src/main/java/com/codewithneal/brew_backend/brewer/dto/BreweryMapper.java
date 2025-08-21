@@ -43,4 +43,25 @@ public class BreweryMapper {
 
         return dto;
     }
+
+    // CREATE DTO maps a user created brewery to a real brewery object
+
+    public static Brewery fromCreateDTO(BreweryDTO dto) {
+        Brewery b = new Brewery();
+        b.setBreweryName(dto.getBreweryName());
+        b.setBreweryType(dto.getBreweryType());
+        b.setStreet(dto.getStreet());
+        b.setCity(dto.getCity());
+        b.setState(dto.getState());
+        b.setPostalCode(dto.getPostalCode());
+        b.setCountry(dto.getCountry());
+        b.setPhone(dto.getPhone());
+        b.setWebsiteUrl(dto.getWebsiteUrl());
+        b.setLatitude(null);
+        b.setLongitude(null);
+        return b;
+    }
+
+
+
 }

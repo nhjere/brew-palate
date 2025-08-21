@@ -11,7 +11,8 @@ import jakarta.validation.constraints.Size;
 public class Brewery {
 
     @Id
-    @Column(name = "brewery_id", nullable = true)
+    @GeneratedValue
+    @Column(name = "brewery_id", updatable = false, nullable = false)
     private UUID breweryId;
 
     @Column(name = "brewery_name", nullable = true)

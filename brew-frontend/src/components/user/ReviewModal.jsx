@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { createClient } from '@supabase/supabase-js';
 import { useBreweryMap } from '../../context/BreweryContext';
+import beer_mug from '../../assets/beer_mug.png'
 
 // supabase auth config
 const supabase = createClient(
@@ -98,6 +99,12 @@ export default function ReviewModal({ beerId, onClose, onReviewSubmit}) {
         <div className="fixed inset-0 z-50 bg-black/50 flex flex-col md:items-center md:justify-center">
             <div className="bg-white text-amber-800 relative w-full h-auto p-4 rounded-none overflow-hidden
                             md:w-[720px] md:h-[80vh] md:rounded-2xl md:p-6 md:shadow-lg">
+
+                <div className="pointer-events-none absolute inset-0 z-0 opacity-10">
+                    <img src={beer_mug} alt="" className="w-full h-full object-cover scale-[1.4]" />
+                </div>
+
+
                 {beer ? (
                     <>
                     {(() => { 

@@ -21,27 +21,30 @@ public class UserService {
 
     
     // copies dto sent from front end to actual user stored in back end
+    // UserService.java
     public User registerUser(UserRegistrationDTO dto) {
+        // Convert DTO userId (String) -> UUID
+        UUID userId = dto.getUserId();  // <- if DTO is String
 
-        // checks if generated user_id already exists (prevents re registration for existing users)
-        if (userRepo.existsById(dto.getUserId())) {
-            throw new IllegalArgumentException("User already Exists ");
+        // validations
+        if (userRepo.existsById(userId)) {
+            throw new IllegalArgumentException("User already Exists");
         }
-        // checks if usname already exists
         if (userRepo.existsByUsername(dto.getUsername())) {
             throw new IllegalArgumentException("Username already taken.");
         }
 
-        
-        User user = new User(
-            dto.getUserId(),
-            dto.getUsername(),
-            dto.getRole(),
-            dto.getAddress()
-        );
+        // build entity via setters (no constructor needed)
+        User user = new User();
+        user.setUserId(userId);
+        user.setUsername(dto.getUsername());
+        user.setRole(dto.getRole());
+        user.setAddress(dto.getAddress());
+        // If you added new columns (e.g., hasBrewery/breweryId), leave defaults or set here
 
         return userRepo.save(user);
     }
+
 
     // returns the user associated with a user_id
     public Optional<User> getUserById(UUID userId) {

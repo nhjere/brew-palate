@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import Search from '../user/Search';
 import bp_logo from '../../assets/final_logo.png';
 import avatar from "../../assets/avatar.svg"; 
+import BreweryModal from "../brewer/BreweryModal"
 
 export default function NewHeader() {
     const userId = localStorage.getItem('user_id');
@@ -21,18 +22,33 @@ export default function NewHeader() {
                 <h1 className="text-4xl font-extrabold text-amber-900">BrewPalate</h1>
             </Link>
 
-            {/* Nav + Search */}
+            {/* My Brewery */}
             <div className="flex items-center space-x-6 flex-grow ml-20 justify-center">
-                {/* <Link
+                 <Link
                     to="/about"
                     className="text-md font-medium !text-amber-900 hover:underline ml-10`"
                 >
                     About
-                </Link> */}
+                </Link>
+
+                <Link
+                    to="/about"
+                    className="text-md font-medium !text-amber-900 hover:underline ml-10`"
+                >
+                    My Brewery
+                </Link>
+
+                <Link
+                    to="/about"
+                    className="text-md font-medium !text-amber-900 hover:underline ml-10`"
+                >
+                    Analytics
+                </Link>
 
                 <Search className='width-4/5'/>
 
             </div>
+
 
             {/* Avatar */}
             <Link to={`/user/profile/${userId}`} className="flex items-center mr-5 justify-center  space-x-3">
@@ -42,6 +58,9 @@ export default function NewHeader() {
                     className="h-10 w-10 object-contain"
                 />
             </Link>
+
+            
+    
         </header>
     );
 }
