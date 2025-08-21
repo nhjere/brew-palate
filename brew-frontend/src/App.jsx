@@ -7,8 +7,7 @@ import NoPage from './pages/NoPage';
 import BreweryPage from './pages/BreweryPage';
 import About from './pages/About';
 import UserDashboard from './pages/UserDashboard'
-import BrewerDashboard from './pages/BrewerDashboard';
-
+import BrewerDashboard from './pages/BrewerPages/BrewerDashboard';
 
 import { BreweryProvider } from './context/BreweryContext';
 import { BeerProvider } from './context/BeerContext';

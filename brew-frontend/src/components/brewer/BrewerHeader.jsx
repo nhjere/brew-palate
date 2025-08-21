@@ -23,12 +23,12 @@ export default function NewHeader() {
 
             {/* Nav + Search */}
             <div className="flex items-center space-x-6 flex-grow ml-20 justify-center">
-                <Link
+                {/* <Link
                     to="/about"
                     className="text-md font-medium !text-amber-900 hover:underline ml-10`"
                 >
                     About
-                </Link>
+                </Link> */}
 
                 <Search className='width-4/5'/>
 

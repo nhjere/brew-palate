@@ -213,8 +213,17 @@ return (
 
         {/* Main Content */}
             <main className="flex flex-col gap-5 w-full flex-grow">
-            <h2 className="text-2xl font-bold text-amber-900">Discover Beers</h2>
-
+            <div className="flex flex-row items-center justify-between">
+            <h2 className="text-2xl font-bold text-amber-900">
+                Discover Beers
+            </h2>
+            <div className="ml-4 px-3 py-1 bg-amber-50 border border-amber-200 rounded-lg shadow-sm">
+                <p className="text-sm text-amber-800 italic">
+                ⚠️ Beta Testing Notice: The current beer list is from an older canned dataset and does not reflect live brewery updates.
+                </p>
+            </div>
+            </div>
+            
             <section className="grid grid-rows-[1fr_auto] min-h-[850px]">
 
                 {/* Beer Cards */}
