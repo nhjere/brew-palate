@@ -7,10 +7,13 @@ import com.codewithneal.brew_backend.brewer.model.Brewery;
 import com.codewithneal.brew_backend.brewer.repository.BreweryRepository;
 import com.codewithneal.brew_backend.user.repository.UserRepository;
 import com.codewithneal.brew_backend.user.model.User;
+import com.codewithneal.brew_backend.JwtService;
 
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import java.util.Optional;
+
+import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties.Jwt;
 import org.springframework.http.ResponseEntity;
 
 import java.net.URI;
@@ -28,20 +31,22 @@ public class BreweryController {
 
     private final BreweryRepository breweryRepo;
     private final UserRepository userRepo;
+    private final JwtService jwtService;
 
-    public BreweryController(BreweryRepository breweryRepo, UserRepository userRepo) {
+    public BreweryController(BreweryRepository breweryRepo, UserRepository userRepo,  JwtService jwtService) {
         this.breweryRepo = breweryRepo;
         this.userRepo = userRepo;
+        this.jwtService = jwtService;
     }
 
     // creates a brewery and sets the user to owning a brewery
     @PostMapping("/create")
     public ResponseEntity<BreweryDTO> createBrewery(
-        @RequestHeader("X-User-Id") String userIdHeader,
+        @RequestHeader("Authorization") String authHeader,
         @RequestBody BreweryDTO dto
     ) {
         // Convert header to UUID (Supabase user id is a UUID string)
-        UUID userId = UUID.fromString(userIdHeader);
+        UUID userId = jwtService.requireUserId(authHeader);
 
         Brewery entity = BreweryMapper.fromCreateDTO(dto); 
         entity.setLatitude(null);
@@ -60,9 +65,9 @@ public class BreweryController {
     // GET /api/brewer/breweries/status
     @GetMapping("/status")
     public ResponseEntity<Map<String, Object>> brewerStatus(
-        @RequestHeader("X-User-Id") String userIdHeader
+        @RequestHeader("Authorization") String authHeader
     ) {
-        UUID userId = UUID.fromString(userIdHeader);
+        UUID userId = jwtService.requireUserId(authHeader);
 
         // 1) find user profile
         Optional<User> userOpt = userRepo.findById(userId);

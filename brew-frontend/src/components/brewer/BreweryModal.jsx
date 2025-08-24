@@ -12,11 +12,11 @@ export default function BreweryModal({ onClose, onSaved }) {
     postal_code: "",
     country: "",
     street: "",
-    latitude: "",     // fine to keep in state; we won't send it
-    longitude: "",    // fine to keep in state; we won't send it
+    latitude: "", 
+    longitude: "", 
     phone: "",
     website_url: "",
-    existing_brewery: "", // so the input is controlled
+    existing_brewery: "",
   });
 
   const [saving, setSaving] = useState(false);
@@ -53,8 +53,9 @@ export default function BreweryModal({ onClose, onSaved }) {
       }
 
       // ★ get current user id for X-User-Id header
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user?.id) {
+    const { data: { session } } = await supabase.auth.getSession();
+      const accessToken = session?.access_token;
+      if (!accessToken) {
         setErrorMessage("Please sign in first.");
         setSaving(false);
         return;
@@ -66,15 +67,15 @@ export default function BreweryModal({ onClose, onSaved }) {
         payload,
         {
           headers: {
+            Authorization: `Bearer ${accessToken}`,
             'Content-Type': 'application/json',
-            'X-User-Id': user.id,  // ★ backend uses this to remember ownership
           },
         }
       );
 
       setSuccessMessage('Brewery created successfully!');
-      onSaved?.();        // ★ let the dashboard refresh
-      // onClose?.();     // optionally close the modal here
+      onSaved?.();
+      onClose?.();
     } catch (err) {
       console.error(err);
       const msg = err?.response?.data || 'Failed to create brewery.';

@@ -7,17 +7,17 @@ import com.codewithneal.brew_backend.CsvReader.beers.BeerCsv;
 import com.codewithneal.brew_backend.CsvReader.beers.BeerCsvImporter;
 import com.codewithneal.brew_backend.CsvReader.beers.BeerCsvRepository;
 import com.codewithneal.brew_backend.CsvReader.beers.BeerListItem;
+import com.codewithneal.brew_backend.brewer.repository.BreweryRepository;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.data.domain.PageRequest;
 
+
 import java.util.UUID;
-import java.util.stream.Collectors;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 @RestController
 @RequestMapping("/api/import")
@@ -29,6 +29,8 @@ public class CsvImportController {
     @Autowired
     private BeerCsvRepository beerCsvRepository;
 
+    @Autowired 
+    private BreweryRepository breweryRepository;
 
     // import beers.csv
     @GetMapping("/beers")
@@ -72,7 +74,6 @@ public class CsvImportController {
         List<BeerCsv> beers = beerCsvRepository.findAllById(beerIds);
         return ResponseEntity.ok(beers);
     }
-
 
     // fetch all beers by brewery uuid
     @GetMapping("/by-brewery/{breweryUuid}")

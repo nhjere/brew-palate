@@ -22,6 +22,10 @@ public class BeerCsv {
     @Column(name = "brewery_uuid")
     private UUID breweryUuid;
 
+    // BeerCsv.java
+    @Column(name = "price")
+    private Double price;
+
     @ElementCollection
     @CollectionTable(name = "bootstrapped_beer_flavor_tags", joinColumns = @JoinColumn(name = "beer_id"))
     @Column(name = "flavor_tag")
@@ -104,5 +108,9 @@ public class BeerCsv {
     public void setBreweryUuid(UUID breweryUuid) {
         this.breweryUuid = breweryUuid;
     }
+
+    public Double getPrice() { return price; }
+    public void setPrice(Double price) { this.price = price; }
+
 
 }
