@@ -33,10 +33,6 @@ export default function NewPastReviews({ withShell = true, userId, refreshRecs }
             beerMap[beer.beerId] = beer;
         });
 
-        Object.values(beerMap).forEach(beer => {
-            console.log(beer);
-        });
-
         setBeerMap(beerMap);
         } catch (err) {
         console.error('Error fetching reviews or beers', err);

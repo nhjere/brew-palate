@@ -33,11 +33,11 @@ export default function NewTastePanel({flavorTags,setFlavorTags,onRefresh,withSh
 
 	if (!withShell) {
 		return (
-		<div className="text-amber-900 flex flex-col max-h-60 overflow-hidden">
-			{/* Header stays visible */}
+		<div className="text-amber-900 flex flex-col max-h-60 overflow-hidden ">
+
 			<p className="text-sm mb-2 shrink-0">Which flavors do you enjoy?</p>
 
-			{/* Scrollable list */}
+
 			<ul className="space-y-2 text-sm overflow-y-auto pr-1 flex-1">
 			{availableTags.map(tag => (
 				<label key={tag} className="flex items-center space-x-2">
@@ -52,7 +52,6 @@ export default function NewTastePanel({flavorTags,setFlavorTags,onRefresh,withSh
 			))}
 			</ul>
 
-			{/* Button pinned at bottom */}
 			<div className="pt-4 shrink-0">
 			<button
 				onClick={handleRefresh}

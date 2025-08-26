@@ -231,6 +231,7 @@ return (
                 {beers.length > 0 ? (
                     beers.map((beer) => {
                     const brewery = breweryMap[beer.breweryUuid];
+                    
                     return (
                         <div
                             key={beer.beerId}

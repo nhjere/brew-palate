@@ -1,6 +1,7 @@
 package com.codewithneal.brew_backend.CsvReader.beers;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.UuidGenerator;
 import java.util.List;
 import java.util.UUID;
 
@@ -9,8 +10,8 @@ import java.util.UUID;
 public class BeerCsv {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "beer_id")
+    @UuidGenerator
+    @Column(name = "beer_id", columnDefinition = "uuid")
     private UUID beerId;
 
     private Double abv;
@@ -19,15 +20,15 @@ public class BeerCsv {
     private String style;
     private Double ounces;
 
-    @Column(name = "brewery_uuid")
+    @Column(name = "brewery_uuid", columnDefinition = "uuid")
     private UUID breweryUuid;
 
-    // BeerCsv.java
     @Column(name = "price")
     private Double price;
 
     @ElementCollection
-    @CollectionTable(name = "bootstrapped_beer_flavor_tags", joinColumns = @JoinColumn(name = "beer_id"))
+    @CollectionTable(name = "bootstrapped_beer_flavor_tags",
+                     joinColumns = @JoinColumn(name = "beer_id"))
     @Column(name = "flavor_tag")
     private List<String> flavorTags;
 
@@ -42,75 +43,30 @@ public class BeerCsv {
         this.breweryUuid = breweryUuid;
     }
 
-    // Getters and setters
+    public UUID getBeerId() { return beerId; }
+    public void setBeerId(UUID beerId) { this.beerId = beerId; }
 
-    public void setFlavorTags(List<String> flavorTags) {
-        this.flavorTags = flavorTags;
-    }
+    public Double getAbv() { return abv; }
+    public void setAbv(Double abv) { this.abv = abv; }
 
-    public List<String> getFlavorTags() {
-        return flavorTags;
-    }
+    public Double getIbu() { return ibu; }
+    public void setIbu(Double ibu) { this.ibu = ibu; }
 
-    public UUID getBeerId() {
-        return beerId;
-    }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
 
-    public void setInternalId(UUID beerId) {
-        this.beerId = beerId;
-    }
+    public String getStyle() { return style; }
+    public void setStyle(String style) { this.style = style; }
 
-    public Double getAbv() {
-        return abv;
-    }
+    public Double getOunces() { return ounces; }
+    public void setOunces(Double ounces) { this.ounces = ounces; }
 
-    public void setAbv(Double abv) {
-        this.abv = abv;
-    }
-
-    public Double getIbu() {
-        return ibu;
-    }
-
-    public void setIbu(Double ibu) {
-        this.ibu = ibu;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getStyle() {
-        return style;
-    }
-
-    public void setStyle(String style) {
-        this.style = style;
-    }
-
-
-    public Double getOunces() {
-        return ounces;
-    }
-
-    public void setOunces(Double ounces) {
-        this.ounces = ounces;
-    }
-
-    public UUID getBreweryUuid() {
-        return breweryUuid;
-    }
-
-    public void setBreweryUuid(UUID breweryUuid) {
-        this.breweryUuid = breweryUuid;
-    }
+    public UUID getBreweryUuid() { return breweryUuid; }
+    public void setBreweryUuid(UUID breweryUuid) { this.breweryUuid = breweryUuid; }
 
     public Double getPrice() { return price; }
     public void setPrice(Double price) { this.price = price; }
 
-
+    public List<String> getFlavorTags() { return flavorTags; }
+    public void setFlavorTags(List<String> flavorTags) { this.flavorTags = flavorTags; }
 }

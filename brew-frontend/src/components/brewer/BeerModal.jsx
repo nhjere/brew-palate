@@ -4,11 +4,14 @@ import { createClient } from '@supabase/supabase-js';
 import { useBreweryMap } from '../../context/BreweryContext';
 
 
-export default function BeerModal({ onClose, onReviewSubmit}) {
+export default function BeerModal({ onClose, onReviewSubmit, breweryId, token }) {
+
     const [beer, setBeer] = useState(null);
     const [saving, setSaving] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
+
+    const BASE_URL = import.meta.env.VITE_BACKEND_URL;
     
     const [reviewFormData, setReviewFormData] = useState({
         beerName: '',
@@ -53,44 +56,51 @@ export default function BeerModal({ onClose, onReviewSubmit}) {
     };
 
     const handleSubmit = async (e) => {
-    e.preventDefault();
-    setSaving(true);
-    setErrorMessage('');
-    setSuccessMessage('');
+        e.preventDefault();
+        setSaving(true);
+        setErrorMessage('');
+        setSuccessMessage('');
 
-    try {
-      if (!breweryId) throw new Error('Missing breweryId');
+        try {
+            if (!breweryId) throw new Error('Missing breweryId');
 
-      const payload = {
-        name: reviewFormData.beerName,
-        style: reviewFormData.beerStyle,
-        abv: Number(reviewFormData.abv) || 0,
-        ibu: Number(reviewFormData.ibu) || 0,
-        price: Number(reviewFormData.price) || 0,
-        flavorTags: reviewFormData.flavorTags,
-        breweryUuid: breweryId,
-      };
+            const abvPercent = Number(reviewFormData.abv) || 0;   // e.g., 6.5
+            const payload = {
+            name: reviewFormData.beerName.trim(),
+            style: reviewFormData.beerStyle,
+            abv: Math.max(0, Math.min(abvPercent / 100, 1)),    // 0–1 fraction
+            ibu: reviewFormData.ibu === '' ? null : Number(reviewFormData.ibu) || 0,
+            // ounces: Number(reviewFormData.ounces) || null,     // <-- add if you add an ounces field
+            price: Number(reviewFormData.price) || 0,
+            flavorTags: reviewFormData.flavorTags,
+            breweryUuid: breweryId,
+            };
 
-      const { data } = await axios.post(`${BASE_URL}/api/brewer/beers`, payload);
+            const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
 
-      setSuccessMessage('Beer created!');
-      onCreated?.(data);
-      onReviewSubmit?.(data);   // if you still use this in parent
-      onClose?.();
-    } catch (err) {
-      console.error(err);
-      setErrorMessage(err?.response?.data?.message || 'Failed to create beer');
-    } finally {
-      setSaving(false);
-    }
-  };
+            const { data } = await axios.post(
+            `${BASE_URL}/api/brewer/breweries/create/beer`,
+            payload,
+            { headers }
+            );
+
+            setSuccessMessage('Beer created!');
+            onReviewSubmit?.(data); // parent toggles refresh
+            onClose?.();
+        } catch (err) {
+            console.error(err);
+            setErrorMessage(err?.response?.data?.message || 'Failed to create beer');
+        } finally {
+            setSaving(false);
+        }
+    };
 
 
-    
+            
     return (
     <div className="fixed inset-0 z-50 bg-black/50 flex flex-col md:items-center md:justify-center">
       <div className="bg-white text-amber-800 relative w-full h-auto p-4 rounded-none overflow-auto 
-                      md:w-[720px] md:h-[75vh] md:rounded-2xl md:p-6 md:shadow-lg">
+                      md:w-[720px] md:h-[75vh] md:rounded-2xl md:p-6 md:shadow-lg custom-scrollbar">
         <h2 className="text-2xl mb-5 font-bold text-amber-900">New Beer</h2>
         <button className="absolute top-2 right-2 text-gray-500 hover:text-red-500" onClick={onClose}>✕</button>
 

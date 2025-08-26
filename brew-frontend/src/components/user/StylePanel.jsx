@@ -54,7 +54,7 @@ export default function StylePanel({selectedStyles,setSelectedStyles,onRefresh,w
 
 	if (!withShell) {
 		return (
-		<div className="text-amber-900 flex flex-col max-h-60 overflow-hidden">
+		<div className="text-amber-900 flex flex-col max-h-60 ">
 
 			<p className="text-sm mb-2 shrink-0">Which styles are you looking for?</p>
 

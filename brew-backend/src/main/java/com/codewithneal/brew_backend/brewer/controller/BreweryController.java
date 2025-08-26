@@ -1,19 +1,26 @@
 package com.codewithneal.brew_backend.brewer.controller;
 
+import com.codewithneal.brew_backend.brewer.dto.BeerCreateRequest;
 import com.codewithneal.brew_backend.brewer.dto.BreweryDTO;
 import com.codewithneal.brew_backend.brewer.dto.NearbyBreweryDTO;
 import com.codewithneal.brew_backend.brewer.dto.BreweryMapper;
 import com.codewithneal.brew_backend.brewer.model.Brewery;
 import com.codewithneal.brew_backend.brewer.repository.BreweryRepository;
 import com.codewithneal.brew_backend.user.repository.UserRepository;
+
+import jakarta.validation.Valid;
+
 import com.codewithneal.brew_backend.user.model.User;
 import com.codewithneal.brew_backend.JwtService;
+import com.codewithneal.brew_backend.CsvReader.beers.BeerCsv;
+import com.codewithneal.brew_backend.CsvReader.beers.BeerCsvRepository;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.transaction.annotation.Transactional;
 
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import java.util.Optional;
 
-import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties.Jwt;
 import org.springframework.http.ResponseEntity;
 
 import java.net.URI;
@@ -32,14 +39,19 @@ public class BreweryController {
     private final BreweryRepository breweryRepo;
     private final UserRepository userRepo;
     private final JwtService jwtService;
+    private final BeerCsvRepository beerCsvRepository;
 
-    public BreweryController(BreweryRepository breweryRepo, UserRepository userRepo,  JwtService jwtService) {
+    public BreweryController(BreweryRepository breweryRepo, UserRepository userRepo,  JwtService jwtService, BeerCsvRepository beerCsvRepository) {
         this.breweryRepo = breweryRepo;
         this.userRepo = userRepo;
         this.jwtService = jwtService;
+        this.beerCsvRepository = beerCsvRepository;
     }
 
+    /* BREWERY INFORMATION FUNCTIONS  */
+
     // creates a brewery and sets the user to owning a brewery
+    // called in BreweryModal.jsx
     @PostMapping("/create")
     public ResponseEntity<BreweryDTO> createBrewery(
         @RequestHeader("Authorization") String authHeader,
@@ -62,7 +74,33 @@ public class BreweryController {
             .body(BreweryMapper.toDTO(saved));
     }
 
-    // GET /api/brewer/breweries/status
+    // updates any brewery fields that brewer changes
+    // called in BreweryCard.jsx
+    @PatchMapping("/update")
+    public ResponseEntity<BreweryDTO> updateBrewery(
+        @RequestHeader("Authorization") String authHeader,
+        @RequestBody BreweryDTO dto
+    ) {
+        UUID userId = jwtService.requireUserId(authHeader);
+        var user = userRepo.findById(userId).orElse(null);
+        if (user == null || !user.isHasBrewery() || user.getBreweryId() == null) {
+            return ResponseEntity.notFound().build();
+        }
+        var brewery = breweryRepo.findById(user.getBreweryId()).orElse(null);
+        if (brewery == null) return ResponseEntity.notFound().build();
+
+        if (dto.getIdString() != null && !user.getBreweryId().equals(dto.getBreweryId())) {
+            return ResponseEntity.status(403).build();
+        }
+
+        BreweryMapper.applyPatch(brewery, dto);
+        var saved = breweryRepo.save(brewery);
+        return ResponseEntity.ok(BreweryMapper.toDTO(saved));
+    }
+
+
+    // returns the status (TRUE / FALSE) for having a brewery and its metadata
+    // called in BrewerDashboard.jsx
     @GetMapping("/status")
     public ResponseEntity<Map<String, Object>> brewerStatus(
         @RequestHeader("Authorization") String authHeader
@@ -84,15 +122,49 @@ public class BreweryController {
         return breweryRepo.findById(user.getBreweryId())
             .map(b -> ResponseEntity.ok(Map.of(
                 "hasBrewery", true,
-                "brewery", BreweryMapper.toDTO(b)   // { id/name/city/state/... }
+                "brewery", BreweryMapper.toDTO(b)   
             )))
             .orElse(ResponseEntity.ok(Map.of("hasBrewery", false)));
     }
 
+    /* BEER CATALOG BREWERY FUNCTIONS */
 
+    // brewer can create a beer
+    // called in brewer dashboard
+    @PostMapping("/create/beer")
+    @Transactional
+    public ResponseEntity<?> createBeer(
+            @RequestHeader("Authorization") String authHeader,
+            @Valid @RequestBody BeerCreateRequest in
+    ) {
+        UUID userId = jwtService.requireUserId(authHeader);
+        var user = userRepo.findById(userId).orElse(null);
+        if (user == null || user.getBreweryId() == null || !user.getBreweryId().equals(in.breweryUuid())) {
+            return ResponseEntity.status(403).body(Map.of("message", "Brewery mismatch or brewer not set"));
+        }
 
+        var beer = new com.codewithneal.brew_backend.CsvReader.beers.BeerCsv();
+        beer.setName(in.name().trim());
+        beer.setStyle(in.style().trim());
+        beer.setAbv(Math.max(0.0, Math.min(in.abv(), 1.0))); // fraction 0–1
+        beer.setIbu(in.ibu());
+        beer.setOunces(in.ounces());
+        beer.setPrice(in.price());
+        beer.setBreweryUuid(in.breweryUuid());
+        if (in.flavorTags() != null) beer.setFlavorTags(in.flavorTags());
 
-    // calls by_dist api from open brewery db
+        try {
+            var saved = beerCsvRepository.save(beer);
+            return ResponseEntity
+                    .created(URI.create("/api/import/beers/" + saved.getBeerId()))
+                    .body(saved);
+        } catch (DataIntegrityViolationException dup) {
+            return ResponseEntity.status(409).body(Map.of("message", "Beer already exists for this brewery"));
+        }
+    }
+
+    // returns breweries within set radius
+    // called in FindBreweries.jsx
     @GetMapping("/nearby")
     public ResponseEntity<List<NearbyBreweryDTO>> findNearbyBreweries(
         @RequestParam("lat") double latitude,

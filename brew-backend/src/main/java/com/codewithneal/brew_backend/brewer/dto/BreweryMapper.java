@@ -62,6 +62,22 @@ public class BreweryMapper {
         return b;
     }
 
+    // Patch only non-null fields when from DTO when User updates brewery fields
+    public static void applyPatch(Brewery target, BreweryDTO dto) {
+        if (dto.getBreweryName() != null)  target.setBreweryName(dto.getBreweryName());
+        if (dto.getBreweryType() != null)  target.setBreweryType(dto.getBreweryType());
+        if (dto.getStreet() != null)       target.setStreet(dto.getStreet());
+        if (dto.getCity() != null)         target.setCity(dto.getCity());
+        if (dto.getState() != null)        target.setState(dto.getState());
+        if (dto.getPostalCode() != null)   target.setPostalCode(dto.getPostalCode());
+        if (dto.getCountry() != null)      target.setCountry(dto.getCountry());
+        if (dto.getPhone() != null)        target.setPhone(dto.getPhone());
+        if (dto.getWebsiteUrl() != null)   target.setWebsiteUrl(dto.getWebsiteUrl());
+        if (dto.getLatitude() != null)     target.setLatitude(dto.getLatitude());
+        if (dto.getLongitude() != null)    target.setLongitude(dto.getLongitude());
+    }
+    
+
 
 
 }

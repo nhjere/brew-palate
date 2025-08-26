@@ -32,7 +32,7 @@ export default function PanelShell({ id, title, children, capClass = "max-h-56",
  
             </div>
             {Array.isArray(summary) && (
-                <div className="ml-3 flex items-center gap-1.5 overflow-x-auto no-scrollbar max-w-[100%]">
+                <div className="ml-3 flex items-center gap-1.5 overflow-x-auto custom-scrollbar max-w-[100%]">
                 {summary.slice(0, 4).map(tag => (
                     <span
                     key={tag}
