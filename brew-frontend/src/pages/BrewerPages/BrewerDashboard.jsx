@@ -117,6 +117,7 @@ export default function BrewerDashboard() {
                     >
                     Add a Beer
                     </button>
+
                 </main>
 
                 {/* Only render the table area if a brewery exists.

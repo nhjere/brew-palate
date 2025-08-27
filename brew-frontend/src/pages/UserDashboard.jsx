@@ -164,6 +164,7 @@ return (
     <FullHeader />
 
     <div className='flex flex-col'> 
+
         <div className="w-full max-w-screen-xl mx-auto p-4
                 flex flex-wrap md:flex-nowrap
                 gap-4 md:gap-10 items-start">
@@ -247,6 +248,7 @@ return (
                                 className="w-full h-full object-cover object-top scale-[2.6]"
                                 />
                             </div>
+                            
 
                             <div className="flex items-center gap-4 w-full md:w-2/3 pr-40">
                                 <div className="flex flex-col">

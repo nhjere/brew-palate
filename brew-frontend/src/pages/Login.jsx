@@ -82,7 +82,6 @@ export default function Login() {
 
     }
 
-
     return (
         <>
         <div className="min-h-screen bg-[#fff4e6] flex flex-col items-center justify-center px-4">

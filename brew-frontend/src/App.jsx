@@ -8,6 +8,7 @@ import BreweryPage from './pages/BreweryPage';
 import About from './pages/About';
 import UserDashboard from './pages/UserDashboard'
 import BrewerDashboard from './pages/BrewerPages/BrewerDashboard';
+import SignedOutModal from './components/SignedOutModal';
 
 import { BreweryProvider } from './context/BreweryContext';
 import { BeerProvider } from './context/BeerContext';
@@ -17,6 +18,7 @@ function App() {
     <BeerProvider>
       <BreweryProvider>
         <Router>
+        <SignedOutModal loginPath="/login" />
           <Routes>
             <Route path="/" element={<Navigate to="/login" replace />} />
             <Route path="/login" element={<Login />} />

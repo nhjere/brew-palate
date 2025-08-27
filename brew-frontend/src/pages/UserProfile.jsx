@@ -249,6 +249,8 @@ function UserProfile() {
                 >
                   Log out
                 </button>
+
+
               </div>
             </div>
           )}

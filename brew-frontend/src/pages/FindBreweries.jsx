@@ -4,6 +4,7 @@ import BreweryMap from '../components/user/BreweryMap';
 import { useLocation } from 'react-router-dom';
 import { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
+import supabase from '../supabaseClient';
 
 export default function BrewerDashboard() {
 
