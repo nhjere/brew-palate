@@ -8,9 +8,11 @@ import com.codewithneal.brew_backend.brewer.model.Brewery;
 import com.codewithneal.brew_backend.brewer.repository.BreweryRepository;
 import com.codewithneal.brew_backend.user.repository.UserRepository;
 
+
 import jakarta.validation.Valid;
 
 import com.codewithneal.brew_backend.user.model.User;
+import com.codewithneal.brew_backend.GeocodingService;
 import com.codewithneal.brew_backend.JwtService;
 import com.codewithneal.brew_backend.CsvReader.beers.BeerCsv;
 import com.codewithneal.brew_backend.CsvReader.beers.BeerCsvRepository;
@@ -40,12 +42,14 @@ public class BreweryController {
     private final UserRepository userRepo;
     private final JwtService jwtService;
     private final BeerCsvRepository beerCsvRepository;
+    private final GeocodingService geocodingService;
 
-    public BreweryController(BreweryRepository breweryRepo, UserRepository userRepo,  JwtService jwtService, BeerCsvRepository beerCsvRepository) {
+    public BreweryController(BreweryRepository breweryRepo, UserRepository userRepo,  JwtService jwtService, BeerCsvRepository beerCsvRepository, GeocodingService geocodingService) {
         this.breweryRepo = breweryRepo;
         this.userRepo = userRepo;
         this.jwtService = jwtService;
         this.beerCsvRepository = beerCsvRepository;
+        this.geocodingService = geocodingService;
     }
 
     /* BREWERY INFORMATION FUNCTIONS  */
@@ -57,16 +61,14 @@ public class BreweryController {
         @RequestHeader("Authorization") String authHeader,
         @RequestBody BreweryDTO dto
     ) {
-        // Convert header to UUID (Supabase user id is a UUID string)
         UUID userId = jwtService.requireUserId(authHeader);
+        Brewery entity = BreweryMapper.fromCreateDTO(dto);
 
-        Brewery entity = BreweryMapper.fromCreateDTO(dto); 
-        entity.setLatitude(null);
-        entity.setLongitude(null);
+        geocodingService.geocode(entity.getStreet(), entity.getCity(),
+                                entity.getState(), entity.getPostalCode())
+        .ifPresent(ll -> { entity.setLatitude(ll.lat()); entity.setLongitude(ll.lon()); });
 
         Brewery saved = breweryRepo.save(entity);
-
-        // remember it on the user profile
         userRepo.setHasBreweryAndId(userId, saved.getBreweryId());
 
         return ResponseEntity
@@ -83,17 +85,25 @@ public class BreweryController {
     ) {
         UUID userId = jwtService.requireUserId(authHeader);
         var user = userRepo.findById(userId).orElse(null);
-        if (user == null || !user.isHasBrewery() || user.getBreweryId() == null) {
-            return ResponseEntity.notFound().build();
-        }
+        if (user == null || !user.isHasBrewery() || user.getBreweryId() == null) return ResponseEntity.notFound().build();
         var brewery = breweryRepo.findById(user.getBreweryId()).orElse(null);
         if (brewery == null) return ResponseEntity.notFound().build();
+        if (dto.getIdString() != null && !user.getBreweryId().equals(dto.getBreweryId())) return ResponseEntity.status(403).build();
 
-        if (dto.getIdString() != null && !user.getBreweryId().equals(dto.getBreweryId())) {
-            return ResponseEntity.status(403).build();
-        }
+        boolean addrChanged = dto.getStreet() != null || dto.getCity() != null ||
+                            dto.getState() != null || dto.getPostalCode() != null;
 
         BreweryMapper.applyPatch(brewery, dto);
+
+        if (addrChanged) {
+        geocodingService.geocode(brewery.getStreet(), brewery.getCity(),
+                                brewery.getState(), brewery.getPostalCode())
+            .ifPresentOrElse(
+            ll -> { brewery.setLatitude(ll.lat()); brewery.setLongitude(ll.lon()); },
+            ()  -> { brewery.setLatitude(null); brewery.setLongitude(null); }
+            );
+        }
+
         var saved = breweryRepo.save(brewery);
         return ResponseEntity.ok(BreweryMapper.toDTO(saved));
     }

@@ -58,7 +58,8 @@ export default function NewUserDash() {
     useEffect(() => {
     const fetchUserProfile = async (session) => {
         if (!session) {
-        console.warn("No Supabase session found.");
+        sessionStorage.setItem("bp_showLogoutModal", "1");
+        window.location.reload();
         return;
         }
 

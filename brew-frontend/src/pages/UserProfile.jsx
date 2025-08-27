@@ -19,33 +19,38 @@ function UserProfile() {
     useEffect (() => {
         const fetchUserProfile = async() => {
         const { data: {session}} = await supabase.auth.getSession();
-        if (!session) return;
+        if (!session) {
+          // Session expired — mark flag and reload so modal appears
+          sessionStorage.setItem("bp_showLogoutModal", "1");
+          window.location.reload();
+          return;
+        }
 
-            const token = session.access_token;
-            const userId = session.user.id;
-            const email = session.user.email;
+          const token = session.access_token;
+          const userId = session.user.id;
+          const email = session.user.email;
 
-            try {
-                const res = await axios.get(`${BASE_URL}/api/user/profile`, {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                });
-                
+          try {
+              const res = await axios.get(`${BASE_URL}/api/user/profile`, {
+                  headers: {
+                      Authorization: `Bearer ${token}`,
+                  },
+              });
+              
 
-                const profile = {...res.data, email}
+              const profile = {...res.data, email}
 
-                setFormData({
-                    username: profile.username || '',
-                    address: profile.address || '',
-                    email: email || '',
-                });
+              setFormData({
+                  username: profile.username || '',
+                  address: profile.address || '',
+                  email: email || '',
+              });
 
-                setUserProfile(profile)
+              setUserProfile(profile)
 
-            } catch (err) {
-                console.error('Failed to fetch user profile:', err);
-            }
+          } catch (err) {
+              console.error('Failed to fetch user profile:', err);
+          }
 
         };
 
@@ -242,9 +247,9 @@ function UserProfile() {
                 <button
                   className="bg-white text-amber-800 border border-amber-300 px-4 py-2 rounded-xl font-semibold hover:bg-amber-50"
                   onClick={async () => {
-                    await supabase.auth.signOut();
-                    localStorage.removeItem("user_id");
-                    navigate("/login");
+                      await supabase.auth.signOut();
+                     localStorage.removeItem("user_id");
+                     navigate("/login");
                 }}
                 >
                   Log out

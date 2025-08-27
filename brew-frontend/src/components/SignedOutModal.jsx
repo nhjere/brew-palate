@@ -18,7 +18,6 @@ export default function LogOut({ loginPath = "/login" }) {
   const showModal = () => {
     clearTimer();
     setShow(true);
-    console.log("🔔 Session expired — showing modal");
   };
 
   const scheduleExpiry = (session) => {
@@ -26,8 +25,7 @@ export default function LogOut({ loginPath = "/login" }) {
     if (!session?.expires_at) return;
 
     const msLeft = session.expires_at * 1000 - Date.now();
-    const delay = Math.max(0, msLeft - 1000);
-    console.log(`⏳ Session expires in ${Math.round(msLeft / 1000)}s`);
+    const delay = Math.max(0, msLeft - 1000); 
 
     timerRef.current = setTimeout(() => showModal(), delay);
   };
@@ -48,19 +46,18 @@ export default function LogOut({ loginPath = "/login" }) {
 
       const { data } = await supabase.auth.getSession();
       const session = data?.session;
-      console.log("🟢 Initial session:", session);
+      
 
       if (session) {
         localStorage.setItem(HAD_SESSION_KEY, "1");
         scheduleExpiry(session);
       } else if (localStorage.getItem(HAD_SESSION_KEY) === "1") {
-        console.warn("🚨 No session found after reload — showing modal");
         showModal();
       }
 
       const { data: listener } = supabase.auth.onAuthStateChange(
         (event, newSession) => {
-          console.log("📡 Auth event:", event);
+          
           switch (event) {
             case "INITIAL_SESSION":
             case "SIGNED_IN":

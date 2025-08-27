@@ -2,8 +2,11 @@ package com.codewithneal.brew_backend.brewer.model;
 
 import java.util.UUID;
 
+import org.springframework.data.geo.Point;
+
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
+
 // import java.util.UUID;
 
 @Entity
