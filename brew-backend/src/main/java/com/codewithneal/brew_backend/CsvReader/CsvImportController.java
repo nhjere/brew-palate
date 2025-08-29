@@ -18,6 +18,7 @@ import org.springframework.data.domain.PageRequest;
 import java.util.UUID;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/import")
@@ -143,6 +144,23 @@ public class CsvImportController {
 
         return ResponseEntity.ok(out);
     }
+
+    // CsvImportController.java (add this)
+    @GetMapping("/search/beers")
+    public ResponseEntity<?> searchBeers(
+        @RequestParam String q,
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "10") int size
+    ) {
+        String term = q == null ? "" : q.trim();
+        if (term.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "q is required"));
+        }
+        PageRequest pr = PageRequest.of(page, size);
+        Page<BeerListItem> result = beerCsvRepository.searchBeers(term, pr);
+        return ResponseEntity.ok((result));
+    }
+
 
 
 

@@ -3,7 +3,7 @@ import Search from './Search';
 import bp_logo from '../../assets/final_logo.png';
 import avatar from "../../assets/avatar.svg"; 
 
-export default function NewHeader() {
+export default function NewHeader({ searchQ, setSearchQ }) {
     const userId = localStorage.getItem('user_id');
 
     return (
@@ -33,7 +33,7 @@ export default function NewHeader() {
                     About
                 </Link>
 
-                <Search className='width-4/5'/>
+                <Search value={searchQ} onSearch={setSearchQ} />
 
             </div>
 

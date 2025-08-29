@@ -52,6 +52,11 @@ export default function NewUserDash() {
     const [totalPages, setTotalPages] = useState();
     const breweryMap = useBreweryMap();
 
+    // search vars
+    const [searchQ, setSearchQ] = useState("");
+    const [searchResults, setSearchResults] = useState([]);
+    const [searchMode, setSearchMode] = useState(false);
+
     const BASE_URL = import.meta.env.VITE_BACKEND_URL;
   
     // Fetch user and sets username using Supabase user ID
@@ -100,6 +105,27 @@ export default function NewUserDash() {
     };
     }, []);
 
+    // whenever searchQ changes, toggle mode
+    useEffect(() => {
+        setSearchMode(searchQ.trim().length > 0);
+    }, [searchQ]);
+
+
+    // Search API 
+    useEffect(() => {
+    if (!searchMode) return;
+    const fetchSearch = async () => {
+      try {
+        const res = await axios.get(`${BASE_URL}/api/import/search/beers`, {
+          params: { q: searchQ, page: 0, size: 20 },
+        });
+        setSearchResults(res.data.content || []);
+      } catch (err) {
+        console.error("Search failed", err);
+      }
+    };
+    fetchSearch();
+  }, [searchQ, searchMode]);
     
     useEffect(() => {
     const fetchFilteredBeers = async () => {
@@ -162,7 +188,10 @@ export default function NewUserDash() {
 return (
   <div className="min-h-screen w-full overflow-x-hidden bg-[#fff4e6] flex flex-col
                 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
-    <FullHeader />
+    <FullHeader
+        searchQ={searchQ}
+        setSearchQ={setSearchQ}
+      />
 
     <div className='flex flex-col'> 
 

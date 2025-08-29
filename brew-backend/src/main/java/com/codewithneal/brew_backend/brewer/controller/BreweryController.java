@@ -173,6 +173,36 @@ public class BreweryController {
         }
     }
 
+    // delete beer
+    @DeleteMapping("/remove/beer/{beerId}")
+    @Transactional
+    public ResponseEntity<?> removeBeer(
+            @RequestHeader("Authorization") String authHeader,
+            @PathVariable("beerId") UUID beerId
+    ) {
+        UUID userId = jwtService.requireUserId(authHeader);
+        var user = userRepo.findById(userId).orElse(null);
+
+        if (user == null || user.getBreweryId() == null) {
+            return ResponseEntity.status(403).body(Map.of("message", "User not linked to a brewery"));
+        }
+
+        var beer = beerCsvRepository.findById(beerId).orElse(null);
+        if (beer == null) {
+            return ResponseEntity.status(404).body(Map.of("message", "Beer not found"));
+        }
+
+        if (!beer.getBreweryUuid().equals(user.getBreweryId())) {
+            return ResponseEntity.status(403).body(Map.of("message", "Unauthorized to delete this beer"));
+        }
+
+        beerCsvRepository.deleteById(beerId);
+        return ResponseEntity.ok(Map.of("message", "Beer removed successfully"));
+    }
+
+    
+
+
     // returns breweries within set radius
     // called in FindBreweries.jsx
     @GetMapping("/nearby")

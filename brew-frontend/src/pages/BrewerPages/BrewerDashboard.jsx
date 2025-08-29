@@ -7,8 +7,6 @@ import supabase from '../../supabaseClient.js';
 import axios from 'axios';
 import brewery_barrel from '../../assets/brewery_barrel.png'
 
-
-
 export default function BrewerDashboard() {
     const [showBeerModal, setShowBeerModal] = useState(false);
     const [showBreweryModal, setShowBreweryModal] = useState(false);
@@ -71,10 +69,26 @@ export default function BrewerDashboard() {
         run();
     }, [token, status, breweryUuid, BASE_URL, refresh]);
 
+    const handleRemoveBeer = async (beerId) => {
+        if (!token) return;
+        if (!window.confirm("Are you sure you want to remove this beer?")) return;
+
+        try {
+            await axios.delete(`${BASE_URL}/api/brewer/breweries/remove/beer/${beerId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+            });
+            setRefresh((p) => !p);
+        } catch (err) {
+            console.error("Failed to remove beer", err);
+            alert("Could not remove beer. Try again.");
+        }
+    };
+
+
     const afterSave = () => setRefresh((p) => !p);
     const afterBeerCreated = () => {
         setShowBeerModal(false);
-        setRefresh((p) => !p); // refetch beers
+        setRefresh((p) => !p); 
     };
 
     return (
@@ -145,67 +159,64 @@ export default function BrewerDashboard() {
                             </thead>
 
                             <tbody className="divide-y divide-amber-900/20">
-                                {loadingBeers ? (
+                            {loadingBeers ? (
                                 <tr>
-                                    {/* was 6; now 9 columns */}
-                                    <td colSpan={9} className="px-4 py-6 text-center text-amber-900">
+                                {/* 10 columns total */}
+                                <td colSpan={10} className="px-4 py-6 text-center text-amber-900">
                                     Loading…
-                                    </td>
+                                </td>
                                 </tr>
-                                ) : beers.length > 0 ? (
+                            ) : beers.length > 0 ? (
                                 beers.map((b) => (
-                                    <tr key={b.beerId}>
-                                        <td className="px-4 py-2">{b.beerId}</td>
+                                <tr key={b.beerId}>
+                                    <td className="px-4 py-2">{b.beerId}</td>
                                     <td className="px-4 py-2">{b.name}</td>
                                     <td className="px-4 py-2">{b.style || '—'}</td>
                                     <td className="px-4 py-2">
-                                        {b.abv == null ? '—' : `${(Number(b.abv) * 100).toFixed(1)}%`}
+                                    {b.abv == null ? '—' : `${(Number(b.abv) * 100).toFixed(1)}%`}
                                     </td>
                                     <td className="px-4 py-2">{b.ibu ?? '—'}</td>
                                     <td className="px-4 py-2">{b.ounces ?? '—'}</td>
                                     <td className="px-4 py-2">
-                                        {b.price == null ? '—' : `$${Number(b.price).toFixed(2)}`}
+                                    {b.price == null ? '—' : `$${Number(b.price).toFixed(2)}`}
                                     </td>
-
-                                    {/* NEW: flavor tags */}
                                     <td className="px-4 py-2">
-                                        {Array.isArray(b.flavorTags) && b.flavorTags.length > 0
+                                    {Array.isArray(b.flavorTags) && b.flavorTags.length > 0
                                         ? b.flavorTags.join(', ')
                                         : '—'}
                                     </td>
-
-                                    {/* NEW: edit button (non-functional) */}
+                                    {/* Edit cell */}
                                     <td className="px-4 py-2">
-                                        <button
+                                    <button
                                         type="button"
                                         className="bg-green-200 hover:bg-green-300 text-black px-3 py-1 rounded-full font-semibold"
                                         title="Edit (coming soon)"
-                                        >
+                                    >
                                         Edit
-                                        </button>
+                                    </button>
                                     </td>
-
-                                    {/* NEW: remove button (non-functional) */}
+                                    {/* Remove cell */}
                                     <td className="px-4 py-2">
-                                        <button
+                                    <button
                                         type="button"
                                         className="bg-red-200 hover:bg-red-300 text-black px-3 py-1 rounded-full font-semibold"
-                                        title="Remove (coming soon)"
-                                        >
+                                        title="Remove"
+                                        onClick={() => handleRemoveBeer(b.beerId)}
+                                    >
                                         Remove
-                                        </button>
-                                    </td>
-                                    </tr>
-                                ))
-                                ) : (
-                                <tr>
-                                    {/* was 6; now 9 columns */}
-                                    <td colSpan={9} className="px-4 py-6 text-center italic text-amber-900">
-                                    Brewery doesn’t have any beers listed. Start adding!
+                                    </button>
                                     </td>
                                 </tr>
-                                )}
+                                ))
+                            ) : (
+                                <tr>
+                                <td colSpan={10} className="px-4 py-6 text-center italic text-amber-900">
+                                    Brewery doesn’t have any beers listed. Start adding!
+                                </td>
+                                </tr>
+                            )}
                             </tbody>
+
                             </table>
 
                     </div>
