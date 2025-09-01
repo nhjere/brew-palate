@@ -195,7 +195,7 @@ export default function BeerModal({ onClose, onReviewSubmit, breweryId, token })
                     placeholder="20"
                     aria-describedby="ibu-help"
                     />
-                    <p id="ibu-help" className="mt-1 text-xs text-gray-500">Bitterness scale (higher = more bitter)</p>
+                    <p id="ibu-help" className="mt-1 text-xs text-gray-500">Bitterness scale (Typically between 10 - 80)</p>
                 </div>
 
                 {/* Price with $ adornment */}

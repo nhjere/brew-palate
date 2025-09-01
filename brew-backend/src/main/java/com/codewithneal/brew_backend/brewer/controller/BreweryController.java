@@ -1,6 +1,7 @@
 package com.codewithneal.brew_backend.brewer.controller;
 
 import com.codewithneal.brew_backend.brewer.dto.BeerCreateRequest;
+import com.codewithneal.brew_backend.brewer.dto.BeerUpdateRequest;
 import com.codewithneal.brew_backend.brewer.dto.BreweryDTO;
 import com.codewithneal.brew_backend.brewer.dto.NearbyBreweryDTO;
 import com.codewithneal.brew_backend.brewer.dto.BreweryMapper;
@@ -200,7 +201,42 @@ public class BreweryController {
         return ResponseEntity.ok(Map.of("message", "Beer removed successfully"));
     }
 
-    
+    // update beer in catalog
+    @PatchMapping("/update/beer/{beerId}")
+    @Transactional
+    public ResponseEntity<?> updateBeer(
+            @RequestHeader("Authorization") String authHeader,
+            @PathVariable("beerId") UUID beerId,
+            @RequestBody BeerUpdateRequest paylaod
+    ) {
+        UUID userId = jwtService.requireUserId(authHeader);
+        var user = userRepo.findById(userId).orElse(null);
+
+        if (user == null || user.getBreweryId() == null) {
+            return ResponseEntity.status(403).body(Map.of("message", "User not linked to a brewery"));
+        }
+
+        var beer = beerCsvRepository.findById(beerId).orElse(null);
+        if (beer == null) {
+            return ResponseEntity.status(404).body(Map.of("message", "Beer not found"));
+        }
+
+        if (!beer.getBreweryUuid().equals(user.getBreweryId())) {
+            return ResponseEntity.status(403).body(Map.of("message", "Unauthorized to delete this beer"));
+        }
+        
+        if (paylaod.name() != null)  beer.setName(paylaod.name().trim());
+        if (paylaod.style() != null) beer.setStyle(paylaod.style().trim());
+        if (paylaod.abv() != null)   beer.setAbv(Math.max(0.0, Math.min(paylaod.abv(), 1.0)));
+        if (paylaod.ibu() != null)   beer.setIbu(paylaod.ibu().doubleValue());
+        if (paylaod.ounces() != null) beer.setOunces(paylaod.ounces());
+        if (paylaod.price() != null)  beer.setPrice(paylaod.price());
+        if (paylaod.flavorTags() != null) beer.setFlavorTags(paylaod.flavorTags());
+
+        
+        return ResponseEntity.ok(Map.of("message", "Beer removed successfully"));
+
+    }
 
 
     // returns breweries within set radius
