@@ -35,15 +35,14 @@ export default function Login() {
 
     // triggered when user hits login button
     const handleLogIn = async (e) => {
-        // prevents page refresh
         e.preventDefault();
         setErrorMessage('');
         setSuccessMessage('');
 
-        const {data, error} = await supabase.auth.signInWithPassword({
+        const { data, error } = await supabase.auth.signInWithPassword({
             email: formData.email,
             password: formData.password,
-        })
+        });
 
         if (error) {
             console.error(error);
@@ -51,36 +50,31 @@ export default function Login() {
             return;
         }
 
-        const { data: sessionData } = await supabase.auth.getSession();
-        const session = sessionData?.session;
-        if (!session) return setErrorMessage('No session returned');
+        const session = data?.session;
+        if (!session) {
+            setErrorMessage('No session returned');
+            return;
+        }
 
-        const userId = session.user.id;
-        const accessToken = session.access_token;
+        try {
+            const token = session.access_token;
+            const res = await axios.get(`${BASE_URL}/api/user/me`, {
+            headers: { Authorization: `Bearer ${token}` },
+            });
+            const { role } = res.data;
 
-        // waits for session hydration before routing user to dashboard
-        const { data: authListener } = supabase.auth.onAuthStateChange(async (_, session) => {
-            if (session) {
-                setUser(session.user);
-                try {
-                const token = session.access_token;
-                const res = await axios.get(`${BASE_URL}/api/user/me`, {
-                    headers: { Authorization: `Bearer ${token}` },
-                });
-                const { role } = res.data;
-                navigate(role === 'brewer'
-                    ? `/brewer/dashboard/${session.user.id}`
-                    : `/user/dashboard/${session.user.id}`
-                );
-                } catch (e) {
-                setErrorMessage('Unable to fetch user role. Please try again.');
-                } finally {
-                authListener.subscription.unsubscribe();
-                }
-            }
-        });
+            navigate(
+            role === 'brewer'
+                ? `/brewer/dashboard/${session.user.id}`
+                : `/user/dashboard/${session.user.id}`,
+            { replace: true }
+            );
+        } catch (e) {
+            console.error(e);
+            setErrorMessage('Unable to fetch user role. Please try again.');
+        }
+    };
 
-    }
 
     return (
         <>

@@ -81,7 +81,7 @@ export default function Recommendations({ userId, refreshRecs }) {
 
         {!error && beers.length > 0 && (
         <div className="grid grid-flow-col auto-cols-[20rem] gap-5 overflow-x-auto custom-scrollbar pb-3">
-        {beers.slice(0, 10).map((beer) => (
+        {beers.map((beer) => (
             <BeerCard
             key={beer.beerId}
             beer={beer}

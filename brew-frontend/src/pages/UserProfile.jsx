@@ -21,8 +21,9 @@ function UserProfile() {
         const { data: {session}} = await supabase.auth.getSession();
         if (!session) {
           // Session expired — mark flag and reload so modal appears
-          sessionStorage.setItem("bp_showLogoutModal", "1");
-          window.location.reload();
+            sessionStorage.setItem("bp_showLogoutModal", "1"); // optional, only if you want the modal
+          // go straight to login
+          navigate("/login", { replace: true });
           return;
         }
 

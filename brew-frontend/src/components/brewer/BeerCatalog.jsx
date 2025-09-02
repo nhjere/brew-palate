@@ -5,6 +5,7 @@ export default function BeerCatalog({token, baseUrl, hasBrewery, breweryUuid, on
     const [beers, setBeers] = useState([]);
     const [loading, setLoading] = useState(false);
     const [editing, setEditing] = useState({}); 
+    
 
     // fetch
     useEffect(() => {
