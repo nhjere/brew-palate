@@ -123,8 +123,8 @@ export default function BeerCatalog({token, baseUrl, hasBrewery, breweryUuid, on
 
     return (
         <section className="w-full bg-white rounded-2xl p-4 overflow-hidden border shadow-md transition-all">
-        <main className="flex flex-row gap-5 w-full items-center">
-            <h2 className="text-2xl font-bold p-4 text-amber-900">Beer Catalog</h2>
+        <main className="flex flex-row gap-5 w-full items-center pb-4">
+            <h2 className="text-2xl md:text-3xl font-extrabold text-amber-900 leading-tight">Beer Catalog</h2>
 
             <button
             className="ml-auto bg-blue-200 hover:bg-blue-300 text-black px-4 py-1 rounded-full font-semibold disabled:opacity-60"

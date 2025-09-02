@@ -41,6 +41,10 @@ export default function NewUserDash() {
     // beer proximity variables
     const [proximityCoords, setProximityCoords] = useState(null);
     const [proximityRadius, setProximityRadius] = useState(25);
+    const handleClearLocation = () => {
+        setProximityCoords(null);
+        setProximityRadius(25);
+    };
 
     // review modal variables
     const [selectedBeerId, setSelectedBeerId] = useState(null);
@@ -205,12 +209,18 @@ return (
                   mx-auto md:mx-0 md:pr-4">
             
             <BeerProximity
-                committedTags={committedTags}
-                onSetProximity={({ lat, lng, radius }) => {
-                    setProximityCoords({ lat, lng });
-                    setProximityRadius(radius);
-                }}
-                inline={true}
+            committedTags={committedTags}
+            onSetProximity={(coords) => {
+                if (!coords) {
+                // clear location filter
+                setProximityCoords(null);
+                setProximityRadius(25);
+                } else {
+                const { lat, lng, radius } = coords;
+                setProximityCoords({ lat, lng });
+                setProximityRadius(radius);
+                }
+            }}
             />
 
             <PanelShell id="taste" title="Your Taste" capClass="max-h-60" summary={committedTags}>

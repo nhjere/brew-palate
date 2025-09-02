@@ -3,37 +3,43 @@ import axios from 'axios';
 import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/20/solid';
 
 export default function BeerProximity({ committedTags, onSetProximity }) {
-const [address, setAddress] = useState('');
-const [distance, setDistance] = useState(25);
-const [isOpen, setIsOpen] = useState(true);
+    const [address, setAddress] = useState('');
+    const [distance, setDistance] = useState(25);
+    const [isOpen, setIsOpen] = useState(true);
 
-const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
-const BASE_URL = import.meta.env.VITE_BACKEND_URL;
+    const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
+    const BASE_URL = import.meta.env.VITE_BACKEND_URL;
 
-const handleNearbyBeerSearch = async () => {
-	try {
-	const geo = await axios.get(
-		`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json`,
-		{ params: { access_token: MAPBOX_TOKEN } }
-	);
+    const handleClearLocation = () => {
+        setAddress('');
+        setDistance(25);
+        onSetProximity(null);
+    };
 
-	const [lng, lat] = geo.data.features[0].center;
+    const handleNearbyBeerSearch = async () => {
+        try {
+        const geo = await axios.get(
+            `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json`,
+            { params: { access_token: MAPBOX_TOKEN } }
+        );
 
-	await axios.get(`${BASE_URL}/api/import/filtered-all-beers`, {
-		params: {
-		lat,
-		lng,
-		radius: distance,
-		tags: committedTags
-		},
-		paramsSerializer: params => new URLSearchParams(params).toString()
-	});
+        const [lng, lat] = geo.data.features[0].center;
 
-	onSetProximity({ lat, lng, radius: distance });
-	} catch (err) {
-	console.error("Error fetching nearby beers:", err);
-	}
-};
+        await axios.get(`${BASE_URL}/api/import/filtered-all-beers`, {
+            params: {
+            lat,
+            lng,
+            radius: distance,
+            tags: committedTags
+            },
+            paramsSerializer: params => new URLSearchParams(params).toString()
+        });
+
+        onSetProximity({ lat, lng, radius: distance });
+        } catch (err) {
+        console.error("Error fetching nearby beers:", err);
+        }
+    };
 
 	return (
 		<div className="w-full bg-white rounded-2xl overflow-hidden border shadow-md transition-all">
@@ -78,14 +84,26 @@ const handleNearbyBeerSearch = async () => {
 				/>
 				</label>
 
-				{/* Action */}
-				<button
-				type="button"
-				onClick={handleNearbyBeerSearch}
-				className="w-full bg-blue-200 hover:bg-blue-300 text-black font-semibold py-2 rounded-md"
-				>
-				Search Nearby Beers
-				</button>
+                <div className='flex flex-row gap-3'>
+                    {/* Action */}
+                    <button
+                    type="button"
+                    onClick={handleNearbyBeerSearch}
+                    className="w-full bg-blue-200 hover:bg-blue-300 text-black font-semibold py-2 rounded-md"
+                    >
+                    Search
+                    </button>
+
+                    <button
+                    type="button"
+                    onClick={handleClearLocation}
+                    className="w-full bg-blue-200 hover:bg-blue-300 text-black font-semibold py-2 rounded-md"
+                    title="Clear the address and remove location filter"
+                >
+                    Clear
+                </button>
+                </div>
+
 			</div>
 			</div>
 		)}
