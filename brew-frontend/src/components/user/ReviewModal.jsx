@@ -1,14 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { createClient } from '@supabase/supabase-js';
 import { useBreweryMap } from '../../context/BreweryContext';
 import beer_mug from '../../assets/beer_mug.png'
-
-// supabase auth config
-const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_ANON_KEY
-);
+import supabase from '../../supabaseClient.js';
 
 export default function ReviewModal({ beerId, onClose, onReviewSubmit}) {
     const [beer, setBeer] = useState(null);

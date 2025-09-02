@@ -13,6 +13,7 @@ export default function BrewerDashboard() {
   const [status, setStatus] = useState({ hasBrewery: false, brewery: null });
   const [refresh, setRefresh] = useState(false);
   const [token, setToken] = useState('');
+  const [brewerId, setBrewerId] = useState('');
 
   //refresher for beer catalog
   const [catalogBump, setCatalogBump] = useState(0);
@@ -35,6 +36,7 @@ export default function BrewerDashboard() {
           { headers: { Authorization: `Bearer ${accessToken}` } }
         );
         setStatus(data);
+        setBrewerId(session.user.id)
       } catch (e) {
         console.error('Failed to fetch brewery status', e);
         setStatus({ hasBrewery: false, brewery: null });

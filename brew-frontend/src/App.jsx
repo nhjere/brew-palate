@@ -8,14 +8,16 @@ import BreweryPage from './pages/BreweryPage';
 import About from './pages/About';
 import UserDashboard from './pages/UserDashboard'
 import BrewerDashboard from './pages/BrewerPages/BrewerDashboard';
+import Analytics from './pages/BrewerPages/AnalyticsDash';
+import BrewerProfile from './pages/BrewerPages/BrewerProfile';
 import SignedOutModal from './components/SignedOutModal';
 
 import { BreweryProvider } from './context/BreweryContext';
-import { BeerProvider } from './context/BeerContext';
+import { BrewerProvider } from './context/BrewerContext';
 
 function App() {
   return (
-    <BeerProvider>
+    <BrewerProvider>
       <BreweryProvider>
         <Router>
         <SignedOutModal loginPath="/login" />
@@ -25,6 +27,8 @@ function App() {
             <Route path="/register" element={<Registration />} />
             <Route path="/about" element={<About />} />
             <Route path="/brewer/dashboard/:userId" element={<BrewerDashboard />} />
+            <Route path="/brewer/analytics/:brewerId" element={<Analytics />} />
+            <Route path="/brewer/profile/:brewerId" element={<BrewerProfile />} />
             <Route path="/user/dashboard/:userId" element={<UserDashboard />} />
             <Route path="/user/profile/:userId" element={<UserProfile />} />
             <Route path="/user/find-breweries" element={<FindBreweries />} />
@@ -33,7 +37,7 @@ function App() {
           </Routes>
         </Router>
       </BreweryProvider>
-    </BeerProvider>
+    </BrewerProvider>
   );
 }
 
