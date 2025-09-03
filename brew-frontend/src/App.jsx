@@ -17,27 +17,36 @@ import { BrewerProvider } from './context/BrewerContext';
 
 function App() {
   return (
-    <BrewerProvider>
-      <BreweryProvider>
-        <Router>
+    <BreweryProvider>
+      <Router>
         <SignedOutModal loginPath="/login" />
-          <Routes>
-            <Route path="/" element={<Navigate to="/login" replace />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Registration />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/brewer/dashboard/:userId" element={<BrewerDashboard />} />
-            <Route path="/brewer/analytics/:brewerId" element={<Analytics />} />
-            <Route path="/brewer/profile/:brewerId" element={<BrewerProfile />} />
-            <Route path="/user/dashboard/:userId" element={<UserDashboard />} />
-            <Route path="/user/profile/:userId" element={<UserProfile />} />
-            <Route path="/user/find-breweries" element={<FindBreweries />} />
-            <Route path="/brewery/:breweryId" element={<BreweryPage />} /> 
-            <Route path="*" element={<NoPage />} />
-          </Routes>
-        </Router>
-      </BreweryProvider>
-    </BrewerProvider>
+        <Routes>
+          <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Registration />} />
+          <Route path="/about" element={<About />} />
+          
+          {/* User routes */}
+          <Route path="/user/dashboard/:userId" element={<UserDashboard />} />
+          <Route path="/user/profile/:userId" element={<UserProfile />} />
+          <Route path="/user/find-breweries" element={<FindBreweries />} />
+          <Route path="/brewery/:breweryId" element={<BreweryPage />} />
+          
+          {/* Brewer routes - wrapped in BrewerProvider and using consistent parameter names */}
+          <Route path="/brewer/*" element={
+            <BrewerProvider>
+              <Routes>
+                <Route path="dashboard/:brewerId" element={<BrewerDashboard />} />
+                <Route path="analytics/:brewerId" element={<Analytics />} />
+                <Route path="profile/:brewerId" element={<BrewerProfile />} />
+              </Routes>
+            </BrewerProvider>
+          } />
+          
+          <Route path="*" element={<NoPage />} />
+        </Routes>
+      </Router>
+    </BreweryProvider>
   );
 }
 

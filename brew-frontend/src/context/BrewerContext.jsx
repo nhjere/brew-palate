@@ -27,27 +27,67 @@ export const BrewerProvider = ({ children }) => {
                 if (session?.user) {
                     const userId = session.user.id;
                     const accessToken = session.access_token;
-                    const userRole = session.user.user_metadata?.role;
+                    
+                    // Check role from localStorage first, then user_metadata
+                    const userRole = localStorage.getItem('user_role') || 
+                                   session.user.user_metadata?.role;
 
                     if (userRole === 'brewer') {
                         setBrewerId(userId);
                         setToken(accessToken);
                         setIsAuthenticated(true);
                         
-                        // Store in localStorage as backup
+                        // Store in localStorage for consistency
                         localStorage.setItem('brewer_id', userId);
-                        localStorage.setItem('auth_token', accessToken);
+                        localStorage.setItem('user_role', 'brewer');
                     }
+                } else {
+                    // Clear state if no session
+                    setBrewerId(null);
+                    setToken(null);
+                    setIsAuthenticated(false);
                 }
             } catch (error) {
                 console.error('Error initializing brewer data:', error);
+                setBrewerId(null);
+                setToken(null);
+                setIsAuthenticated(false);
             } finally {
                 setLoading(false);
             }
         };
 
         initializeBrewerData();
+
+        // Listen for auth changes
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+            if (event === 'SIGNED_OUT') {
+                setBrewerId(null);
+                setToken(null);
+                setIsAuthenticated(false);
+                localStorage.removeItem('brewer_id');
+                localStorage.removeItem('user_role');
+            } else if (event === 'SIGNED_IN' && session?.user) {
+                const userRole = localStorage.getItem('user_role') || 
+                               session.user.user_metadata?.role;
+                
+                if (userRole === 'brewer') {
+                    setBrewerId(session.user.id);
+                    setToken(session.access_token);
+                    setIsAuthenticated(true);
+                    localStorage.setItem('brewer_id', session.user.id);
+                    localStorage.setItem('user_role', 'brewer');
+                }
+            }
+        });
+
+        return () => subscription?.unsubscribe();
     }, []);
+
+    // Check if brewer is authorized for a specific brewerId
+    const isAuthorizedFor = (urlBrewerId) => {
+        return isAuthenticated && brewerId === urlBrewerId;
+    };
 
     // Login function specifically for brewers
     const loginBrewer = (userId, accessToken) => {
@@ -55,17 +95,21 @@ export const BrewerProvider = ({ children }) => {
         setToken(accessToken);
         setIsAuthenticated(true);
         localStorage.setItem('brewer_id', userId);
-        localStorage.setItem('auth_token', accessToken);
+        localStorage.setItem('user_role', 'brewer');
     };
 
     // Logout function
     const logoutBrewer = async () => {
-        await supabase.auth.signOut();
-        setBrewerId(null);
-        setToken(null);
-        setIsAuthenticated(false);
-        localStorage.removeItem('brewer_id');
-        localStorage.removeItem('auth_token');
+        try {
+            await supabase.auth.signOut();
+            setBrewerId(null);
+            setToken(null);
+            setIsAuthenticated(false);
+            localStorage.removeItem('brewer_id');
+            localStorage.removeItem('user_role');
+        } catch (error) {
+            console.error('Error during logout:', error);
+        }
     };
 
     const value = {
@@ -73,6 +117,7 @@ export const BrewerProvider = ({ children }) => {
         token,
         isAuthenticated,
         loading,
+        isAuthorizedFor,
         loginBrewer,
         logoutBrewer
     };

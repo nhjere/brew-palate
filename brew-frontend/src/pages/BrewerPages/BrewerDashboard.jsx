@@ -3,46 +3,52 @@ import BeerModal from '../../components/brewer/BeerModal';
 import BreweryModal from '../../components/brewer/BreweryModal';
 import BreweryCard from '../../components/brewer/BreweryCard.jsx';
 import BeerCatalog from '../../components/brewer/BeerCatalog.jsx';
+import LoadingScreen from '../../components/LoadingScreen.jsx';
 import { useEffect, useState, useMemo } from 'react';
-import supabase from '../../supabaseClient.js';
+import { useParams, Navigate } from 'react-router-dom';
+import { useBrewerContext } from '../../context/BrewerContext';
 import axios from 'axios';
 
 export default function BrewerDashboard() {
+  const { brewerId: urlBrewerId } = useParams();
+  const { brewerId, token, isAuthenticated, loading, isAuthorizedFor } = useBrewerContext();
+  
   const [showBeerModal, setShowBeerModal] = useState(false);
   const [showBreweryModal, setShowBreweryModal] = useState(false);
   const [status, setStatus] = useState({ hasBrewery: false, brewery: null });
   const [refresh, setRefresh] = useState(false);
-  const [token, setToken] = useState('');
-  const [brewerId, setBrewerId] = useState('');
+  const [dataLoading, setDataLoading] = useState(true);
 
   //refresher for beer catalog
   const [catalogBump, setCatalogBump] = useState(0);
 
   const BASE_URL = import.meta.env.VITE_BACKEND_URL;
 
-// fetches status of brewery and its metadata
+  // Check authorization
+  const isAuthorized = isAuthorizedFor(urlBrewerId);
+
+  // fetches status of brewery and its metadata
   useEffect(() => {
-    (async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      const accessToken = session?.access_token || '';
-      setToken(accessToken);
-      if (!accessToken) {
-        setStatus({ hasBrewery: false, brewery: null });
-        return;
-      }
+    if (!isAuthorized || !token) return;
+
+    const fetchBreweryStatus = async () => {
+      setDataLoading(true);
       try {
         const { data } = await axios.get(
           `${BASE_URL}/api/brewer/breweries/status`,
-          { headers: { Authorization: `Bearer ${accessToken}` } }
+          { headers: { Authorization: `Bearer ${token}` } }
         );
         setStatus(data);
-        setBrewerId(session.user.id)
       } catch (e) {
         console.error('Failed to fetch brewery status', e);
         setStatus({ hasBrewery: false, brewery: null });
+      } finally {
+        setDataLoading(false);
       }
-    })();
-  }, [BASE_URL, refresh]);
+    };
+
+    fetchBreweryStatus();
+  }, [BASE_URL, token, isAuthorized, refresh]);
 
   const breweryUuid = useMemo(
     () => status?.brewery?.breweryId || status?.brewery?.id || null,
@@ -55,6 +61,21 @@ export default function BrewerDashboard() {
     setShowBeerModal(false);
     setCatalogBump((n) => n + 1); // tell BeerCatalog to refetch
   };
+
+  // Show loading while checking authentication
+  if (loading) {
+    return <LoadingScreen message="Authenticating..." />;
+  }
+
+  // Show loading while fetching data
+  if (dataLoading) {
+    return <LoadingScreen message="Loading dashboard..." />;
+  }
+
+  // Redirect if not authorized
+  if (!isAuthorized) {
+    return <Navigate to="/login" replace />;
+  }
 
   return (
     <div className="min-h-screen w-full overflow-x-hidden bg-[#fff4e6] flex flex-col

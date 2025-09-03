@@ -31,46 +31,57 @@ export default function Login() {
     setErrorMessage('');
     setSuccessMessage('');
 
+    console.log('Login attempt started');
+
     const { data, error } = await supabase.auth.signInWithPassword({
       email: formData.email,
       password: formData.password,
     });
 
     if (error) {
-      console.error(error);
+      console.error('Supabase login error:', error);
       setErrorMessage('Login failed: ' + error.message);
       return;
     }
 
     const session = data?.session;
     if (!session) {
+      console.error('No session returned from Supabase');
       setErrorMessage('No session returned');
       return;
     }
+
+    console.log('Supabase login successful, session:', session.user.id);
 
     try {
       const token = session.access_token;
       const userId = session.user.id;
 
+      console.log('Fetching user role from backend...');
       const res = await axios.get(`${BASE_URL}/api/user/me`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
       const { role } = res.data;
+      console.log('User role from backend:', role);
 
       if (role === 'brewer') {
         // Store as brewer_id for brewer-specific pages
         localStorage.setItem('brewer_id', userId);
         localStorage.setItem('user_role', 'brewer');
+        console.log('Stored brewer credentials, navigating to dashboard...');
+        
         navigate(`/brewer/dashboard/${userId}`, { replace: true });
       } else {
         // Store as user_id for regular user pages  
         localStorage.setItem('user_id', userId);
         localStorage.setItem('user_role', 'user');
+        console.log('Stored user credentials, navigating to dashboard...');
+        
         navigate(`/user/dashboard/${userId}`, { replace: true });
       }
     } catch (e) {
-      console.error(e);
+      console.error('Error fetching user role:', e);
       setErrorMessage('Unable to fetch user role. Please try again.');
     }
   };

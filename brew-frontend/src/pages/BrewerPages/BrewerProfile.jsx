@@ -2,16 +2,17 @@ import { useEffect, useState } from 'react';
 import { useParams, Navigate, useNavigate } from 'react-router-dom';
 import BrewerHeader from '../../components/brewer/BrewerHeader.jsx';
 import BreweryCard from '../../components/brewer/BreweryCard.jsx';
+import LoadingScreen from '../../components/LoadingScreen.jsx';
+import { useBrewerContext } from '../../context/BrewerContext';
 import supabase from '../../supabaseClient.js';
 import axios from 'axios';
 
 export default function BrewerProfile() {
   const { brewerId: urlBrewerId } = useParams();
   const navigate = useNavigate();
+  const { brewerId, token, isAuthenticated, loading, isAuthorizedFor } = useBrewerContext();
 
-  const [loading, setLoading] = useState(true);
-  const [isAuthorized, setIsAuthorized] = useState(false);
-  const [token, setToken] = useState('');
+  const [dataLoading, setDataLoading] = useState(true);
   const [status, setStatus] = useState({ hasBrewery: false, brewery: null });
   const [profile, setProfile] = useState({
     username: '',
@@ -22,47 +23,28 @@ export default function BrewerProfile() {
 
   const BASE_URL = import.meta.env.VITE_BACKEND_URL;
 
+  // Check authorization
+  const isAuthorized = isAuthorizedFor(urlBrewerId);
+
   useEffect(() => {
-    const init = async () => {
+    if (!isAuthorized || !token) return;
+
+    const fetchProfileData = async () => {
+      setDataLoading(true);
       try {
         const { data: { session } } = await supabase.auth.getSession();
 
-        if (!session) {
-          setLoading(false);
-          setIsAuthorized(false);
-          return;
-        }
+        // Get basic profile info from session
+        const email = session?.user?.email || '';
+        const createdAt = session?.user?.created_at || '';
 
-        const accessToken = session.access_token;
-        const sessionUserId = session.user.id;
-        const userRole = localStorage.getItem('user_role');
-        const storedBrewerId = localStorage.getItem('brewer_id');
-
-        const isValidBrewer =
-          userRole === 'brewer' &&
-          urlBrewerId === sessionUserId &&
-          storedBrewerId === sessionUserId;
-
-        if (!isValidBrewer) {
-          setLoading(false);
-          setIsAuthorized(false);
-          return;
-        }
-
-        setIsAuthorized(true);
-        setToken(accessToken);
-
-        // email + created_at from Supabase session
-        const email = session.user.email || '';
-        const createdAt = session.user.created_at || '';
-
-        // username/role from backend (/api/user/me)
-        let username = session.user.user_metadata?.username || '';
+        // Get username/role from backend
+        let username = session?.user?.user_metadata?.username || '';
         let role = 'brewer';
 
         try {
           const { data } = await axios.get(`${BASE_URL}/api/user/me`, {
-            headers: { Authorization: `Bearer ${accessToken}` },
+            headers: { Authorization: `Bearer ${token}` },
           });
           if (data?.username) username = data.username;
           if (data?.role) role = data.role;
@@ -77,11 +59,11 @@ export default function BrewerProfile() {
           role,
         });
 
-        // Brewery status
+        // Fetch brewery status
         try {
           const { data: brewerStatus } = await axios.get(
             `${BASE_URL}/api/brewer/breweries/status`,
-            { headers: { Authorization: `Bearer ${accessToken}` } }
+            { headers: { Authorization: `Bearer ${token}` } }
           );
           setStatus(brewerStatus);
         } catch (e) {
@@ -91,12 +73,12 @@ export default function BrewerProfile() {
       } catch (e) {
         console.error('Failed to initialize brewer profile:', e);
       } finally {
-        setLoading(false);
+        setDataLoading(false);
       }
     };
 
-    init();
-  }, [BASE_URL, urlBrewerId]);
+    fetchProfileData();
+  }, [BASE_URL, urlBrewerId, isAuthorized, token]);
 
   const handleLogout = async () => {
     try {
@@ -111,14 +93,17 @@ export default function BrewerProfile() {
     }
   };
 
+  // Show loading while checking authentication
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-amber-900"></div>
-      </div>
-    );
+    return <LoadingScreen message="Authenticating..." />;
   }
 
+  // Show loading while fetching profile data
+  if (dataLoading) {
+    return <LoadingScreen message="Loading profile..." />;
+  }
+
+  // Redirect if not authorized
   if (!isAuthorized) {
     return <Navigate to="/login" replace />;
   }
@@ -167,7 +152,7 @@ export default function BrewerProfile() {
               />
               <ReadOnlyField
                 label="Brewery Name"
-                value={(status?.hasBrewery && status?.brewery?.name) ? status.brewery.name : '—'}
+                value={(status?.hasBrewery && status?.brewery?.breweryName) ? status.brewery.breweryName : '—'}
                 className="sm:col-span-2"
               />
             </div>
@@ -183,7 +168,7 @@ export default function BrewerProfile() {
             <div className="text-center">
               <h3 className="text-xl font-semibold text-amber-900 mb-2">No Brewery Created</h3>
               <p className="text-gray-600 mb-4">
-                You haven’t created a brewery yet. Head to your dashboard to get started!
+                You haven't created a brewery yet. Head to your dashboard to get started!
               </p>
               <a
                 href={`/brewer/dashboard/${urlBrewerId}`}
