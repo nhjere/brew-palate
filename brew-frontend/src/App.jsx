@@ -32,7 +32,7 @@ function App() {
           <Route path="/user/find-breweries" element={<FindBreweries />} />
           <Route path="/brewery/:breweryId" element={<BreweryPage />} />
           
-          {/* Brewer routes - wrapped in BrewerProvider and using consistent parameter names */}
+          {/* Brewer routes */}
           <Route path="/brewer/*" element={
             <BrewerProvider>
               <Routes>

@@ -9,13 +9,11 @@ import com.codewithneal.brew_backend.brewer.model.Brewery;
 import com.codewithneal.brew_backend.brewer.repository.BreweryRepository;
 import com.codewithneal.brew_backend.user.repository.UserRepository;
 
-
 import jakarta.validation.Valid;
 
 import com.codewithneal.brew_backend.user.model.User;
 import com.codewithneal.brew_backend.GeocodingService;
 import com.codewithneal.brew_backend.JwtService;
-import com.codewithneal.brew_backend.CsvReader.beers.BeerCsv;
 import com.codewithneal.brew_backend.CsvReader.beers.BeerCsvRepository;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.transaction.annotation.Transactional;

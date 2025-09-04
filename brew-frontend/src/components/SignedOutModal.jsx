@@ -110,7 +110,7 @@ export default function LogOut({ loginPath = "/login" }) {
 			<div className="text-center flex flex-col items-center">
 			<h2 className="text-xl font-semibold text-amber-900">Session Expired</h2>
 			<p className="mt-2 text-sm text-amber-900 max-w-xs">
-				For your security, your session has ended. Please sign in again to continue.
+				Your session has been signed out. Please log back in to continue.
 			</p>
 			<div className="mt-6 flex justify-center w-full">
 				<button
