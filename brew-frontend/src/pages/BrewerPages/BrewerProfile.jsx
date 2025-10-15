@@ -116,7 +116,7 @@ export default function BrewerProfile() {
       <BrewerHeader />
 
       <div className="w-full max-w-screen-md mx-auto px-4 py-6">
-        <div className="w-full bg-white rounded-2xl overflow-hidden border shadow-md transition-all p-6">
+        <div className="w-full bg-white rounded-2xl overflow-hidden border shadow-md transition-all p-4">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-4">
               <div className="h-14 w-14 rounded-full bg-amber-800 border border-orange-300 flex items-center justify-center text-white font-bold">
@@ -129,7 +129,7 @@ export default function BrewerProfile() {
             </div>
 
             <button
-              className="bg-white text-amber-800 border border-amber-300 px-4 py-2 rounded-xl font-semibold hover:bg-amber-50"
+              className="bg-white text-amber-800 border border-amber-300 rounded-xl font-semibold hover:bg-amber-50"
               onClick={handleLogout}
             >
               Log out

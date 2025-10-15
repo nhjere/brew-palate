@@ -8,6 +8,7 @@ import PastReviews from '../components/user/PastReviews.jsx';
 import BeerProximity from '../components/user/BeerProximity.jsx'
 import PanelShell from '../components/user/PanelShell.jsx';
 import RecCards from '../components/user/RecCards.jsx'
+import Friends from '../components/user/Friends.jsx'
 import beer_mug from "../assets/beer_mug.png";
 import supabase from '../supabaseClient.js';
 import { useBreweryMap } from '../context/BreweryContext.jsx';
@@ -250,7 +251,14 @@ return (
                     refreshRecs={refreshRecs} 
                 />
             </PanelShell>
-            
+
+            {/* <PanelShell id="reviews" title="Friends" capClass="max-h-60">
+                <Friends
+                    withShell={false}
+                    userId={userId} 
+                />
+            </PanelShell>
+             */}
 
         </aside>
 
