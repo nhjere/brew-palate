@@ -6,72 +6,8 @@ import avatar from '../../assets/avatar.svg'
 export default function Friends({ withShell = true, userId }) {
 
     const BASE_URL = import.meta.env.VITE_BACKEND_URL;
-    const [closeFriends, setCloseFriends] = useState([
-        {
-            id: 1,
-            name: 'Alex Thompson',
-            avatar: avatar,
-            mutualFriends: 12
-        },
-        {
-            id: 2,
-            name: 'Sarah Chen',
-            avatar: avatar,
-            mutualFriends: 8
-        },
-        {
-            id: 3,
-            name: 'Marcus Rodriguez',
-            avatar: avatar,
-            mutualFriends: 15
-        },
-        {
-            id: 4,
-            name: 'Emma Williams',
-            avatar: avatar,
-            mutualFriends: 6
-        },
-        {
-            id: 5,
-            name: 'James Wilson',
-            avatar: avatar,
-            mutualFriends: 10
-        }
-    ]);
+   
 
-    // useEffect(() => {
-    // if (!userId) return;
-
-    // async function fetchReviewsAndBeers() {
-    //     try {
-    //     const reviewsRes = await axios.get(`${BASE_URL}/api/user/reviews/user/${userId}`);
-    //     const reviews = reviewsRes.data;
-    //     setReviews(reviews);
-
-    //     const uniqueBeerIds = [...new Set(reviews.map(r => r.beerId))];
-    //     if (uniqueBeerIds.length === 0) {
-    //         setBeerMap({});
-    //         return;
-    //     }
-
-    //     const params = new URLSearchParams();
-    //     uniqueBeerIds.forEach(id => params.append('beerIds', id));
-
-    //     const beersRes = await axios.get(`${BASE_URL}/api/import/fetchById?${params.toString()}`);
-        
-    //     const beerMap = {};
-    //     beersRes.data.forEach(beer => {
-    //         beerMap[beer.beerId] = beer;
-    //     });
-
-    //     setBeerMap(beerMap);
-    //     } catch (err) {
-    //     console.error('Error fetching reviews or beers', err);
-    //     }
-    // }
-
-    // fetchReviewsAndBeers();
-    // }, [userId, refreshRecs]);
 
     if (!withShell) {
         return (

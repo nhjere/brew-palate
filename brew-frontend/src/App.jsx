@@ -11,9 +11,10 @@ import BrewerDashboard from './pages/BrewerPages/BrewerDashboard';
 import Analytics from './pages/BrewerPages/AnalyticsDash';
 import BrewerProfile from './pages/BrewerPages/BrewerProfile';
 import SignedOutModal from './components/SignedOutModal';
-
+import FriendsPage from './pages/FriendsPage'
 import { BreweryProvider } from './context/BreweryContext';
 import { BrewerProvider } from './context/BrewerContext';
+import Friends from './pages/practicepage';
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
           <Route path="/user/dashboard/:userId" element={<UserDashboard />} />
           <Route path="/user/profile/:userId" element={<UserProfile />} />
           <Route path="/user/find-breweries" element={<FindBreweries />} />
+          <Route path="/user/friends/:userId" element={<FriendsPage />} />
           <Route path="/brewery/:breweryId" element={<BreweryPage />} />
           
           {/* Brewer routes */}

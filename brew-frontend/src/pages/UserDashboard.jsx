@@ -78,6 +78,8 @@ export default function NewUserDash() {
         localStorage.setItem("user_id", user.id);
 
         const token = session.access_token;
+        localStorage.setItem("access_token", token);
+        
         try {
         const res = await axios.get(`${BASE_URL}/api/user/profile`, {
             headers: {
@@ -241,7 +243,6 @@ return (
                 onRefresh={(styles) => setCommittedStyles(styles)}
             />
             </PanelShell>
-
 
 
             <PanelShell id="reviews" title="Past Reviews" capClass="max-h-60">
