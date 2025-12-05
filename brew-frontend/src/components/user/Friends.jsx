@@ -6,8 +6,6 @@ import avatar from '../../assets/avatar.svg'
 export default function Friends({ withShell = true, userId }) {
 
     const BASE_URL = import.meta.env.VITE_BACKEND_URL;
-   
-
 
     if (!withShell) {
         return (

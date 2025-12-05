@@ -9,7 +9,7 @@ import org.springframework.data.repository.query.Param;
 
 import com.codewithneal.brew_backend.user.model.User;
 
-public interface UserProfileRepository extends JpaRepository<User, UUID> {
+public interface FriendRepository extends JpaRepository<User, UUID> {
 
     @Query(
         value = """

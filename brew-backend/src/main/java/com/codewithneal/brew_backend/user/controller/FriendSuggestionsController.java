@@ -1,7 +1,7 @@
 package com.codewithneal.brew_backend.user.controller;
 
-import com.codewithneal.brew_backend.user.dto.UserSuggestionDto;
-import com.codewithneal.brew_backend.user.service.UserSuggestionService;
+import com.codewithneal.brew_backend.user.dto.FriendSuggestionDto;
+import com.codewithneal.brew_backend.user.service.FriendSuggestionService;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -18,14 +18,14 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/user")
-public class UserSuggestionsController {
+public class FriendSuggestionsController {
 
-    private final UserSuggestionService userSuggest;
+    private final FriendSuggestionService userSuggest;
 
     @Value("${supabase.jwt.secret}")
     private String jwtSecret;
 
-    public UserSuggestionsController(UserSuggestionService userSuggest) {
+    public FriendSuggestionsController(FriendSuggestionService userSuggest) {
         this.userSuggest = userSuggest;
     }
 
@@ -60,7 +60,7 @@ public class UserSuggestionsController {
 
         // 3. Fetch suggestions from the service layer
         try {
-            List<UserSuggestionDto> suggestions = userSuggest.getSuggestions(currentUserId, limit);
+            List<FriendSuggestionDto> suggestions = userSuggest.getSuggestions(currentUserId, limit);
             return ResponseEntity.ok(suggestions);
         } catch (Exception e) {
             // Log if you have a logger, but keep response generic

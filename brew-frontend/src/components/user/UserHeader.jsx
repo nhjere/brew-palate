@@ -33,12 +33,12 @@ export default function NewHeader({ searchQ, setSearchQ }) {
                     About
                 </Link>
 
-                <Link
+                {/* <Link
                     to ={`/user/friends/${userId}`}
                     className="text-md font-medium !text-amber-900 hover:underline ml-10`"
                 >
                     Friends
-                </Link>
+                </Link> */}
 
                 <Search value={searchQ} onSearch={setSearchQ} />
 
