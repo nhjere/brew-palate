@@ -19,7 +19,7 @@ export default function NewHeader({ searchQ, setSearchQ }) {
             </Link>
 
             {/* Nav + Search */}
-            <div className="flex items-center space-x-6 flex-grow justify-center">
+            <div className="flex items-center space-x-6 flex-grow justify-right">
                 <Link
                     to={`/user/find-breweries`}
                     className="text-md font-medium !text-amber-900 hover:underline ml-10"
@@ -40,9 +40,14 @@ export default function NewHeader({ searchQ, setSearchQ }) {
                     Friends
                 </Link> */}
 
-                <Search value={searchQ} onSearch={setSearchQ} />
+                
 
             </div>
+
+            <div className='mr-4'>
+            <Search value={searchQ} onSearch={setSearchQ} />                
+            </div>
+
 
             {/* Avatar */}
             <Link to={`/user/profile/${userId}`} className="flex items-center mr-5 justify-center  space-x-3">
