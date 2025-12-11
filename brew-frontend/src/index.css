@@ -8,7 +8,7 @@
 
   color-scheme: light dark;
   color: rgba(131, 84, 84, 0.87);
-  background-color: #f5d2a4;
+  background-color: #6E7F99;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -128,4 +128,14 @@ button.star-button:hover {
   outline: none !important;
   box-shadow: none !important;
   border: none !important;
+}
+
+/* Hide scrollbar on ALL browsers */
+.no-scrollbar {
+  -ms-overflow-style: none !important; 
+  scrollbar-width: none !important;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none !important;  
 }

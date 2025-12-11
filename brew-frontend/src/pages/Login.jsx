@@ -1,4 +1,4 @@
-import Header from '../components/Title';
+import Title from '../components/Title';
 import "../App.css";
 import React, { useState } from 'react';
 import axios from 'axios';
@@ -31,79 +31,74 @@ export default function Login() {
     setErrorMessage('');
     setSuccessMessage('');
 
-    console.log('Login attempt started');
-
     const { data, error } = await supabase.auth.signInWithPassword({
       email: formData.email,
       password: formData.password,
     });
 
     if (error) {
-      console.error('Supabase login error:', error);
       setErrorMessage('Login failed: ' + error.message);
       return;
     }
 
     const session = data?.session;
     if (!session) {
-      console.error('No session returned from Supabase');
       setErrorMessage('No session returned');
       return;
     }
-
-    console.log('Supabase login successful, session:', session.user.id);
 
     try {
       const token = session.access_token;
       const userId = session.user.id;
 
-      console.log('Fetching user role from backend...');
       const res = await axios.get(`${BASE_URL}/api/user/me`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
       const { role } = res.data;
-      console.log('User role from backend:', role);
 
       if (role === 'brewer') {
-        // Store as brewer_id for brewer-specific pages
         localStorage.setItem('brewer_id', userId);
         localStorage.setItem('user_role', 'brewer');
-        console.log('Stored brewer credentials, navigating to dashboard...');
-        
         navigate(`/brewer/dashboard/${userId}`, { replace: true });
       } else {
-        // Store as user_id for regular user pages  
         localStorage.setItem('user_id', userId);
         localStorage.setItem('user_role', 'user');
-        console.log('Stored user credentials, navigating to dashboard...');
-        
         navigate(`/user/dashboard/${userId}`, { replace: true });
       }
     } catch (e) {
-      console.error('Error fetching user role:', e);
       setErrorMessage('Unable to fetch user role. Please try again.');
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#fff4e6] flex flex-col items-center justify-center px-4">
-      <div className="text-center mb-10">
-        <Header />
-        <p className="text-md text-amber-800">
-          Discover and review the best craft beers near you!
+    <div className="min-h-screen bg-white flex flex-col items-center justify-center px-4 py-10">
+      
+      {/* Title */}
+      <div className="text-center mb-5">
+        <Title />
+        <p className="text-lg font-semibold text-slate-600 ">
+          Discover craft breweries and beers near you!
         </p>
       </div>
 
-      <main className="w-full max-w-3xl p-2">
+      <main className="w-full max-w-3xl ">
         <div className="flex flex-col w-full">
-          <div className="w-full bg-white border border-gray-300 rounded-lg p-6 shadow-sm">
+          
+          {/* Card */}
+          <div className="w-full bg-[#f2f2f2] border border-slate-200  p-6 shadow-sm">
+            
+            {/* Heading */}
             <div className="flex justify-between items-start mb-4">
               <div className="text-left">
-                <h2 className="text-xl text-center text-amber-800 font-bold">Log in!</h2>
+                <h2 className="text-xl text-[#8C6F52] font-bold">Log In</h2>
+                <p className="text-xs text-slate-500 mt-1">
+                  Welcome back! Please enter your details.
+                </p>
               </div>
             </div>
 
+            {/* Messages */}
             {successMessage && (
               <div className="bg-green-100 border border-green-500 text-green-700 p-3 rounded text-center font-semibold mb-4">
                 {successMessage}
@@ -116,6 +111,7 @@ export default function Login() {
               </div>
             )}
 
+            {/* Form */}
             <form className="space-y-4" onSubmit={handleLogIn}>
               <input
                 type="email"
@@ -124,7 +120,11 @@ export default function Login() {
                 value={formData.email}
                 onChange={handleChange}
                 required
-                className="w-full p-2 rounded-md border border-gray-300 focus:outline-none focus:ring focus:border-amber-500"
+                className="
+                  w-full p-2 rounded-xl 
+                  border border-slate-300 bg-white 
+                  focus:outline-none focus:ring-2 focus:ring-[#3C547A]/40
+                "
               />
 
               <input
@@ -134,19 +134,30 @@ export default function Login() {
                 value={formData.password}
                 onChange={handleChange}
                 required
-                className="w-full p-2 rounded-md border border-gray-300 focus:outline-none focus:ring focus:border-amber-500"
+                className="
+                  w-full p-2 rounded-xl 
+                  border border-slate-300 bg-white 
+                  focus:outline-none focus:ring-2 focus:ring-[#3C547A]/40
+                "
               />
 
               <button
                 type="submit"
-                className="w-full bg-blue-200 text-black font-bold py-2 px-4 rounded-md hover:bg-blue-300 transition"
+                className="
+                  w-full bg-[#3C547A] text-white 
+                  font-semibold py-2 px-4 rounded-full
+                  hover:bg-[#314466] transition
+                "
               >
                 Log In
               </button>
 
-              <div className="text-sm text-center pt-2">
+              <div className="text-sm text-center pt-2 text-slate-700">
                 Don't have an account?
-                <Link to="/register" className="text-amber-700 ml-3 font-semibold transition">
+                <Link 
+                  to="/register" 
+                  className="text-[#8C6F52] ml-2 font-semibold hover:underline"
+                >
                   Register
                 </Link>
               </div>

@@ -108,7 +108,7 @@ export default function Search({ value, onSearch }) {
         }}
         className={`
           flex items-center overflow-hidden rounded-full border border-transparent
-             bg-[#fff4e6]
+             bg-[#ffffff]
           transition-all duration-200 ease-out
           focus:outline-none focus:ring-0
           ${expanded ? "w-[24rem] max-w-[80vw] px-3 py-1.5" : "w-10 h-10 justify-center"}
@@ -120,7 +120,7 @@ export default function Search({ value, onSearch }) {
           alt="Search beers"
           className={`
             h-4 w-10 shrink-0
-            ${expanded ? "m-2" : ""}
+
           `}
         />
 
@@ -154,10 +154,10 @@ export default function Search({ value, onSearch }) {
                 closeSearchIfEmpty();
               }
             }}
-            placeholder="Search beers… (not functional)"
+            placeholder="Search beers… (not functional yet)"
             className="
               w-full bg-transparent text-sm
-              text-[#8B4513] placeholder:text-[#9F9F9F]
+              text-[#8C6F52] placeholder:text-[#8C6F52]
               focus:outline-none focus:ring-0
             "
             aria-label="Search beers"
@@ -166,7 +166,7 @@ export default function Search({ value, onSearch }) {
             aria-controls="bp-search-list"
           />
 
-          <button
+          {/* <button
             type="button"
             onClick={() => {
               if (local.trim()) {
@@ -178,10 +178,10 @@ export default function Search({ value, onSearch }) {
                 setExpanded(false);
               }
             }}
-            className="ml-2 text-xs font-medium text-[#A45A23] hover:text-[#7A3B06]"
+            className="ml-2 text-xs font-medium text-[#6E7F99] hover:text-[#445A7D]"
           >
             {local.trim() ? "Clear" : "Close"}
-          </button>
+          </button> */}
         </div>
       </div>
 
