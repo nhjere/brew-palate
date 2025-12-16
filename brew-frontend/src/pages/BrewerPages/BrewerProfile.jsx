@@ -23,7 +23,6 @@ export default function BrewerProfile() {
 
   const BASE_URL = import.meta.env.VITE_BACKEND_URL;
 
-  // Check authorization
   const isAuthorized = isAuthorizedFor(urlBrewerId);
 
   useEffect(() => {
@@ -34,11 +33,9 @@ export default function BrewerProfile() {
       try {
         const { data: { session } } = await supabase.auth.getSession();
 
-        // Get basic profile info from session
         const email = session?.user?.email || '';
         const createdAt = session?.user?.created_at || '';
 
-        // Get username/role from backend
         let username = session?.user?.user_metadata?.username || '';
         let role = 'brewer';
 
@@ -59,7 +56,6 @@ export default function BrewerProfile() {
           role,
         });
 
-        // Fetch brewery status
         try {
           const { data: brewerStatus } = await axios.get(
             `${BASE_URL}/api/brewer/breweries/status`,
@@ -93,86 +89,89 @@ export default function BrewerProfile() {
     }
   };
 
-  // Show loading while checking authentication
-  if (loading) {
-    return <LoadingScreen message="Authenticating..." />;
-  }
-
-  // Show loading while fetching profile data
-  if (dataLoading) {
-    return <LoadingScreen message="Loading profile..." />;
-  }
-
-  // Redirect if not authorized
-  if (!isAuthorized) {
-    return <Navigate to="/login" replace />;
-  }
+  if (loading) return <LoadingScreen message="Authenticating..." />;
+  if (dataLoading) return <LoadingScreen message="Loading profile..." />;
+  if (!isAuthorized) return <Navigate to="/login" replace />;
 
   const avatarLetter =
     (profile.username?.[0] || profile.email?.[0] || 'B').toUpperCase();
 
   return (
-    <div className="min-h-screen bg-[#fff4e6] flex flex-col pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
+    <div className="min-h-screen bg-white flex flex-col pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
       <BrewerHeader />
 
       <div className="w-full max-w-screen-md mx-auto px-4 py-6">
-        <div className="w-full bg-white rounded-2xl overflow-hidden border shadow-md transition-all p-4">
+        {/* Profile card */}
+        <div className="w-full bg-[#f2f2f2] overflow-hidden border border-slate-200 shadow-sm transition-all p-6">
+          {/* Header row */}
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-4">
-              <div className="h-14 w-14 rounded-full bg-amber-800 border border-orange-300 flex items-center justify-center text-white font-bold">
+              <div className="h-14 w-14 rounded-full bg-[#3C547A] border border-[#8C6F52]/30 flex items-center justify-center text-white font-bold">
                 {avatarLetter}
               </div>
               <div>
-                <h2 className="text-xl font-bold text-amber-900">Brewer Profile</h2>
-                <p className="text-xs text-amber-800">Manage your brewery account details</p>
+                <h2 className="text-xl font-bold text-[#8C6F52]">Brewer Profile</h2>
+                <p className="text-xs text-slate-500">
+                  Manage your brewery account details.
+                </p>
               </div>
             </div>
 
             <button
-              className="bg-white text-amber-800 border border-amber-300 rounded-xl font-semibold hover:bg-amber-50"
+              className="bg-white text-[#8C6F52] border border-[#8C6F52]/40 px-4 py-2 rounded-xl font-semibold hover:bg-[#dbdbdb] transition-colors text-sm"
               onClick={handleLogout}
             >
               Log out
             </button>
           </div>
 
-          <div className="space-y-4 text-amber-900">
+          {/* Fields */}
+          <div className="space-y-4 text-slate-900">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <ReadOnlyField label="Username" value={profile.username || '—'} />
               <ReadOnlyField label="Email" value={profile.email || '—'} />
               <ReadOnlyField
                 label="Account Type"
-                value={<span className="">
-                  {profile.role === 'brewer' ? 'Brewer' : profile.role || '—'}
-                </span>}
+                value={profile.role === 'brewer' ? 'Brewer' : profile.role || '—'}
               />
               <ReadOnlyField
                 label="Member Since"
-                value={profile.created_at ? new Date(profile.created_at).toLocaleDateString() : '—'}
+                value={
+                  profile.created_at
+                    ? new Date(profile.created_at).toLocaleDateString()
+                    : '—'
+                }
               />
-              <ReadOnlyField
+              {/* <ReadOnlyField
                 label="Brewery Name"
-                value={(status?.hasBrewery && status?.brewery?.breweryName) ? status.brewery.breweryName : '—'}
+                value={
+                  status?.hasBrewery && status?.brewery?.breweryName
+                    ? status.brewery.breweryName
+                    : '—'
+                }
                 className="sm:col-span-2"
-              />
+              /> */}
             </div>
           </div>
         </div>
 
+        {/* Brewery details card */}
         {status.hasBrewery && status.brewery ? (
-          <section className="w-full bg-white p-4 mt-4 rounded-2xl overflow-hidden border shadow-md transition-all">
+          <section className="mt-4">
             <BreweryCard brewery={status.brewery} token={token} />
           </section>
         ) : (
-          <section className="w-full bg-white p-6 mt-4 rounded-2xl overflow-hidden border shadow-md">
+          <section className="w-full bg-[#f2f2f2] p-6 mt-4 rounded-2xl overflow-hidden border border-slate-200 shadow-sm">
             <div className="text-center">
-              <h3 className="text-xl font-semibold text-amber-900 mb-2">No Brewery Created</h3>
-              <p className="text-gray-600 mb-4">
-                You haven't created a brewery yet. Head to your dashboard to get started!
+              <h3 className="text-xl font-semibold text-[#8C6F52] mb-2">
+                No Brewery Created
+              </h3>
+              <p className="text-slate-600 mb-4 text-sm">
+                You haven&apos;t created a brewery yet. Head to your dashboard to get started.
               </p>
               <a
                 href={`/brewer/dashboard/${urlBrewerId}`}
-                className="inline-block bg-blue-200 hover:bg-blue-300 text-black px-6 py-2 rounded-full font-semibold"
+                className="inline-block bg-[#3C547A] hover:bg-[#314466] text-white px-6 py-2 rounded-full font-semibold text-sm transition-colors"
               >
                 Go to Dashboard
               </a>
@@ -187,8 +186,8 @@ export default function BrewerProfile() {
 function ReadOnlyField({ label, value, className = '' }) {
   return (
     <div className={`space-y-1 ${className}`}>
-      <div className="text-xs font-semibold text-gray-500">{label}</div>
-      <div className="text-sm text-amber-800">
+      <div className="text-sm font-semibold text-slate-700">{label}</div>
+      <div className="bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900">
         {value}
       </div>
     </div>

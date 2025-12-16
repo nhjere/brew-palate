@@ -18,7 +18,7 @@ export default function NewHeader({ searchQ, setSearchQ }) {
                 <h1 className="text-4xl font-extrabold !text-[#8C6F52]">BrewPalate</h1>
             </Link>
 
-            {/* Nav + Search */}
+            {/* Pages */}
             <div className="flex items-center space-x-6 flex-grow justify-right">
                 <Link
                     to={`/user/find-breweries`}
@@ -27,10 +27,11 @@ export default function NewHeader({ searchQ, setSearchQ }) {
                     Find Breweries
                 </Link>
                 <Link
-                    to="/about"
-                    className="text-md font-medium !text-[#8C6F52] hover:underline ml-10`"
+                to="/about"
+                state={{ from: "user" }}
+                className="text-md font-medium !text-[#8C6F52] hover:underline ml-10`"
                 >
-                    About
+                About
                 </Link>
 
                 {/* <Link

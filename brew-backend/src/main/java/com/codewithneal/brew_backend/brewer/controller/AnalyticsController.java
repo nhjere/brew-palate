@@ -209,7 +209,7 @@ public class AnalyticsController {
             
             // FIXED for primitive int
             double avgRating = allReviews.stream()
-                .mapToInt(Review::getOverallEnjoyment)  // No null check needed
+                .mapToInt(Review::getOverallEnjoyment)
                 .average()
                 .orElse(0.0);
 

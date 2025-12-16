@@ -3,20 +3,25 @@ import { Link } from 'react-router-dom'
 
 export default function NoPage() {
   return (
-    <div className="bg-[#fff4e6] min-h-screen flex flex-col items-center justify-center text-center">
+    <div className="bg-white min-h-screen flex flex-col items-center justify-center px-6 text-center">
       <Title />
 
-      <div className="text-3xl text-amber-900 mt-6">
-        ERROR 404: No page found
+      <div className="mt-6 text-3xl text-[#3C547A]">
+        Error 404: Page Not Found
       </div>
+
 
       <Link
         to="/login"
-        className="mt-4 text-lg font-semibold text-amber-800 hover:underline"
+        className="
+          mt-6 inline-flex items-center justify-center
+          px-6 py-2.5 rounded-full
+          bg-[#3C547A] hover:bg-[#314466]
+          !text-white font-semibold transition-colors
+        "
       >
         Back to Login
       </Link>
     </div>
-  )
+  );
 }
-

@@ -10,126 +10,128 @@ import { useBrewerContext } from '../../context/BrewerContext';
 import axios from 'axios';
 
 export default function BrewerDashboard() {
-  const { brewerId: urlBrewerId } = useParams();
-  const { brewerId, token, isAuthenticated, loading, isAuthorizedFor } = useBrewerContext();
-  
-  const [showBeerModal, setShowBeerModal] = useState(false);
-  const [showBreweryModal, setShowBreweryModal] = useState(false);
-  const [status, setStatus] = useState({ hasBrewery: false, brewery: null });
-  const [refresh, setRefresh] = useState(false);
-  const [dataLoading, setDataLoading] = useState(true);
+    const { brewerId: urlBrewerId } = useParams();
+    const { brewerId, token, isAuthenticated, loading, isAuthorizedFor } = useBrewerContext();
 
-  //refresher for beer catalog
-  const [catalogBump, setCatalogBump] = useState(0);
+    const [showBeerModal, setShowBeerModal] = useState(false);
+    const [showBreweryModal, setShowBreweryModal] = useState(false);
+    const [status, setStatus] = useState({ hasBrewery: false, brewery: null });
+    const [refresh, setRefresh] = useState(false);
+    const [dataLoading, setDataLoading] = useState(true);
 
-  const BASE_URL = import.meta.env.VITE_BACKEND_URL;
+    //refresher for beer catalog
+    const [catalogBump, setCatalogBump] = useState(0);
 
-  // Check authorization
-  const isAuthorized = isAuthorizedFor(urlBrewerId);
+    const BASE_URL = import.meta.env.VITE_BACKEND_URL;
 
-  // fetches status of brewery and its metadata
-  useEffect(() => {
-    if (!isAuthorized || !token) return;
+    // Check authorization
+    const isAuthorized = isAuthorizedFor(urlBrewerId);
 
-    const fetchBreweryStatus = async () => {
-      setDataLoading(true);
-      try {
-        const { data } = await axios.get(
-          `${BASE_URL}/api/brewer/breweries/status`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        setStatus(data);
-      } catch (e) {
-        console.error('Failed to fetch brewery status', e);
-        setStatus({ hasBrewery: false, brewery: null });
-      } finally {
-        setDataLoading(false);
-      }
+    // fetches status of brewery and its metadata
+    useEffect(() => {
+        if (!isAuthorized || !token) return;
+
+        const fetchBreweryStatus = async () => {
+        setDataLoading(true);
+        try {
+            const { data } = await axios.get(
+            `${BASE_URL}/api/brewer/breweries/status`,
+            { headers: { Authorization: `Bearer ${token}` } }
+            );
+            setStatus(data);
+        } catch (e) {
+            console.error('Failed to fetch brewery status', e);
+            setStatus({ hasBrewery: false, brewery: null });
+        } finally {
+            setDataLoading(false);
+        }
+        };
+
+        fetchBreweryStatus();
+    }, [BASE_URL, token, isAuthorized, refresh]);
+
+    const breweryUuid = useMemo(
+        () => status?.brewery?.breweryId || status?.brewery?.id || null,
+        [status]
+    );
+
+    const afterSave = () => setRefresh((p) => !p);
+
+    const afterBeerCreated = () => {
+        setShowBeerModal(false);
+        setCatalogBump((n) => n + 1); // tell BeerCatalog to refetch
     };
 
-    fetchBreweryStatus();
-  }, [BASE_URL, token, isAuthorized, refresh]);
+    // Show loading while checking authentication
+    if (loading) {
+        return <LoadingScreen message="Authenticating..." />;
+    }
 
-  const breweryUuid = useMemo(
-    () => status?.brewery?.breweryId || status?.brewery?.id || null,
-    [status]
-  );
+    // Show loading while fetching data
+    if (dataLoading) {
+        return <LoadingScreen message="Loading dashboard..." />;
+    }
 
-  const afterSave = () => setRefresh((p) => !p);
+    // Redirect if not authorized
+    if (!isAuthorized) {
+        return <Navigate to="/login" replace />;
+    }
 
-  const afterBeerCreated = () => {
-    setShowBeerModal(false);
-    setCatalogBump((n) => n + 1); // tell BeerCatalog to refetch
-  };
+    return (
+        <div className="min-h-screen w-full no-scrollbar overflow-x-hidden bg-white flex flex-col
+                        pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
+        <BrewerHeader />
 
-  // Show loading while checking authentication
-  if (loading) {
-    return <LoadingScreen message="Authenticating..." />;
-  }
+        <div className="flex flex-col gap-5 w-full p-5">
+            {/* Your Brewery */}
 
-  // Show loading while fetching data
-  if (dataLoading) {
-    return <LoadingScreen message="Loading dashboard..." />;
-  }
+            {status.hasBrewery && status.brewery ? (
 
-  // Redirect if not authorized
-  if (!isAuthorized) {
-    return <Navigate to="/login" replace />;
-  }
+                <BreweryCard brewery={status.brewery} token={token} onSaved={afterSave} />
 
-  return (
-    <div className="min-h-screen w-full overflow-x-hidden bg-[#fff4e6] flex flex-col
-                    pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
-      <BrewerHeader />
-
-      <div className="flex flex-col gap-5 w-full p-5">
-        {/* Your Brewery */}
-        <section className="w-full bg-white p-4 rounded-2xl overflow-hidden border shadow-md transition-all">
-          {status.hasBrewery && status.brewery ? (
-            <div className="flex items-start justify-between gap-4">
-              <BreweryCard brewery={status.brewery} token={token} onSaved={afterSave} />
-            </div>
-          ) : (
-            <div className="flex items-center justify-between">
-              <p className="text-amber-900 italic font-semibold">
-                Create a Brewery to begin adding / removing beers
+            ) : (
+                
+            <div className="flex items-center justify-between gap-4">
+              <p className="text-sm md:text-base text-[#6E7F99] italic font-medium">
+                Create a brewery profile to start adding and managing your beers.
               </p>
               <button
-                className="bg-blue-200 hover:bg-blue-300 text-black px-4 py-1 rounded-full font-semibold"
+                className="bg-[#3C547A] hover:bg-[#314466] text-white px-4 py-2 rounded-full
+                           text-sm font-semibold transition-colors"
                 onClick={() => setShowBreweryModal(true)}
               >
                 Create My Brewery
               </button>
             </div>
-          )}
-        </section>
+            )}
 
-        <BeerCatalog
-          token={token}
-          baseUrl={BASE_URL}
-          hasBrewery={Boolean(status.hasBrewery && status.brewery)}
-          breweryUuid={breweryUuid}
-          onAddBeer={() => setShowBeerModal(true)}
-          refreshToken={catalogBump}
-        />
-      </div>
 
-      {showBeerModal && (
-        <BeerModal
-          breweryId={breweryUuid}
-          token={token}
-          onClose={() => setShowBeerModal(false)}
-          onReviewSubmit={afterBeerCreated}
-        />
-      )}
+            <BeerCatalog
+            token={token}
+            baseUrl={BASE_URL}
+            hasBrewery={Boolean(status.hasBrewery && status.brewery)}
+            breweryUuid={breweryUuid}
+            onAddBeer={() => setShowBeerModal(true)}
+            refreshToken={catalogBump}
+            />
+        </div>
 
-      {showBreweryModal && (
-        <BreweryModal
-          onClose={() => setShowBreweryModal(false)}
-          onSaved={afterSave}
-          existingBrewery={status.brewery}
-        />
-      )}
-    </div>
-  );
+        {showBeerModal && (
+            <BeerModal
+            breweryId={breweryUuid}
+            token={token}
+            onClose={() => setShowBeerModal(false)}
+            onReviewSubmit={afterBeerCreated}
+            />
+        )}
+
+        {showBreweryModal && (
+            <BreweryModal
+            onClose={() => setShowBreweryModal(false)}
+            onSaved={afterSave}
+            existingBrewery={status.brewery}
+            />
+        )}
+        </div>
+    );
 }

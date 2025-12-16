@@ -99,7 +99,7 @@ export default function FindBreweries() {
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 px-4 md:px-8 pb-8 mt-4">
         {/* MAP SIDE */}
         <section className="lg:col-span-3 w-full bg-[#f2f2f2] p-4 md:p-5 overflow-hidden border border-slate-200 shadow-sm transition-all">
-          <h2 className="text-xl text-[#8C6F52] font-semibold not-even:uppercase  mb-3">Brewery Map</h2>
+          <h2 className="text-xl text-[#8C6F52] font-semibold  mb-3">Brewery Map</h2>
           {mapCenter && (
             <div className="overflow-hidden rounded-xl ring-1 ring-[#3C547A]/25">
               <BreweryMap breweries={filteredBreweries} center={mapCenter} />
@@ -109,7 +109,7 @@ export default function FindBreweries() {
 
         {/* LIST SIDE */}
         <section className="lg:col-span-2 bg-[#f2f2f2] p-4 md:p-5 overflow-hidden border border-slate-200 shadow-sm transition-all flex flex-col">
-          <h2 className="text-xl text-[#8C6F52] font-semibold not-even:uppercase  mb-3">
+          <h2 className="text-xl text-[#8C6F52] font-semibold  mb-3">
             Nearby Breweries
           </h2>
 
