@@ -62,6 +62,9 @@ export default function NewUserDash() {
     const [searchResults, setSearchResults] = useState([]);
     const [searchMode, setSearchMode] = useState(false);
 
+    // Guest hooks
+    const [isGuest, setIsGuest] = useState(false);
+
     const BASE_URL = import.meta.env.VITE_BACKEND_URL;
   
     // Fetch user and sets username using Supabase user ID
@@ -86,6 +89,9 @@ export default function NewUserDash() {
             Authorization: `Bearer ${token}`,
             },
         });
+
+        setIsGuest(!!res.data.isGuest);
+        localStorage.setItem("is_guest", String(!!res.data.isGuest));
 
         setUsername(res.data.username || '');
         setAddress(res.data.address || '');
@@ -297,7 +303,7 @@ return (
                     {beers.length > 0 ? (
                     beers.map((beer) => {
                         const brewery = breweryMap[beer.breweryUuid];
-                        console.log(brewery)
+                        // console.log(brewery)
                         return (
                         <div
                             key={beer.beerId}
@@ -347,6 +353,11 @@ return (
 
                                 <button
                                 onClick={() => {
+                                    if (isGuest) {
+                                        // show a simple prompt (toast/modal) instead of opening ReviewModal
+                                        alert("Create an account to post reviews and save your activity.");
+                                        return;
+                                    }
                                     setSelectedBeerId(beer.beerId);
                                     setShowReviewModal(true);
                                 }}

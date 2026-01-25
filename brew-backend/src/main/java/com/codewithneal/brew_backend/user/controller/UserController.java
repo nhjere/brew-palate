@@ -7,6 +7,8 @@ import com.codewithneal.brew_backend.user.service.UserService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import com.auth0.jwt.interfaces.DecodedJWT;
@@ -61,53 +63,65 @@ public class UserController {
 
     // login endpoint to return registration info (returns WHO I AM to login)
     @GetMapping("/me")
-    public ResponseEntity<?> me(@RequestHeader(value = "Authorization", required = false) String authHeader) {
+    public ResponseEntity<?> me(
+        @RequestHeader(value = "Authorization", required = false) String authHeader,
+        @RequestHeader(value = "X-BP-Guest", required = false) String guestHeader
+    ) {
         String token = extractBearerToken(authHeader);
-        if (token == null) return ResponseEntity.status(401).body(Map.of("error", "Missing or invalid Authorization header"));
+        if (token == null) {
+            return ResponseEntity.status(401).body(Map.of("error", "Missing or invalid Authorization header"));
+        }
 
         Optional<UUID> uid = verifyAndGetUserId(token);
-        if (uid.isEmpty()) return ResponseEntity.status(401).body(Map.of("error", "Invalid token"));
+        if (uid.isEmpty()) {
+            return ResponseEntity.status(401).body(Map.of("error", "Invalid token"));
+        }
 
-        Optional<User> userOpt = userService.getUserById(uid.get());
-        if (userOpt.isEmpty()) return ResponseEntity.status(404).body(Map.of("error", "User not found"));
+        boolean isGuest = "1".equals(guestHeader) || "true".equalsIgnoreCase(guestHeader);
 
-        User user = userOpt.get();
-        return ResponseEntity.ok(Map.of(
-            "userId", user.getUserId(),
-            "username", user.getUsername(),
-            "address", user.getAddress(),
-            "role", user.getRole()
-        ));
+        User user = userService.getOrCreateUser(uid.get(), isGuest);
+
+        HashMap<String, Object> resp = new HashMap<>();
+        resp.put("userId", user.getUserId());
+        resp.put("username", user.getUsername());
+        resp.put("address", user.getAddress());
+        resp.put("role", user.getRole());
+        resp.put("isGuest", user.getIsGuest());
+
+        return ResponseEntity.ok(resp);
     }
-    
+        
 
     // returns user data from backend (just username and address for now) when opening Userdashboard
     @GetMapping("/profile")
-    public ResponseEntity<?> getUserProfile(@RequestHeader("Authorization") String authHeader) {
-        String token = authHeader.replace("Bearer ", "");
+    public ResponseEntity<?> getUserProfile(
+        @RequestHeader(value = "Authorization", required = false) String authHeader,
+        @RequestHeader(value = "X-BP-Guest", required = false) String guestHeader
+    ) {
+        String token = extractBearerToken(authHeader);
+        if (token == null) {
+            return ResponseEntity.status(401).body(Map.of("error", "Missing or invalid Authorization header"));
+        }
 
-        try {
-            // Decode Supabase JWT token
-            DecodedJWT jwt = JWT.require(Algorithm.HMAC256(jwtSecret))
-                                .build()
-                                .verify(token);
-            String userId = jwt.getSubject(); // Supabase UID is in "sub"
-
-            // Fetch from DB using userId
-            Optional<User> userOpt = userService.getUserById(UUID.fromString(userId));
-            if (userOpt.isEmpty()) {
-                return ResponseEntity.status(404).body(Map.of("error", "User not found"));
-            }
-
-            User user = userOpt.get();
-            return ResponseEntity.ok(Map.of(
-                "username", user.getUsername(),
-                "address", user.getAddress()
-            ));
-        } catch (Exception e) {
+        Optional<UUID> uid = verifyAndGetUserId(token);
+        if (uid.isEmpty()) {
             return ResponseEntity.status(401).body(Map.of("error", "Invalid token"));
         }
+
+        boolean isGuest = "1".equals(guestHeader) || "true".equalsIgnoreCase(guestHeader);
+
+        User user = userService.getOrCreateUser(uid.get(), isGuest);
+
+        HashMap<String, Object> resp = new HashMap<>();
+        resp.put("username", user.getUsername());
+        resp.put("address", user.getAddress());
+        resp.put("role", user.getRole());
+        resp.put("isGuest", user.getIsGuest());
+
+        return ResponseEntity.ok(resp);
     }
+
+
 
     @PatchMapping("/profile/update")
     public ResponseEntity<?> updateUserProfile(
@@ -129,6 +143,12 @@ public class UserController {
             }
             
             User updatedUser = userOpt.get();
+
+            if (updatedUser.getIsGuest()) {
+                return ResponseEntity.status(403).body(Map.of(
+                    "error", "Guest users cannot update profile. Please create an account."
+                ));
+            }
 
             // conditionally update user fields
             if (updates.containsKey("username")) {
@@ -155,6 +175,8 @@ public class UserController {
             return ResponseEntity.status(401).body(Map.of("error", "Invalid token or update failed"));
         }
     }
+
+
 
 
     // UTILITY FUNCTIONS

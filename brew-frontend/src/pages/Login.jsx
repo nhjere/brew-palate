@@ -26,6 +26,47 @@ export default function Login() {
     }));
   };
 
+  const handleGuestLogin = async () => {
+    setErrorMessage('');
+    setSuccessMessage('');
+
+    const { data, error } = await supabase.auth.signInAnonymously();
+
+    if (error) {
+        setErrorMessage('Guest login failed: ' + error.message);
+        return;
+    }
+
+    const session = data?.session;
+    if (!session) {
+        setErrorMessage('No guest session returned');
+        return;
+    }
+
+    try {
+        const token = session.access_token;
+        const userId = session.user.id;
+
+        // Mark locally as guest right away (optional but useful)
+        localStorage.setItem('user_id', userId);
+        localStorage.setItem('user_role', 'user');
+        localStorage.setItem('is_guest', 'true');
+
+        // backend creates/returns a profile for this user
+        await axios.get(`${BASE_URL}/api/user/me`, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+            "X-BP-Guest": "1",
+        },
+        });
+
+        navigate(`/user/dashboard/${userId}`, { replace: true });
+    } catch (e) {
+        setErrorMessage('Unable to initialize guest account. Please try again.');
+    }
+    };
+
+
   const handleLogIn = async (e) => {
     e.preventDefault();
     setErrorMessage('');
@@ -161,6 +202,20 @@ export default function Login() {
                   Register
                 </Link>
               </div>
+
+              <button
+                type="button"
+                onClick={handleGuestLogin}
+                className="
+                    w-full bg-white text-[#3C547A]
+                    font-semibold py-2 px-4 rounded-full
+                    border border-[#3C547A]
+                    hover:bg-[#3C547A]/5 transition
+                "
+                >
+                Continue as Guest
+                </button>
+
             </form>
           </div>
         </div>

@@ -40,10 +40,31 @@ public class UserService {
         user.setUsername(dto.getUsername());
         user.setRole(dto.getRole());
         user.setAddress(dto.getAddress());
+        user.setIsGuest(false);
+
         // If you added new columns (e.g., hasBrewery/breweryId), leave defaults or set here
 
         return userRepo.save(user);
     }
+
+    public User getOrCreateUser(UUID userId, boolean isGuest) {
+        return userRepo.findById(userId).orElseGet(() -> {
+            User u = new User();
+            u.setUserId(userId);
+
+            // defaults
+            u.setRole("user");
+            u.setIsGuest(isGuest);
+
+            // optional: helps avoid null username in UI
+            if (isGuest) {
+                u.setUsername("guest-" + userId.toString().substring(0, 8));
+            }
+
+        return userRepo.save(u);
+    });
+    }
+
 
 
     // returns the user associated with a user_id

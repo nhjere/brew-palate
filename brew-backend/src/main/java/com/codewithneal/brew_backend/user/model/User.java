@@ -29,6 +29,10 @@ public class User {
     @Column(name = "brewery_id")
     private UUID breweryId; // nullable
 
+    @Column(name = "is_guest", nullable = false)
+    private boolean isGuest = false;
+
+
     // getters/setters
     public UUID getUserId() { return userId; }
     public void setUserId(UUID userId) { this.userId = userId; }
@@ -47,4 +51,7 @@ public class User {
 
     public UUID getBreweryId() { return breweryId; }
     public void setBreweryId(UUID breweryId) { this.breweryId = breweryId; }
+
+    public boolean getIsGuest() { return isGuest; }
+    public void setIsGuest(boolean isGuest) { this.isGuest = isGuest; }
 }
