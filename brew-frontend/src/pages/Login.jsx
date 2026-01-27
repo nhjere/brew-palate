@@ -193,28 +193,31 @@ export default function Login() {
                 Log In
               </button>
 
-              <div className="text-sm text-center pt-2 text-slate-700">
-                Don't have an account?
-                <Link 
-                  to="/register" 
-                  className="text-[#8C6F52] ml-2 font-semibold hover:underline"
-                >
-                  Register
-                </Link>
-              </div>
+     
+            <div className="text-sm text-center pt-2 text-slate-700">
+            Don't have an account?
+            <Link 
+                to="/register" 
+                className="text-[#8C6F52] ml-2 font-semibold hover:underline"
+            >
+                Register
+            </Link>
 
-              <button
+            <div className="mt-2">
+                <button
                 type="button"
                 onClick={handleGuestLogin}
                 className="
-                    w-full bg-white text-[#3C547A]
-                    font-semibold py-2 px-4 rounded-full
-                    border border-[#3C547A]
-                    hover:bg-[#3C547A]/5 transition
+                    text-xs
+                    text-slate-500
+                    hover:text-slate-600
+                    !border
                 "
                 >
-                Continue as Guest
+                Continue as guest
                 </button>
+            </div>
+            </div>
 
             </form>
           </div>
