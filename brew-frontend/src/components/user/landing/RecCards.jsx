@@ -61,7 +61,7 @@ export default function Recommendations({ userId, refreshRecs }) {
 
 
     return (
-    <section className="max-w-260">
+    <section className="w-full min-w-0">
         <div className="flex items-baseline gap-3 mb-4">
         <h2 className="text-2xl font-bold text-[#8C6F52]">
             Recommendations for you!
@@ -73,29 +73,23 @@ export default function Recommendations({ userId, refreshRecs }) {
         )}
         </div>
 
-        {error && (
-        <div className="rounded-md border border-red-200 bg-red-50 p-3 text-red-700">
-            Couldn’t load recommendations. Please try again.
-        </div>
+        {!error && beers.length > 0 && (
+            <div className="w-full min-w-0 overflow-x-auto no-scrollbar pb-3">
+            <div className="flex w-max gap-5">
+                {beers.map((beer) => (
+                <div key={beer.beerId} className="w-[20rem] shrink-0">
+                    <BeerCard
+                    beer={beer}
+                    brewery={breweryMap?.[beer.breweryUuid]}
+                    />
+                </div>
+                ))}
+            </div>
+            </div>
         )}
 
-        {!error && beers.length > 0 && (
-  <div className="space-y-2">
-
-    <div className="grid grid-flow-col auto-cols-[20rem] gap-5 overflow-x-auto no-scrollbar pb-3">
-      {beers.map((beer) => (
-        <BeerCard
-          key={beer.beerId}
-          beer={beer}
-          brewery={breweryMap?.[beer.breweryUuid]}
-        />
-      ))}
-    </div>
-  </div>
-)}
-
-            </section>
-    );
+    </section>
+     );
 
 
 function BeerCard({ beer, brewery }) {

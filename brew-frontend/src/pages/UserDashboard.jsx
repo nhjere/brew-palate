@@ -273,7 +273,7 @@ return (
         </aside>
 
         {/* Main Content */}
-            <main className="flex flex-col gap-5 w-full flex-grow">
+            <main className="flex flex-col gap-5 w-full flex-grow min-w-0">
             <div className="flex flex-row items-center justify-between">
             <h2 className="text-2xl font-bold text-[#8C6F52]">
                 Discover Beers
@@ -299,7 +299,7 @@ return (
                 </div>
 
                 {/* Beer Cards (underlay, but still clickable because overlay has pointer-events-none) */}
-                <div className="relative z-10 overflow-y-auto space-y-4 pr-1 pb-16 md:pb-4">
+                <div className="relative z-10 overflow-y-auto space-y-4 pr-1 pb-16 md:pb-4 min-w-0">
                     {beers.length > 0 ? (
                     beers.map((beer) => {
                         const brewery = breweryMap[beer.breweryUuid];
@@ -308,8 +308,7 @@ return (
                         <div
                             key={beer.beerId}
                             className="relative flex flex-col md:flex-row items-stretch
-                                    w-full bg-[#f2f2f2] shadow-md px-4 py-4 md:px-6 md:py-5 gap-4"
-                        >
+                                 w-full min-w-0 bg-[#f2f2f2] shadow-md px-4 py-4 md:px-6 md:py-5 gap-4" >
                             {/* RIGHT: Content */}
                             <div className="flex flex-1 flex-col justify-between">
                             {/* Top: Name + Brewery */}
@@ -403,9 +402,11 @@ return (
                     <span className="ml-1">&rarr;</span>
                 </button>
                 </div>
-                        
-                <RecCards userId={userId} refreshRecs={refreshRecs}/>
-            </main>
+                <div className="w-full"> 
+                    <RecCards userId={userId} refreshRecs={refreshRecs}/>
+                              
+                </div>        
+             </main>
         </div>
 
         {showReviewModal && (
