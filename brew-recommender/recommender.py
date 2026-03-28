@@ -19,8 +19,9 @@ engine = create_engine(f'postgresql+psycopg://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_
 
 def loadData():
     # SQL query to join and aggregate flavor tags into arrays
+    # Union bootstrapped and imported beers with their respective flavor tags
     query = """
-        SELECT 
+        SELECT
             bp.beer_id,
             bp.abv,
             bp.brewery_uuid,
@@ -29,8 +30,16 @@ def loadData():
             bp.ounces,
             bp.style,
             ARRAY_AGG(DISTINCT bft.flavor_tag) AS flavor_tag
-        FROM beer_pool bp
-        LEFT JOIN beer_flavor_tags bft ON bp.beer_id = bft.beer_id
+        FROM (
+            SELECT beer_id, abv, brewery_uuid, ibu, name, ounces, style FROM bootstrapped_beers
+            UNION ALL
+            SELECT beer_id, abv, brewery_uuid, ibu, name, ounces, style FROM imported_beers
+        ) bp
+        LEFT JOIN (
+            SELECT beer_id, flavor_tag FROM bootstrapped_beer_flavor_tags
+            UNION ALL
+            SELECT beer_id, flavor_tag FROM imported_beer_flavor_tags
+        ) bft ON bp.beer_id = bft.beer_id
         GROUP BY bp.beer_id, bp.abv, bp.brewery_uuid, bp.ibu, bp.name, bp.ounces, bp.style
     """
 
@@ -41,18 +50,15 @@ def loadData():
     beers_df["beer_id"] = beers_df["beer_id"].astype(str)
 
     # Load reviews from the database instead of CSV if you're ready
-    reviews_df = pd.read_sql("SELECT * FROM fake_reviews", engine)
+    reviews_df = pd.read_sql("SELECT * FROM user_reviews", engine)
     reviews_df.rename(columns={
         "user_id": "userId",
         "beer_id": "beerId",
         "overall_enjoyment": "overallEnjoyment",
-        "flavor_tags": "flavorTags",
-        "rating_profile": "ratingProfile"
     }, inplace=True)
 
     reviews_df["userId"] = reviews_df["userId"].astype(str)
     reviews_df["beerId"] = reviews_df["beerId"].astype(str)
-    reviews_df["flavorTags"] = reviews_df["flavorTags"].apply(ast.literal_eval)
 
     # Vectorize beers
     beer_vectors = vectorizeBeers(beers_df)

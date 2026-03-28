@@ -12,6 +12,7 @@ import httpx
 import uuid
 import os
 
+
 # CHANGE TO BASE_URL DEFINED IN ENV
 SPRING_BOOT_BASE_URL = os.getenv("SPRING_BOOT_BASE_URL")
 
