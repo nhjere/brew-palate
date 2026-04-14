@@ -66,6 +66,11 @@ Supabase handles auth. Frontend gets JWT from Supabase, sends it as `Authorizati
 - **Calls backend**: `GET /api/user/reviews/user/{user_id}` via httpx for live user reviews
 - **CORS**: Allows `https://*.vercel.app` and `http://localhost:5173`
 
+### IMPORTANT FOR CURRENT PLAN OF PROJECT
+- **Active Refactor Considerations**:
+  - Reference the 'Active Refactor' section in the `brew-recommender/CLAUDE.md` for an overview of current development goals.
+    - For even more details, reference `brew-recommender/docs/refactor-scope.md` 
+
 ## Database
 
 Shared PostgreSQL with PostGIS. Key application tables:
