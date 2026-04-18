@@ -19,28 +19,19 @@ engine = create_engine(f'postgresql+psycopg://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_
 
 def loadData():
     # SQL query to join and aggregate flavor tags into arrays
-    # Union bootstrapped and imported beers with their respective flavor tags
     query = """
         SELECT
-            bp.beer_id,
-            bp.abv,
-            bp.brewery_uuid,
-            bp.ibu,
-            bp.name,
-            bp.ounces,
-            bp.style,
+            bb.beer_id,
+            bb.abv,
+            bb.brewery_uuid,
+            bb.ibu,
+            bb.name,
+            bb.ounces,
+            bb.style,
             ARRAY_AGG(DISTINCT bft.flavor_tag) AS flavor_tag
-        FROM (
-            SELECT beer_id, abv, brewery_uuid, ibu, name, ounces, style FROM bootstrapped_beers
-            UNION ALL
-            SELECT beer_id, abv, brewery_uuid, ibu, name, ounces, style FROM imported_beers
-        ) bp
-        LEFT JOIN (
-            SELECT beer_id, flavor_tag FROM bootstrapped_beer_flavor_tags
-            UNION ALL
-            SELECT beer_id, flavor_tag FROM imported_beer_flavor_tags
-        ) bft ON bp.beer_id = bft.beer_id
-        GROUP BY bp.beer_id, bp.abv, bp.brewery_uuid, bp.ibu, bp.name, bp.ounces, bp.style
+        FROM bootstrapped_beers bb
+        LEFT JOIN bootstrapped_beer_flavor_tags bft ON bb.beer_id = bft.beer_id
+        GROUP BY bb.beer_id, bb.abv, bb.brewery_uuid, bb.ibu, bb.name, bb.ounces, bb.style
     """
 
     beers_df = pd.read_sql(query, engine)

@@ -73,7 +73,12 @@ export default function Recommendations({ userId, refreshRecs }) {
         )}
         </div>
 
-        {!error && beers.length > 0 && (
+        {error ? (
+            <div className="w-full rounded-lg border border-red-300 bg-red-50 px-5 py-4 text-red-700">
+                <p className="font-semibold">Unable to load recommendations</p>
+                <p className="mt-1 text-sm opacity-80">The recommendation service could not be reached. Please try again later.</p>
+            </div>
+        ) : beers.length > 0 && (
             <div className="w-full min-w-0 overflow-x-auto no-scrollbar pb-3">
             <div className="flex w-max gap-5">
                 {beers.map((beer) => (
