@@ -59,6 +59,8 @@ Migrating from TF-IDF + overallEnjoyment rating-based recommendations to a pairw
 - Add cold-start survey flow using curated macro beer brands (survey_beers table)
 - Modify `getProfileVector()` to weight by Elo scores instead of (or blended with) review ratings
 
+
+
 ## Conventions
 
 - Python 3.11+, no type: ignore comments — fix types properly

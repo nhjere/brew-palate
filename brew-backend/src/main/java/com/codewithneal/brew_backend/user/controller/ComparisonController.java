@@ -1,7 +1,12 @@
 package com.codewithneal.brew_backend.user.controller;
 
 import com.codewithneal.brew_backend.user.dto.UserComparisonDTO;
+import com.codewithneal.brew_backend.user.dto.UserEloScoreDTO;
+import com.codewithneal.brew_backend.user.dto.SurveyBeerDTO;
 import com.codewithneal.brew_backend.user.model.UserComparison;
+import com.codewithneal.brew_backend.user.model.UserEloScore;
+import com.codewithneal.brew_backend.user.model.SurveyBeer;
+import com.codewithneal.brew_backend.user.repository.SurveyBeerRepository;
 import com.codewithneal.brew_backend.user.service.ComparisonService;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -16,18 +21,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api")
 public class ComparisonController {
 
     private final ComparisonService comparisonService;
+    private final SurveyBeerRepository surveyBeerRepository;
 
     @Value("${supabase.jwt.secret}")
     private String jwtSecret;
 
-    public ComparisonController(ComparisonService comparisonService) {
+    public ComparisonController(ComparisonService comparisonService, SurveyBeerRepository surveyBeerRepository) {
         this.comparisonService = comparisonService;
+        this.surveyBeerRepository = surveyBeerRepository;
     }
 
     @PostMapping("/comparisons")
@@ -71,6 +79,32 @@ public class ComparisonController {
             "onboardingCompleted", completed,
             "userId", uid.get()
         ));
+    }
+
+    @GetMapping("/elo/{userId}")
+    public ResponseEntity<List<UserEloScoreDTO>> getEloScores(@PathVariable UUID userId) {
+        List<UserEloScore> scores = comparisonService.getEloScoresByUser(userId);
+        List<UserEloScoreDTO> dtos = scores.stream()
+            .map(s -> new UserEloScoreDTO(s.getUserId(), s.getBeerId(), s.getScore(), s.getComparisonCount()))
+            .collect(Collectors.toList());
+        return ResponseEntity.ok(dtos);
+    }
+
+    @PutMapping("/elo")
+    public ResponseEntity<?> updateEloScores(@RequestBody List<UserEloScoreDTO> scores) {
+        comparisonService.updateEloScores(scores);
+        return ResponseEntity.ok(Map.of("updated", scores.size()));
+    }
+
+    @GetMapping("/survey-beers")
+    public ResponseEntity<List<SurveyBeerDTO>> getSurveyBeers() {
+        List<SurveyBeer> beers = surveyBeerRepository.findAll();
+        List<SurveyBeerDTO> dtos = beers.stream()
+            .map(b -> new SurveyBeerDTO(
+                b.getSurveyBeerId(), b.getName(), b.getStyle(), b.getStyleFamily(),
+                b.getAbv(), b.getIbu(), b.getImageUrl(), b.getFlavorTags()))
+            .collect(Collectors.toList());
+        return ResponseEntity.ok(dtos);
     }
 
     private Optional<UUID> verifyAndGetUserId(String authHeader) {
