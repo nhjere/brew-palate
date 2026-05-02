@@ -56,10 +56,6 @@ def loadSurveyBeers(survey_beers_json: list[dict], reference_columns: list[str])
     return survey_df, survey_vectors
 
 
-def convertReviews(json_reviews):
-    return pd.DataFrame(json_reviews)
-
-
 ''' RECOMMENDER LOGIC '''
 
 

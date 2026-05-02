@@ -60,7 +60,7 @@ export default function Login() {
         },
         });
 
-        navigate(`/user/dashboard/${userId}`, { replace: true });
+        navigate(`/user/dashboard/${userId}?onboarding=1`, { replace: true });
     } catch (e) {
         setErrorMessage('Unable to initialize guest account. Please try again.');
     }

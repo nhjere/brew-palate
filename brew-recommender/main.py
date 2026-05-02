@@ -1,13 +1,13 @@
 import logging
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from typing import List
 from fastapi.responses import JSONResponse, FileResponse, HTMLResponse
 from starlette.middleware.cors import ALL_METHODS
 from classes import ReviewMinimalDTO, Beer, SurveyBeerDTO, ComparisonSubmission, MatchupResponse
 from recommender import (
     addDiversity, getPopularBeers, loadData, loadSurveyBeers,
-    getLiveRecommendations, serialize_beers, convertReviews, engine,
+    getLiveRecommendations, serialize_beers, engine,
 )
 from elo import (
     fetch_elo_scores, push_elo_scores, fetch_survey_beers,
@@ -126,8 +126,16 @@ async def getLiveRecs(user_id: uuid.UUID):
 # --- Comparison / matchup endpoints ---
 
 @app.get("/comparisons/next/{user_id}")
-async def getNextMatchup(user_id: uuid.UUID):
-    """Serve the next pair of survey beers for onboarding comparison."""
+async def getNextMatchup(
+    user_id: uuid.UUID,
+    skip: List[str] = Query(default=[]),
+):
+    """
+    Serve the next pair of survey beers for onboarding comparison.
+    `skip` accepts repeated query params, each a "<beerAId>:<beerBId>" pair the
+    client wants to exclude this session (e.g. "Too Difficult" skips that aren't
+    persisted to the comparisons table).
+    """
     if not survey_beers_list:
         raise HTTPException(status_code=503, detail="Survey beers not loaded")
 
@@ -136,6 +144,12 @@ async def getNextMatchup(user_id: uuid.UUID):
     # Get user's existing comparisons to avoid repeats
     comparisons = load_user_comparisons_from_db(engine, user_id_str)
     completed = get_completed_pairs(comparisons)
+
+    # Union in client-supplied session skips
+    for entry in skip:
+        parts = entry.split(":")
+        if len(parts) == 2:
+            completed.add(tuple(sorted([parts[0], parts[1]])))
 
     survey_ids = [str(b["surveyBeerId"]) for b in survey_beers_list]
     matchup = select_survey_matchup(survey_ids, completed)
