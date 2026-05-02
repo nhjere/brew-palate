@@ -2,11 +2,10 @@
 import pandas as pd
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
-from sklearn.feature_extraction.text import TfidfVectorizer
-import ast
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 import os
 from dotenv import load_dotenv
+from vectors import build_composite_vectors, build_survey_vectors
 
 load_dotenv()
 DB_USER = os.getenv("DB_USER")
@@ -17,75 +16,48 @@ DB_NAME = os.getenv("DB_NAME")
 
 engine = create_engine(f'postgresql+psycopg://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}')
 
+
 def loadData():
-    # SQL query to join and aggregate flavor tags into arrays
-    # Union bootstrapped and imported beers with their respective flavor tags
+    """Load craft beers from DB and build composite vectors."""
     query = """
         SELECT
-            bp.beer_id,
-            bp.abv,
-            bp.brewery_uuid,
-            bp.ibu,
-            bp.name,
-            bp.ounces,
-            bp.style,
+            bb.beer_id,
+            bb.abv,
+            bb.brewery_uuid,
+            bb.ibu,
+            bb.name,
+            bb.ounces,
+            bb.style,
             ARRAY_AGG(DISTINCT bft.flavor_tag) AS flavor_tag
-        FROM (
-            SELECT beer_id, abv, brewery_uuid, ibu, name, ounces, style FROM bootstrapped_beers
-            UNION ALL
-            SELECT beer_id, abv, brewery_uuid, ibu, name, ounces, style FROM imported_beers
-        ) bp
-        LEFT JOIN (
-            SELECT beer_id, flavor_tag FROM bootstrapped_beer_flavor_tags
-            UNION ALL
-            SELECT beer_id, flavor_tag FROM imported_beer_flavor_tags
-        ) bft ON bp.beer_id = bft.beer_id
-        GROUP BY bp.beer_id, bp.abv, bp.brewery_uuid, bp.ibu, bp.name, bp.ounces, bp.style
+        FROM bootstrapped_beers bb
+        LEFT JOIN bootstrapped_beer_flavor_tags bft ON bb.beer_id = bft.beer_id
+        GROUP BY bb.beer_id, bb.abv, bb.brewery_uuid, bb.ibu, bb.name, bb.ounces, bb.style
     """
 
     beers_df = pd.read_sql(query, engine)
-
-    # Optional: Clean up tags
-    beers_df["flavor_tag"] = beers_df["flavor_tag"].apply(lambda tags: [t for t in tags if t])
+    beers_df["flavor_tag"] = beers_df["flavor_tag"].apply(lambda tags: [t.lower() for t in tags if t])
     beers_df["beer_id"] = beers_df["beer_id"].astype(str)
 
-    # Load reviews from the database instead of CSV if you're ready
-    reviews_df = pd.read_sql("SELECT * FROM user_reviews", engine)
-    reviews_df.rename(columns={
-        "user_id": "userId",
-        "beer_id": "beerId",
-        "overall_enjoyment": "overallEnjoyment",
-    }, inplace=True)
+    # Build composite vectors (replaces TF-IDF)
+    beer_vectors = build_composite_vectors(beers_df)
 
-    reviews_df["userId"] = reviews_df["userId"].astype(str)
-    reviews_df["beerId"] = reviews_df["beerId"].astype(str)
+    return beers_df, beer_vectors
 
-    # Vectorize beers
-    beer_vectors = vectorizeBeers(beers_df)
 
-    return beers_df, reviews_df, beer_vectors
+def loadSurveyBeers(survey_beers_json: list[dict], reference_columns: list[str]) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """
+    Build a DataFrame and vectors for survey beers from the backend API response.
+    reference_columns: column names from the craft beer vector DataFrame for alignment.
+    """
+    survey_df = pd.DataFrame(survey_beers_json)
+    survey_df["surveyBeerId"] = survey_df["surveyBeerId"].astype(str)
 
-def convertReviews(json_reviews):
-    return pd.DataFrame(json_reviews)
+    survey_vectors = build_survey_vectors(survey_df, reference_columns)
+    return survey_df, survey_vectors
 
-def vectorizeBeers(beers_df):
-    # concatenates and vectorizes flavor tag fields for each beer
-    beers_df["tag_string"] = beers_df["flavor_tag"].apply(lambda tags: " ".join(tags))
-    vectorizer = TfidfVectorizer()
-    beer_tag_matrix = vectorizer.fit_transform(beers_df["tag_string"])
-    beer_vectors = pd.DataFrame(
-        beer_tag_matrix.toarray(),
-        index=beers_df["beer_id"],
-        columns=vectorizer.get_feature_names_out()
-    )
-
-    # manually down weight sessionable because it shows up too much
-    if "sessionable" in beer_vectors.columns:
-        beer_vectors["sessionable"] *= 0.2 
-
-    return beer_vectors
 
 ''' RECOMMENDER LOGIC '''
+
 
 def addDiversity(df, top_n=30, top_tag_ratio=0.7):
     selected = []
@@ -102,7 +74,6 @@ def addDiversity(df, top_n=30, top_tag_ratio=0.7):
     tag_total = len(sorted_tags)
     top_tags = [tag for tag, _ in sorted_tags[:max(1, tag_total // 5)]]
     rare_tags = [tag for tag, _ in sorted_tags[-max(1, tag_total // 4):]]
-
 
     # Choose beers with top tags (prioritize)
     for _, row in df.iterrows():
@@ -137,72 +108,111 @@ def addDiversity(df, top_n=30, top_tag_ratio=0.7):
 
     return pd.DataFrame(selected)
 
-def getPopularBeers(reviews_df, beers_df, num_recs):
-    min_reviews = 3
 
-    beer_stats = (
-        reviews_df.groupby("beerId")["overallEnjoyment"]
-        .agg(["mean", "count"])
-        .reset_index()
-        .rename(columns={"mean": "avg_rating", "count": "num_reviews"})
-    )
+def getPopularBeers(beers_df, num_recs):
+    """
+    Fallback for users with no comparisons and no reviews.
+    Returns a diverse set of beers sorted by style variety.
+    """
+    diverse = beers_df.drop_duplicates(subset="style", keep="first")
+    top_beers = diverse.head(num_recs) if len(diverse) >= num_recs else beers_df.head(num_recs)
+    return top_beers
 
-    popular_beers = beer_stats[beer_stats["num_reviews"] >= min_reviews]
-    merged = popular_beers.merge(beers_df, left_on="beerId", right_on="beer_id")
-    sorted_beers = merged.sort_values(by="avg_rating", ascending=False)
-    diverse = sorted_beers.drop_duplicates(subset="style", keep="first")
-    top_beers = diverse.head(num_recs) if len(diverse) >= num_recs else sorted_beers.head(num_recs)
 
-    return top_beers[[
-        "beer_id", "name", "style", "flavor_tag", "avg_rating", "num_reviews", "brewery_uuid", "abv", "ibu", "ounces"
-    ]]
+def getProfileVector(elo_scores: dict[str, float], all_vectors: pd.DataFrame) -> np.ndarray | None:
+    """
+    Build a user's taste profile vector from Elo-weighted beer vectors.
 
-def getProfileVector(user_reviews_df, beer_matrix, beer_ids):
-    
-    # Keep only liked beers (rating >= 4)
-    if user_reviews_df.empty or "overallEnjoyment" not in user_reviews_df.columns:
+    elo_scores: {beer_id_str: elo_score} from comparisons
+    all_vectors: DataFrame of composite vectors (craft + survey), indexed by beer_id
+
+    Beers with Elo > 1500 (baseline) pull the profile toward them.
+    Beers with Elo < 1500 push the profile away (negative signal).
+    """
+    if not elo_scores:
         return None
 
-    liked = user_reviews_df[user_reviews_df["overallEnjoyment"] >= 4][["beerId", "overallEnjoyment"]]
+    liked_vectors = []
+    liked_weights = []
+    disliked_vectors = []
+    disliked_weights = []
 
-    if liked.empty:
+    for beer_id, score in elo_scores.items():
+        if beer_id in all_vectors.index:
+            vec = all_vectors.loc[beer_id].values
+            deviation = score - DEFAULT_ELO
+            if deviation > 0:
+                liked_vectors.append(vec)
+                liked_weights.append(deviation)
+            elif deviation < 0:
+                disliked_vectors.append(vec)
+                disliked_weights.append(abs(deviation))
+
+    if not liked_vectors:
         return None
 
-    vectors = []
-    weights = []
+    # Build positive profile from liked beers
+    liked_arr = np.array(liked_vectors)
+    liked_w = np.array(liked_weights)
+    positive_profile = np.average(liked_arr, axis=0, weights=liked_w)
 
-    for _, row in liked.iterrows():
-        beer_id = row["beerId"]
-        if beer_id in beer_ids:
-            index = beer_ids.index(beer_id)
-            vectors.append(beer_matrix[index])
-            weights.append(row["overallEnjoyment"])
+    # Subtract disliked direction to push away from disliked beers
+    if disliked_vectors:
+        disliked_arr = np.array(disliked_vectors)
+        disliked_w = np.array(disliked_weights)
+        negative_profile = np.average(disliked_arr, axis=0, weights=disliked_w)
+        # Blend: positive signal dominant, negative signal as mild penalty
+        user_vector = positive_profile - 0.3 * negative_profile
+    else:
+        user_vector = positive_profile
 
-    if not vectors:
-        return None
-
-    user_vector = np.average(np.array(vectors), axis=0, weights=np.array(weights))
     norm = np.linalg.norm(user_vector)
     return user_vector / norm if norm > 0 else user_vector
 
 
-def getLiveRecommendations(user_id, reviews_df, beers_df, beer_vectors, user_reviews_df, num_recs=20):
-    beer_ids = beers_df["beer_id"].tolist()
-    user_profile = getProfileVector(user_reviews_df, beer_vectors.values, beer_ids)
+# Elo baseline — must match elo.py DEFAULT_ELO
+DEFAULT_ELO = 1500.0
 
-    # likely will have to change to reflect beer flavor tags chosen in initial user preference survey
+
+def getLiveRecommendations(
+    elo_scores: dict[str, float],
+    beers_df: pd.DataFrame,
+    beer_vectors: pd.DataFrame,
+    survey_vectors: pd.DataFrame | None = None,
+    num_recs: int = 20,
+) -> pd.DataFrame:
+    """
+    Generate recommendations using Elo-weighted profile vectors and cosine similarity.
+
+    elo_scores: {beer_id: score} from the user's comparison history
+    beer_vectors: composite vectors for craft beers
+    survey_vectors: composite vectors for survey beers (used in profile building)
+    """
+    # Combine craft + survey vectors for profile building
+    if survey_vectors is not None and not survey_vectors.empty:
+        all_vectors = pd.concat([beer_vectors, survey_vectors])
+    else:
+        all_vectors = beer_vectors
+
+    user_profile = getProfileVector(elo_scores, all_vectors)
+
     if user_profile is None:
-        print(f"[LiveRecs] No user vector, using popular fallback.")
-        popular_beers = getPopularBeers(reviews_df, beers_df, num_recs)
+        popular_beers = getPopularBeers(beers_df, num_recs)
         return addDiversity(popular_beers, top_n=num_recs)
 
+    # Score only against craft beers (not survey beers)
     similarity_scores = cosine_similarity([user_profile], beer_vectors.values)[0]
 
-    # Exclude beers already reviewed highly by this user
-    liked_beer_ids = user_reviews_df[user_reviews_df["overallEnjoyment"] >= 4]["beerId"].tolist()
-    liked_beer_indices = [i for i, bid in enumerate(beer_ids) if bid in liked_beer_ids]
+    # Exclude beers the user has already compared
+    beer_ids = beer_vectors.index.tolist()
+    compared_ids = set(elo_scores.keys())
+    # Only exclude craft beers that have been compared (survey beers aren't in beer_vectors)
+    compared_indices = {i for i, bid in enumerate(beer_ids) if bid in compared_ids}
 
-    recommended_indices = [i for i in similarity_scores.argsort()[::-1] if i not in liked_beer_indices]
+    recommended_indices = [
+        i for i in similarity_scores.argsort()[::-1]
+        if i not in compared_indices
+    ]
 
     top_n_indices = recommended_indices[:num_recs * 5]
     recommended_beer_ids = [beer_ids[i] for i in top_n_indices]
@@ -212,11 +222,13 @@ def getLiveRecommendations(user_id, reviews_df, beers_df, beer_vectors, user_rev
     diverse_recs = addDiversity(top_recs, top_n=num_recs)
     return diverse_recs
 
+
 def safe_float(val):
     try:
         return float(val)
     except (TypeError, ValueError):
         return None
+
 
 def serialize_beers(df):
     return [
@@ -232,4 +244,3 @@ def serialize_beers(df):
         }
         for _, row in df.fillna("").iterrows()
     ]
-

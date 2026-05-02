@@ -9,10 +9,11 @@ import BeerProximity from '../components/user/landing/BeerProximity.jsx'
 import PanelShell from '../components/user/landing/PanelShell.jsx';
 import RecCards from '../components/user/landing/RecCards.jsx'
 import Friends from '../components/user/Friends.jsx'
+import OnboardingModal from '../components/user/onboarding/OnboardingModal.jsx';
 import beer_mug from "../assets/beer_mug.png";
 import supabase from '../supabaseClient.js';
 import { useBreweryMap } from '../context/BreweryContext.jsx';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 
 export default function NewUserDash() {
@@ -64,6 +65,27 @@ export default function NewUserDash() {
 
     // Guest hooks
     const [isGuest, setIsGuest] = useState(false);
+
+    // Onboarding modal trigger via ?onboarding=1
+    const [searchParams, setSearchParams] = useSearchParams();
+    const [showOnboarding, setShowOnboarding] = useState(false);
+    useEffect(() => {
+        if (searchParams.get('onboarding') === '1') {
+            setShowOnboarding(true);
+        }
+    }, [searchParams]);
+
+    const closeOnboarding = () => {
+        setShowOnboarding(false);
+        // Always refresh recs on close — even partial picks update Elo scores
+        // and should be reflected immediately in RecCards.
+        setRefreshRecs((prev) => !prev);
+        if (searchParams.get('onboarding')) {
+            const next = new URLSearchParams(searchParams);
+            next.delete('onboarding');
+            setSearchParams(next, { replace: true });
+        }
+    };
 
     const BASE_URL = import.meta.env.VITE_BACKEND_URL;
   
@@ -414,6 +436,12 @@ return (
             beerId={selectedBeerId}
             onClose={() => setShowReviewModal(false)}
             onReviewSubmit={() => setRefreshRecs((prev) => !prev)}
+        />
+        )}
+
+        {showOnboarding && (
+        <OnboardingModal
+            onClose={closeOnboarding}
         />
         )}
 

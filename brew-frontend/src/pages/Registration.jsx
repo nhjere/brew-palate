@@ -3,11 +3,12 @@ import axios from 'axios';
 import Header from '../components/Title';
 import "../App.css";
 import supabase from '../supabaseClient';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 export default function Registration() {
 
   const BASE_URL = import.meta.env.VITE_BACKEND_URL;
+  const navigate = useNavigate();
 
   // useState manages form data
   const [formData, setFormData] = useState({
@@ -93,8 +94,16 @@ export default function Registration() {
 
       await axios.post(`${BASE_URL}/api/user/register`, metadata);
       console.log(metadata);
-      
+
       setSuccessMessage('Registration successful!');
+
+      // Newly registered users always go through the onboarding survey.
+      // The dashboard reads ?onboarding=1 and pops the modal. If supabase
+      // requires email confirmation there's no session yet — the modal's
+      // internal auth check will surface a sign-in prompt.
+      if (formData.role === 'user') {
+        navigate(`/user/dashboard/${userId}?onboarding=1`, { replace: true });
+      }
     } catch (err) {
       console.error("Metadata POST failed:", err);
 

@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { TagIcon } from '@heroicons/react/20/solid';
+import SurveyButton from '../onboarding/SurveyButton';
 
 export default function Recommendations({ userId, refreshRecs }) {
     const [beers, setBeers] = useState([]);
@@ -62,18 +63,26 @@ export default function Recommendations({ userId, refreshRecs }) {
 
     return (
     <section className="w-full min-w-0">
-        <div className="flex items-baseline gap-3 mb-4">
-        <h2 className="text-2xl font-bold text-[#8C6F52]">
-            Recommendations for you!
-        </h2>
-        {isFallback && (
-            <span className="text-center text-[#8C6F52]">
-            We are getting to know your taste so review some beers! Here are some starter picks:
-            </span>
-        )}
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <div className="flex items-baseline gap-3 flex-wrap">
+                <h2 className="text-2xl font-bold text-[#8C6F52]">
+                    Recommendations for you!
+                </h2>
+                {isFallback && (
+                    <span className="text-[#8C6F52]">
+                        Tell us about your taste to unlock personalized picks.
+                    </span>
+                )}
+            </div>
+            <SurveyButton userId={userId} variant="cta" />
         </div>
 
-        {!error && beers.length > 0 && (
+        {error ? (
+            <div className="w-full rounded-lg border border-red-300 bg-red-50 px-5 py-4 text-red-700">
+                <p className="font-semibold">Unable to load recommendations</p>
+                <p className="mt-1 text-sm opacity-80">The recommendation service could not be reached. Please try again later.</p>
+            </div>
+        ) : beers.length > 0 && (
             <div className="w-full min-w-0 overflow-x-auto no-scrollbar pb-3">
             <div className="flex w-max gap-5">
                 {beers.map((beer) => (
