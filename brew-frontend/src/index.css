@@ -132,10 +132,21 @@ button.star-button:hover {
 
 /* Hide scrollbar on ALL browsers */
 .no-scrollbar {
-  -ms-overflow-style: none !important; 
+  -ms-overflow-style: none !important;
   scrollbar-width: none !important;
 }
 
 .no-scrollbar::-webkit-scrollbar {
-  display: none !important;  
+  display: none !important;
+}
+
+/* Onboarding survey: rising-bubble animation inside the picked beer card */
+@keyframes bubbleRise {
+  0%   { transform: translateY(0);     opacity: 0.7; }
+  85%  {                                 opacity: 0.4; }
+  100% { transform: translateY(-320%); opacity: 0;   }
+}
+
+.bubble-rise {
+  animation: bubbleRise 1.4s ease-in infinite;
 }
