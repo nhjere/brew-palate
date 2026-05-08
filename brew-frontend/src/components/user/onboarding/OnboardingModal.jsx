@@ -4,6 +4,7 @@ import supabase from '../../../supabaseClient.js';
 import ComparisonCard from './ComparisonCard.jsx';
 
 const TARGET_ROUNDS = 8;
+const PICK_ANIMATION_MS = 800;
 
 export default function OnboardingModal({ onClose }) {
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
@@ -24,6 +25,29 @@ export default function OnboardingModal({ onClose }) {
   const [error, setError] = useState('');
 
   const fetchAbortRef = useRef(null);
+
+  // Pre-fetched next matchup so it's ready the moment the user picks.
+  // We always prefetch with the current matchup pair added to the skip list,
+  // so the prefetched response is guaranteed to be a different pair.
+  const [nextMatchup, setNextMatchup] = useState(null);
+  const prefetchPromiseRef = useRef(null);
+
+  
+  // Latest skippedPairs accessible to closures without re-creating callbacks
+  const skippedPairsRef = useRef(skippedPairs);
+  useEffect(() => { skippedPairsRef.current = skippedPairs; }, [skippedPairs]);
+
+  const pairKey = (m) => [m.beerA.surveyBeerId, m.beerB.surveyBeerId].sort().join(':');
+
+  const applyMatchupResp = (resp) => {
+    if (!resp) return;
+    if (resp.complete) {
+      setMatchup(null);
+      setComplete(true);
+    } else {
+      setMatchup({ beerA: resp.beerA, beerB: resp.beerB });
+    }
+  };
 
   // --- Auth bootstrap + seed roundIndex from prior survey comparisons ---
   useEffect(() => {
@@ -68,8 +92,22 @@ export default function OnboardingModal({ onClose }) {
     return () => { document.body.style.overflow = prev; };
   }, []);
 
-  // --- Fetch a matchup ---
-  const fetchNext = useCallback(async (skipsForCall) => {
+  // Low-level fetch — returns the raw response or throws.
+  const fetchMatchupData = useCallback(async (skipsArr, signal) => {
+    const res = await axios.get(`${REC_URL}/comparisons/next/${userId}`, {
+      signal,
+      params: { skip: skipsArr },
+      paramsSerializer: (p) => {
+        const usp = new URLSearchParams();
+        (p.skip || []).forEach((s) => usp.append('skip', s));
+        return usp.toString();
+      },
+    });
+    return res.data;
+  }, [REC_URL, userId]);
+
+  // Initial load — only used for the first matchup (no prefetch yet)
+  const loadInitial = useCallback(async () => {
     if (!userId) return;
     if (fetchAbortRef.current) fetchAbortRef.current.abort();
     const controller = new AbortController();
@@ -77,37 +115,81 @@ export default function OnboardingModal({ onClose }) {
 
     setLoading(true);
     setError('');
-
     try {
-      const res = await axios.get(`${REC_URL}/comparisons/next/${userId}`, {
-        signal: controller.signal,
-        params: { skip: Array.from(skipsForCall) },
-        paramsSerializer: (p) => {
-          const usp = new URLSearchParams();
-          (p.skip || []).forEach((s) => usp.append('skip', s));
-          return usp.toString();
-        },
-      });
-
-      if (res.data.complete) {
-        setMatchup(null);
-        setComplete(true);
-      } else {
-        setMatchup({ beerA: res.data.beerA, beerB: res.data.beerB });
-      }
+      const data = await fetchMatchupData(
+        Array.from(skippedPairsRef.current),
+        controller.signal,
+      );
+      applyMatchupResp(data);
     } catch (err) {
       if (axios.isCancel(err)) return;
+      console.error('Failed to fetch initial matchup:', err);
+      setError('Could not load the next pair. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  }, [fetchMatchupData, userId]);
+
+  useEffect(() => {
+    if (authReady && userId && !complete) loadInitial();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authReady, userId]);
+
+  // Prefetch the next matchup as soon as the current one is rendered. The
+  // prefetched response always excludes the current pair so it's safe to
+  // promote on either a pick or a "Too difficult" skip.
+  useEffect(() => {
+    if (!matchup || complete) return;
+    const skipsForPrefetch = [...skippedPairsRef.current, pairKey(matchup)];
+    const promise = fetchMatchupData(skipsForPrefetch);
+    prefetchPromiseRef.current = promise;
+    promise
+      .then((data) => {
+        if (prefetchPromiseRef.current === promise) {
+          setNextMatchup(data);
+        }
+      })
+      .catch(() => {
+        // Non-fatal: advanceToNext will fall back to a direct fetch
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [matchup]);
+
+  // Promote the prefetched response, await an in-flight prefetch, or
+  // fall back to a fresh fetch as a last resort.
+  const advanceToNext = useCallback(async (skipsArr) => {
+    if (nextMatchup) {
+      const resp = nextMatchup;
+      setNextMatchup(null);
+      prefetchPromiseRef.current = null;
+      applyMatchupResp(resp);
+      return;
+    }
+    if (prefetchPromiseRef.current) {
+      try {
+        const resp = await prefetchPromiseRef.current;
+        prefetchPromiseRef.current = null;
+        if (resp) {
+          setNextMatchup(null);
+          applyMatchupResp(resp);
+          return;
+        }
+      } catch {
+        // fall through
+      }
+    }
+    setLoading(true);
+    setError('');
+    try {
+      const data = await fetchMatchupData(skipsArr);
+      applyMatchupResp(data);
+    } catch (err) {
       console.error('Failed to fetch next matchup:', err);
       setError('Could not load the next pair. Please try again.');
     } finally {
       setLoading(false);
     }
-  }, [REC_URL, userId]);
-
-  useEffect(() => {
-    if (authReady && userId) fetchNext(skippedPairs);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [authReady, userId]);
+  }, [fetchMatchupData, nextMatchup]);
 
   // --- Pick a winner ---
   const handlePick = async (winnerId) => {
@@ -122,13 +204,22 @@ export default function OnboardingModal({ onClose }) {
       context: 'survey',
     };
 
+    // Fire-and-forget the recommender's Elo update. It doesn't block the
+    // critical path because Elo can be replayed from the comparison record
+    // if this call ever fails.
+    axios.post(`${REC_URL}/comparisons/submit/${userId}`, body).catch((err) => {
+      console.warn('Recommender Elo update failed:', err);
+    });
+
+    // Run the backend save and the pick animation in parallel so perceived
+    // latency is max(save, animation) instead of save + animation.
+    const savePromise = axios.post(`${BACKEND_URL}/api/comparisons`, body, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    const animationPromise = new Promise((r) => setTimeout(r, PICK_ANIMATION_MS));
+
     try {
-      await Promise.all([
-        axios.post(`${BACKEND_URL}/api/comparisons`, body, {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        }),
-        axios.post(`${REC_URL}/comparisons/submit/${userId}`, body),
-      ]);
+      await Promise.all([savePromise, animationPromise]);
 
       const nextRound = roundIndex + 1;
       setRoundIndex(nextRound);
@@ -136,8 +227,9 @@ export default function OnboardingModal({ onClose }) {
       if (nextRound >= TARGET_ROUNDS) {
         setMatchup(null);
         setComplete(true);
+        setNextMatchup(null);
       } else {
-        await fetchNext(skippedPairs);
+        await advanceToNext(Array.from(skippedPairs));
       }
     } catch (err) {
       console.error('Failed to submit comparison:', err);
@@ -150,14 +242,19 @@ export default function OnboardingModal({ onClose }) {
   // --- Too difficult: skip this pair ---
   const handleTooDifficult = async () => {
     if (!matchup || submitting) return;
-    const a = matchup.beerA.surveyBeerId;
-    const b = matchup.beerB.surveyBeerId;
-    const key = [a, b].sort().join(':');
+    setSubmitting(true);
+    setError('');
 
+    const key = pairKey(matchup);
     const next = new Set(skippedPairs);
     next.add(key);
     setSkippedPairs(next);
-    await fetchNext(next);
+
+    try {
+      await advanceToNext(Array.from(next));
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleFinish = () => {
@@ -178,8 +275,16 @@ export default function OnboardingModal({ onClose }) {
           md:w-[680px] md:h-auto md:max-h-[88vh] md:rounded-2xl md:p-6 md:shadow-lg md:border md:border-slate-200
         "
       >
+        <button
+          className="absolute top-2 right-2 text-slate-400 hover:text-slate-700"
+          onClick={onClose}
+          aria-label="Close survey"
+        >
+          ✕
+        </button>
+
         {/* Header */}
-        <header className="flex flex-col gap-2">
+        <header className="flex flex-col gap-2 pr-8">
           <h2 className="text-2xl md:text-3xl font-bold text-[#8C6F52]">
             Tell us what you like
           </h2>
