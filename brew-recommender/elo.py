@@ -2,6 +2,7 @@ import httpx
 import random
 import os
 from dotenv import load_dotenv
+from vectors import get_style_family
 
 load_dotenv()
 SPRING_BOOT_BASE_URL = os.getenv("SPRING_BOOT_BASE_URL")
@@ -164,3 +165,110 @@ def get_completed_pairs(comparisons: list[dict]) -> set[tuple[str, str]]:
         pair = tuple(sorted([comp["beerAId"], comp["beerBId"]]))
         pairs.add(pair)
     return pairs
+
+
+def get_post_review_pairs(comparisons: list[dict]) -> set[tuple[str, str]]:
+    """Sorted-pair set for prior post-review comparisons only."""
+    pairs = set()
+    for comp in comparisons:
+        if comp.get("context") == "post-review":
+            pair = tuple(sorted([comp["beerAId"], comp["beerBId"]]))
+            pairs.add(pair)
+    return pairs
+
+
+# --- Post-review opponent selection ---
+
+def load_user_liked_reviewed_beers(engine, user_id: str) -> list[dict]:
+    """
+    Returns prior reviews with overall_enjoyment > 3, joined to bootstrapped_beers
+    so callers can match on style_family. Each entry: {"beerId", "style", "styleFamily"}.
+    """
+    from sqlalchemy import text
+
+    query = text("""
+        SELECT ur.beer_id, bb.style
+        FROM user_reviews ur
+        JOIN bootstrapped_beers bb ON ur.beer_id = bb.beer_id
+        WHERE ur.user_id = :uid AND ur.overall_enjoyment > 3
+    """)
+    with engine.connect() as conn:
+        rows = conn.execute(query, {"uid": user_id}).fetchall()
+
+    return [
+        {
+            "beerId": str(row[0]),
+            "style": row[1],
+            "styleFamily": get_style_family(row[1] or ""),
+        }
+        for row in rows
+    ]
+
+
+def _pick_best(candidates: list[str], elo_scores: dict[str, float]) -> str | None:
+    """Pick highest-Elo from candidates; tie-break random; missing = DEFAULT_ELO."""
+    if not candidates:
+        return None
+    max_score = max(elo_scores.get(c, DEFAULT_ELO) for c in candidates)
+    top = [c for c in candidates if elo_scores.get(c, DEFAULT_ELO) == max_score]
+    return random.choice(top)
+
+
+def select_post_review_opponent(
+    reviewed_beer_id: str,
+    reviewed_style_family: str,
+    elo_scores: dict[str, float],
+    liked_reviewed: list[dict],
+    survey_meta: list[dict],
+    excluded_pairs: set[tuple[str, str]],
+) -> str | None:
+    """
+    Pick an opponent for a post-review comparison via priority cascade:
+      1. Liked reviewed beers (overall_enjoyment > 3), same style_family
+      2. Liked reviewed beers, any style_family
+      3. Survey beers with net Elo win (> 1500), same style_family
+      4. Survey beers with net win, any style_family
+      5. Random survey beer, same style_family
+      6. Random survey beer, any style_family
+    Within each bucket: highest Elo first, ties broken randomly.
+
+    survey_meta: list of {"id", "styleFamily"}.
+    excluded_pairs: sorted (id_a, id_b) tuples already used in post-review or
+                    skipped by the client this session.
+    """
+    def not_excluded(opp_id: str) -> bool:
+        if opp_id == reviewed_beer_id:
+            return False
+        return tuple(sorted([reviewed_beer_id, opp_id])) not in excluded_pairs
+
+    liked_same = [
+        b["beerId"] for b in liked_reviewed
+        if b["styleFamily"] == reviewed_style_family and not_excluded(b["beerId"])
+    ]
+    liked_any = [b["beerId"] for b in liked_reviewed if not_excluded(b["beerId"])]
+
+    survey_family_by_id = {s["id"]: s["styleFamily"] for s in survey_meta}
+    survey_winners = [
+        s["id"] for s in survey_meta
+        if elo_scores.get(s["id"], DEFAULT_ELO) > DEFAULT_ELO and not_excluded(s["id"])
+    ]
+    survey_winners_same = [
+        sid for sid in survey_winners
+        if survey_family_by_id.get(sid) == reviewed_style_family
+    ]
+
+    survey_all = [s["id"] for s in survey_meta if not_excluded(s["id"])]
+    survey_all_same = [
+        s["id"] for s in survey_meta
+        if s["styleFamily"] == reviewed_style_family and not_excluded(s["id"])
+    ]
+
+    for bucket in (
+        liked_same, liked_any,
+        survey_winners_same, survey_winners,
+        survey_all_same, survey_all,
+    ):
+        choice = _pick_best(bucket, elo_scores)
+        if choice is not None:
+            return choice
+    return None

@@ -4,7 +4,7 @@ import { useBreweryMap } from '../../context/BreweryContext';
 import beer_mug from '../../assets/beer_mug.png';
 import supabase from '../../supabaseClient.js';
 
-export default function ReviewModal({ beerId, onClose, onReviewSubmit }) {
+export default function ReviewModal({ beerId, onClose, onReviewSubmit, onRequestPostReview }) {
   const [beer, setBeer] = useState(null);
   const [successMessage, setSuccessMessage] = useState('');
   const breweryMap = useBreweryMap();
@@ -92,6 +92,7 @@ export default function ReviewModal({ beerId, onClose, onReviewSubmit }) {
       setSuccessMessage('Review submitted successfully!');
       setTimeout(() => {
         onReviewSubmit();
+        if (onRequestPostReview) onRequestPostReview(beerId);
         onClose();
       }, 1500);
     } catch (err) {
