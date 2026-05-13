@@ -14,7 +14,10 @@ from elo import (
     load_user_comparisons_from_db, replay_elo_from_comparisons,
     build_elo_push_payload, compute_elo_update, DEFAULT_ELO,
     select_survey_matchup, get_completed_pairs,
+    select_post_review_opponent, load_user_liked_reviewed_beers,
+    get_post_review_pairs,
 )
+from vectors import get_style_family
 import httpx
 import uuid
 import os
@@ -217,15 +220,121 @@ async def submitComparison(user_id: uuid.UUID, submission: ComparisonSubmission)
     }
 
 
-# --- Ghost endpoint for post-review organic comparisons (Phase 3) ---
+# --- Post-review organic comparisons ---
+
+def _safe_float(val):
+    """Coerce to float, returning None for NaN / missing / non-numeric values."""
+    try:
+        f = float(val)
+    except (TypeError, ValueError):
+        return None
+    return None if f != f else f  # f != f is True only for NaN
+
+
+def _craft_to_card_dto(row) -> dict:
+    """Normalize a bootstrapped_beers row into the survey-beer DTO shape used
+    by ComparisonCard on the frontend."""
+    return {
+        "surveyBeerId": str(row["beer_id"]),
+        "name": row["name"],
+        "style": row["style"],
+        "styleFamily": get_style_family(row["style"] or ""),
+        "abv": _safe_float(row.get("abv")),
+        "ibu": _safe_float(row.get("ibu")),
+        "imageUrl": None,
+        "flavorTags": list(row.get("flavor_tag") or []),
+    }
+
+
+def _survey_to_card_dto(beer: dict) -> dict:
+    """Survey beers from the backend already match the card shape; pass through."""
+    return {
+        "surveyBeerId": str(beer["surveyBeerId"]),
+        "name": beer.get("name"),
+        "style": beer.get("style"),
+        "styleFamily": beer.get("styleFamily"),
+        "abv": beer.get("abv"),
+        "ibu": beer.get("ibu"),
+        "imageUrl": beer.get("imageUrl"),
+        "flavorTags": beer.get("flavorTags") or [],
+    }
+
 
 @app.get("/comparisons/post-review/{user_id}")
-async def getPostReviewMatchup(user_id: uuid.UUID):
+async def getPostReviewMatchup(
+    user_id: uuid.UUID,
+    reviewed_beer_id: uuid.UUID = Query(...),
+    skip: List[str] = Query(default=[]),
+):
     """
-    Phase 3 placeholder: after reviewing a beer, suggest comparisons
-    against past reviewed beers and liked survey beers.
+    After a user reviews a craft beer, return one comparison pair: the
+    just-reviewed beer vs. an opponent picked via the cascade in
+    `select_post_review_opponent`. `skip` accepts repeated "<a>:<b>" pairs
+    the client wants to exclude this session ("Skip this pair").
     """
-    raise HTTPException(status_code=501, detail="Post-review comparisons not yet implemented")
+    user_id_str = str(user_id)
+    reviewed_id_str = str(reviewed_beer_id)
+
+    reviewed_rows = beers_df[beers_df["beer_id"] == reviewed_id_str]
+    if reviewed_rows.empty:
+        raise HTTPException(status_code=404, detail="Reviewed beer not found in catalog")
+    reviewed_row = reviewed_rows.iloc[0]
+    reviewed_style_family = get_style_family(reviewed_row["style"] or "")
+
+    try:
+        elo_data = await fetch_elo_scores(user_id_str)
+        elo_scores = {item["beerId"]: item["score"] for item in elo_data}
+    except httpx.HTTPError:
+        elo_scores = {}
+
+    liked_reviewed = load_user_liked_reviewed_beers(engine, user_id_str)
+    liked_reviewed = [b for b in liked_reviewed if b["beerId"] != reviewed_id_str]
+
+    survey_meta = [
+        {"id": str(b["surveyBeerId"]), "styleFamily": b.get("styleFamily")}
+        for b in survey_beers_list
+    ]
+
+    comparisons = load_user_comparisons_from_db(engine, user_id_str)
+    excluded_pairs = get_post_review_pairs(comparisons)
+    for entry in skip:
+        parts = entry.split(":")
+        if len(parts) == 2:
+            excluded_pairs.add(tuple(sorted([parts[0], parts[1]])))
+
+    opponent_id = select_post_review_opponent(
+        reviewed_id_str,
+        reviewed_style_family,
+        elo_scores,
+        liked_reviewed,
+        survey_meta,
+        excluded_pairs,
+    )
+
+    if opponent_id is None:
+        return {"complete": True, "message": "No opponent available"}
+
+    # Resolve opponent into the card DTO shape regardless of source
+    opponent_dto = None
+    survey_match = next(
+        (b for b in survey_beers_list if str(b["surveyBeerId"]) == opponent_id),
+        None,
+    )
+    if survey_match is not None:
+        opponent_dto = _survey_to_card_dto(survey_match)
+    else:
+        craft_rows = beers_df[beers_df["beer_id"] == opponent_id]
+        if not craft_rows.empty:
+            opponent_dto = _craft_to_card_dto(craft_rows.iloc[0])
+
+    if opponent_dto is None:
+        return {"complete": True, "message": "Opponent could not be resolved"}
+
+    return {
+        "complete": False,
+        "beerA": _craft_to_card_dto(reviewed_row),
+        "beerB": opponent_dto,
+    }
 
 
 # --- Existing proxy endpoints ---

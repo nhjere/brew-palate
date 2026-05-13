@@ -10,6 +10,7 @@ import PanelShell from '../components/user/landing/PanelShell.jsx';
 import RecCards from '../components/user/landing/RecCards.jsx'
 import Friends from '../components/user/Friends.jsx'
 import OnboardingModal from '../components/user/onboarding/OnboardingModal.jsx';
+import PostReviewModal from '../components/user/onboarding/PostReviewModal.jsx';
 import beer_mug from "../assets/beer_mug.png";
 import supabase from '../supabaseClient.js';
 import { useBreweryMap } from '../context/BreweryContext.jsx';
@@ -52,6 +53,9 @@ export default function NewUserDash() {
     const [selectedBeerId, setSelectedBeerId] = useState(null);
     const [showReviewModal, setShowReviewModal] = useState(false);
     const [refreshRecs, setRefreshRecs] = useState(false);
+
+    // post-review comparison modal — set with the just-reviewed beer's id
+    const [postReviewBeerId, setPostReviewBeerId] = useState(null);
 
     // pagination variables
     const [currentPage, setCurrentPage] = useState(0);
@@ -436,6 +440,17 @@ return (
             beerId={selectedBeerId}
             onClose={() => setShowReviewModal(false)}
             onReviewSubmit={() => setRefreshRecs((prev) => !prev)}
+            onRequestPostReview={(id) => setPostReviewBeerId(id)}
+        />
+        )}
+
+        {postReviewBeerId && !showReviewModal && (
+        <PostReviewModal
+            reviewedBeerId={postReviewBeerId}
+            onClose={() => {
+                setPostReviewBeerId(null);
+                setRefreshRecs((prev) => !prev);
+            }}
         />
         )}
 
