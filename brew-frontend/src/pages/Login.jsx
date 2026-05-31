@@ -116,9 +116,9 @@ export default function Login() {
     <div className="min-h-screen bg-white flex flex-col items-center justify-center px-4 py-10">
       
       {/* Title */}
-      <div className="text-center mb-5">
+      <div className="text-center mb-5 w-full max-w-3xl">
         <Title />
-        <p className="text-lg font-semibold text-slate-600 ">
+        <p className="text-sm md:text-lg font-semibold text-slate-600 mt-2">
           Discover craft breweries and beers near you!
         </p>
       </div>

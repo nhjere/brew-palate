@@ -1,14 +1,72 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import { TagIcon } from '@heroicons/react/20/solid';
 import SurveyButton from '../onboarding/SurveyButton';
+
+const ChevronLeft = (props) => (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="4 1 8 14" fill="currentColor" aria-hidden="true" {...props}>
+        <path fillRule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0" />
+    </svg>
+);
+const ChevronRight = (props) => (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="4 1 8 14" fill="currentColor" aria-hidden="true" {...props}>
+        <path fillRule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708" />
+    </svg>
+);
+
+const CARD_WIDTH = 320; // w-[20rem]
+const GAP = 20;         // gap-5
 
 export default function Recommendations({ userId, refreshRecs }) {
     const [beers, setBeers] = useState([]);
     const [isFallback, setIsFallback] = useState(false);
     const [breweryMap, setBreweryMap] = useState('');
     const [error, setError] = useState(false);
+    const scrollerRef = useRef(null);
+    const [pageCount, setPageCount] = useState(1);
+    const [currentPage, setCurrentPage] = useState(0);
+
+    const getPageMetrics = () => {
+        const el = scrollerRef.current;
+        if (!el) return { cardsPerPage: 1, pageWidth: CARD_WIDTH + GAP };
+        const cardsPerPage = Math.max(
+            1,
+            Math.floor((el.clientWidth + GAP) / (CARD_WIDTH + GAP))
+        );
+        return { cardsPerPage, pageWidth: cardsPerPage * (CARD_WIDTH + GAP) };
+    };
+
+    useEffect(() => {
+        const el = scrollerRef.current;
+        if (!el || beers.length === 0) return;
+
+        const updateMetrics = () => {
+            const { cardsPerPage, pageWidth } = getPageMetrics();
+            setPageCount(Math.max(1, Math.ceil(beers.length / cardsPerPage)));
+            setCurrentPage(Math.round(el.scrollLeft / pageWidth));
+        };
+
+        updateMetrics();
+        const onScroll = () => {
+            const { pageWidth } = getPageMetrics();
+            setCurrentPage(Math.round(el.scrollLeft / pageWidth));
+        };
+        el.addEventListener('scroll', onScroll, { passive: true });
+        window.addEventListener('resize', updateMetrics);
+        return () => {
+            el.removeEventListener('scroll', onScroll);
+            window.removeEventListener('resize', updateMetrics);
+        };
+    }, [beers.length]);
+
+    const scrollToPage = (pageIdx) => {
+        const el = scrollerRef.current;
+        if (!el) return;
+        const { pageWidth } = getPageMetrics();
+        const clamped = Math.max(0, Math.min(pageIdx, pageCount - 1));
+        el.scrollTo({ left: clamped * pageWidth, behavior: 'smooth' });
+    };
 
     useEffect(() => {
         if (!userId) return;
@@ -61,6 +119,9 @@ export default function Recommendations({ userId, refreshRecs }) {
     }, [beers]);
 
 
+    const atStart = currentPage <= 0;
+    const atEnd = currentPage >= pageCount - 1;
+
     return (
     <section className="w-full min-w-0">
         <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
@@ -83,17 +144,64 @@ export default function Recommendations({ userId, refreshRecs }) {
                 <p className="mt-1 text-sm opacity-80">The recommendation service could not be reached. Please try again later.</p>
             </div>
         ) : beers.length > 0 && (
-            <div className="w-full min-w-0 overflow-x-auto no-scrollbar pb-3">
-            <div className="flex w-max gap-5">
-                {beers.map((beer) => (
-                <div key={beer.beerId} className="w-[20rem] shrink-0">
-                    <BeerCard
-                    beer={beer}
-                    brewery={breweryMap?.[beer.breweryUuid]}
-                    />
+            <div className="relative w-full min-w-0">
+                {/* Left arrow — desktop only, overlaid on the carousel */}
+                {pageCount > 1 && (
+                    <button
+                        type="button"
+                        onClick={() => scrollToPage(currentPage - 1)}
+                        disabled={atStart}
+                        aria-label="Previous recommendations"
+                        className="flex absolute left-2 top-1/2 -translate-y-1/2 z-20
+                                   h-11 w-11 items-center justify-center rounded-full
+                                   bg-[#8C6F52] text-white shadow-lg
+                                   hover:bg-[#7a5f47] transition
+                                   disabled:opacity-30 disabled:cursor-not-allowed"
+                    >
+                        <ChevronLeft className="h-12 w-7" />
+                    </button>
+                )}
+
+                <div
+                    ref={scrollerRef}
+                    className="w-full min-w-0 overflow-x-auto no-scrollbar
+                               snap-x snap-mandatory scroll-smooth"
+                >
+                    <div className="flex w-max gap-5">
+                        {beers.map((beer) => (
+                            <div key={beer.beerId} className="w-[20rem] shrink-0 snap-start">
+                                <BeerCard
+                                    beer={beer}
+                                    brewery={breweryMap?.[beer.breweryUuid]}
+                                />
+                            </div>
+                        ))}
+                    </div>
                 </div>
-                ))}
-            </div>
+
+                {/* Right edge fade — signals more content (hidden at end) */}
+                {!atEnd && (
+                    <div className="pointer-events-none absolute right-0 top-0 bottom-0
+                                    w-16 bg-gradient-to-l from-white to-transparent z-10" />
+                )}
+
+                {/* Right arrow — desktop only */}
+                {pageCount > 1 && (
+                    <button
+                        type="button"
+                        onClick={() => scrollToPage(currentPage + 1)}
+                        disabled={atEnd}
+                        aria-label="Next recommendations"
+                        className="flex absolute right-2 top-1/2 -translate-y-1/2 z-20
+                                   h-11 w-11 items-center justify-center rounded-full
+                                   bg-[#8C6F52] text-white shadow-lg
+                                   hover:bg-[#7a5f47] transition
+                                   disabled:opacity-30 disabled:cursor-not-allowed"
+                    >
+                        <ChevronRight className="h-12 w-7" />
+                    </button>
+                )}
+
             </div>
         )}
 
