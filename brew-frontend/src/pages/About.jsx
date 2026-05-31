@@ -20,7 +20,7 @@ export default function About() {
         min-h-screen w-full
         bg-white
         flex flex-col
-        overflow-x-hidden overflow-y-visible
+        overflow-x-hidden
         pt-[env(safe-area-inset-top)]
         pb-[env(safe-area-inset-bottom)]
       "
@@ -28,11 +28,12 @@ export default function About() {
       {/* Conditional header */}
       <HeaderComponent searchQ={searchQ} setSearchQ={setSearchQ} />
 
-      <main className="w-full max-w-screen-xl mx-auto flex flex-col gap-4">
+      <main className="w-full max-w-screen-xl mx-auto flex flex-col gap-4 px-4 md:px-0 pb-10">
         {/* Contact Founder Card */}
         <section
           className="
             relative
+            overflow-hidden
             bg-[#f2f2f2]
             border border-[#d7d7d7]
             shadow-md
