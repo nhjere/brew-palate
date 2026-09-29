@@ -93,17 +93,17 @@ export default function BreweryPage() {
                 <li
                   key={beer.beerId}
                   className="
-                    bg-white border border-slate-200 
-                    p-4 rounded-lg shadow-sm 
+                    bg-[#f7f5f2] border border-[#E0D4C2] border-l-4 border-l-[#8C6F52]
+                    p-4 rounded-lg shadow-sm
                     flex items-center gap-4
                   "
                 >
                   {/* Left: beer info */}
                   <div className="min-w-0">
-                    <h3 className="text-lg font-semibold text-slate-900 truncate">
+                    <h3 className="text-lg font-semibold text-[#3F4C5F] truncate">
                       {beer.name}
                     </h3>
-                    <p className="text-sm text-slate-600 italic">
+                    <p className="text-sm text-[#6E7F99] italic">
                       {beer.style || 'Unknown Style'}
                       {beer.ounces ? ` — ${beer.ounces} oz` : ''}
                     </p>

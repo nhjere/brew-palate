@@ -135,9 +135,8 @@ export default function BeerProximity({ committedTags, onSetProximity }) {
                 onClick={handleClearLocation}
                 className="
                   w-full 
-                  bg-[#9f9f9f] 
-                  border border-[#8A5A3C] 
-                  text-[#f7f7f7] 
+                  bg-[#9f9f9f]
+                  text-[#f7f7f7]
                   font-semibold 
                   py-2 
                   rounded-md
