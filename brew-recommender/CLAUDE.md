@@ -9,7 +9,7 @@ pip install -r requirements.txt
 uvicorn main:app --reload
 ```
 
-Requires a `.env` with: `DB_USER`, `DB_PASS`, `DB_HOST`, `DB_PORT`, `DB_NAME`, `SPRING_BOOT_BASE_URL`
+Requires a `.env` with: `DB_USER`, `DB_PASS`, `DB_HOST`, `DB_PORT`, `DB_NAME`, `SPRING_BOOT_BASE_URL`, `SUPABASE_URL`. Optional: `ENABLE_DEBUG_ENDPOINTS=true` (local only) to enable `/preview`, `/export`, `/debug`, `/dashboard`.
 
 ## Key Files
 
@@ -17,6 +17,7 @@ Requires a `.env` with: `DB_USER`, `DB_PASS`, `DB_HOST`, `DB_PORT`, `DB_NAME`, `
 - `recommender.py` — Core recommendation logic: data loading, profile building, similarity scoring, diversity filtering.
 - `vectors.py` — Composite vector builders for catalog beers (`build_composite_vectors`) and survey beers (`build_survey_vectors`), plus style-family mapping.
 - `elo.py` — Elo math, comparison replay, matchup selection (survey and post-review), and backend calls for Elo scores, survey beers, and comparisons.
+- `auth.py` — Supabase token verification (ES256 via JWKS). `get_current_user` dependency + `require_same_user` (403 if path `user_id` isn't the caller).
 - `classes.py` — Pydantic DTOs.
 - `data/` — Local CSV exports.
 - `scripts/compare_recs.py` — Read-only check of how much `/live-recs` changes between old and new vectors. Run before deploying vector changes.
@@ -52,7 +53,8 @@ Also reads `user_comparisons` (Elo replay) and `user_reviews` (post-review match
 ## Architecture Context
 
 - The frontend (brew-frontend on Vercel) calls this service directly for recommendations via `VITE_RECOMMENDATION_BASE_URL`.
-- This service calls Spring Boot (`SPRING_BOOT_BASE_URL`) for Elo scores, survey beers, comparisons, and reviews. It does not accept auth tokens directly.
+- User endpoints require `Authorization: Bearer <supabase access token>` (401 without, 403 for another user's id). The frontend sends it via `src/api/recommenderClient.js`.
+- This service calls Spring Boot (`SPRING_BOOT_BASE_URL`) for Elo scores, survey beers, comparisons, and reviews, forwarding the user's token on Elo calls (the backend requires it).
 - Beer data is loaded once on startup and held in memory as DataFrames. Survey beers load in the background with retries; endpoints that need them call `ensure_survey_loaded()`, which retries on demand (10s cooldown).
 
 ## Status

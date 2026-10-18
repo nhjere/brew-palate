@@ -98,7 +98,9 @@ Then add `brew-recommender/scripts/compare_recs.py`:
 
 ---
 
-## Session 1: Supabase JWT auth on FastAPI
+## Session 1: Supabase JWT auth on FastAPI — DONE 2026-10-18
+
+> **As built (supersedes the HS256 notes below):** the legacy HS256 secret was revoked on 2026-10-18. `brew-recommender/auth.py` verifies **ES256 via Supabase JWKS** (`SUPABASE_URL`), audience `authenticated`, issuer `SUPABASE_URL/auth/v1`. User endpoints return 401/403; debug endpoints are 404 unless `ENABLE_DEBUG_ENDPOINTS=true`. The recommender forwards the user's token to the backend, and backend `GET /api/elo/{userId}` / `PUT /api/elo` now require it (they were unauthenticated). Frontend uses `src/api/recommenderClient.js`.
 
 Currently FastAPI does **no** auth: any caller can act as any user via `{user_id}` in the path. Fix this for all endpoints, not just the crawl.
 

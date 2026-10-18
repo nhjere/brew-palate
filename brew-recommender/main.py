@@ -2,7 +2,7 @@ import asyncio
 import logging
 import time
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import Depends, FastAPI, HTTPException, Query
 from typing import List
 from fastapi.responses import JSONResponse, FileResponse, HTMLResponse
 from starlette.middleware.cors import ALL_METHODS
@@ -20,6 +20,7 @@ from elo import (
     get_post_review_pairs,
 )
 from vectors import get_style_family, compute_fill_medians
+from auth import AuthUser, debug_endpoints_enabled, get_current_user, require_same_user
 import httpx
 import uuid
 import os
@@ -100,7 +101,7 @@ async def load_survey_data():
 
 # --- Existing endpoints ---
 
-@app.get("/preview/beers", response_class=HTMLResponse)
+@app.get("/preview/beers", response_class=HTMLResponse, dependencies=[Depends(debug_endpoints_enabled)])
 def preview_beers(n: int = 5):
     html = beers_df.head(n).to_html(classes='table table-striped', index=False)
     return f"<html><body>{html}</body></html>"
@@ -110,14 +111,14 @@ EXPORT_DIR = "./exports"
 os.makedirs(EXPORT_DIR, exist_ok=True)
 
 
-@app.get("/export/beers")
+@app.get("/export/beers", dependencies=[Depends(debug_endpoints_enabled)])
 def export_beers():
     path = os.path.join(EXPORT_DIR, "og_beers.csv")
     beers_df.to_csv(path, index=False)
     return FileResponse(path, filename="og_beers.csv", media_type="text/csv")
 
 
-@app.get("/debug/vectorizer")
+@app.get("/debug/vectorizer", dependencies=[Depends(debug_endpoints_enabled)])
 def debug_vectorizer():
     nulls = int(beers_df["flavor_tag"].isnull().sum())
     empties = int(beers_df["flavor_tag"].apply(lambda x: len(x) == 0 if isinstance(x, list) else False).sum())
@@ -132,7 +133,7 @@ def debug_vectorizer():
     }
 
 
-@app.get('/dashboard', response_model=List)
+@app.get('/dashboard', response_model=List, dependencies=[Depends(debug_endpoints_enabled)])
 def root():
     return beer_vectors.to_dict(orient='records')
 
@@ -140,12 +141,13 @@ def root():
 # --- Main recommendation endpoint ---
 
 @app.get("/live-recs/{user_id}")
-async def getLiveRecs(user_id: uuid.UUID):
+async def getLiveRecs(user_id: uuid.UUID, auth: AuthUser = Depends(get_current_user)):
+    require_same_user(user_id, auth)
     user_id_str = str(user_id)
 
     # Fetch user's Elo scores from backend
     try:
-        elo_data = await fetch_elo_scores(user_id_str)
+        elo_data = await fetch_elo_scores(user_id_str, auth.token)
         elo_scores = {item["beerId"]: item["score"] for item in elo_data}
     except httpx.HTTPError:
         elo_scores = {}
@@ -174,6 +176,7 @@ async def getLiveRecs(user_id: uuid.UUID):
 async def getNextMatchup(
     user_id: uuid.UUID,
     skip: List[str] = Query(default=[]),
+    auth: AuthUser = Depends(get_current_user),
 ):
     """
     Serve the next pair of survey beers for onboarding comparison.
@@ -181,6 +184,7 @@ async def getNextMatchup(
     client wants to exclude this session (e.g. "Too Difficult" skips that aren't
     persisted to the comparisons table).
     """
+    require_same_user(user_id, auth)
     if not await ensure_survey_loaded():
         raise HTTPException(status_code=503, detail="Survey beers not loaded")
 
@@ -216,19 +220,21 @@ async def getNextMatchup(
 
 
 @app.post("/comparisons/submit/{user_id}")
-async def submitComparison(user_id: uuid.UUID, submission: ComparisonSubmission):
+async def submitComparison(user_id: uuid.UUID, submission: ComparisonSubmission,
+                           auth: AuthUser = Depends(get_current_user)):
     """
     Process a comparison: compute Elo updates and push to backend.
     The comparison record itself is saved by the frontend calling POST /api/comparisons on the backend.
     This endpoint handles the Elo score computation side.
     """
+    require_same_user(user_id, auth)
     user_id_str = str(user_id)
     winner_id = str(submission.winnerId)
     loser_id = str(submission.beerBId) if str(submission.winnerId) == str(submission.beerAId) else str(submission.beerAId)
 
     # Get current Elo scores from backend
     try:
-        elo_data = await fetch_elo_scores(user_id_str)
+        elo_data = await fetch_elo_scores(user_id_str, auth.token)
         current_scores = {item["beerId"]: item["score"] for item in elo_data}
         current_counts = {item["beerId"]: item["comparisonCount"] for item in elo_data}
     except httpx.HTTPError:
@@ -249,7 +255,7 @@ async def submitComparison(user_id: uuid.UUID, submission: ComparisonSubmission)
     payload = build_elo_push_payload(user_id_str, current_scores, current_counts)
 
     try:
-        await push_elo_scores(payload)
+        await push_elo_scores(payload, auth.token)
     except httpx.HTTPError as e:
         logging.error(f"Failed to push Elo scores: {e}")
         raise HTTPException(status_code=503, detail="Failed to update Elo scores")
@@ -307,6 +313,7 @@ async def getPostReviewMatchup(
     user_id: uuid.UUID,
     reviewed_beer_id: uuid.UUID = Query(...),
     skip: List[str] = Query(default=[]),
+    auth: AuthUser = Depends(get_current_user),
 ):
     """
     After a user reviews a craft beer, return one comparison pair: the
@@ -314,6 +321,7 @@ async def getPostReviewMatchup(
     `select_post_review_opponent`. `skip` accepts repeated "<a>:<b>" pairs
     the client wants to exclude this session ("Skip this pair").
     """
+    require_same_user(user_id, auth)
     user_id_str = str(user_id)
     reviewed_id_str = str(reviewed_beer_id)
 
@@ -324,7 +332,7 @@ async def getPostReviewMatchup(
     reviewed_style_family = get_style_family(reviewed_row["style"] or "")
 
     try:
-        elo_data = await fetch_elo_scores(user_id_str)
+        elo_data = await fetch_elo_scores(user_id_str, auth.token)
         elo_scores = {item["beerId"]: item["score"] for item in elo_data}
     except httpx.HTTPError:
         elo_scores = {}
@@ -384,7 +392,8 @@ async def getPostReviewMatchup(
 # --- Existing proxy endpoints ---
 
 @app.get('/reviews/{user_id}', response_model=List[ReviewMinimalDTO])
-async def getUserReviews(user_id: uuid.UUID):
+async def getUserReviews(user_id: uuid.UUID, auth: AuthUser = Depends(get_current_user)):
+    require_same_user(user_id, auth)
     url = f"{SPRING_BOOT_BASE_URL}/api/user/reviews/user/{user_id}"
     async with httpx.AsyncClient() as client:
         response = await client.get(url)
@@ -392,7 +401,7 @@ async def getUserReviews(user_id: uuid.UUID):
         return response.json()
 
 
-@app.get("/debug/{user_id}")
+@app.get("/debug/{user_id}", dependencies=[Depends(debug_endpoints_enabled)])
 def debug_user(user_id: uuid.UUID):
     user_id_str = str(user_id)
     comparisons = load_user_comparisons_from_db(engine, user_id_str)

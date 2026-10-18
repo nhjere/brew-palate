@@ -90,4 +90,4 @@ Backend manages schema via Hibernate `ddl-auto=update`. Recommender reads direct
 
 **Backend** (`.env` locally, Railway variables in prod): `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `SUPABASE_URL`, optional `SUPABASE_JWT_SECRET` (legacy HS256), `PORT`
 
-**Recommender** (`.env`): `DB_USER`, `DB_PASS`, `DB_HOST`, `DB_PORT`, `DB_NAME`, `SPRING_BOOT_BASE_URL`
+**Recommender** (`.env`): `DB_USER`, `DB_PASS`, `DB_HOST`, `DB_PORT`, `DB_NAME`, `SPRING_BOOT_BASE_URL`, `SUPABASE_URL`, optional `ENABLE_DEBUG_ENDPOINTS` (local only)

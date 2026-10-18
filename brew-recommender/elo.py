@@ -36,20 +36,24 @@ def compute_elo_update(
 
 # --- Backend API calls ---
 
-async def fetch_elo_scores(user_id: str) -> list[dict]:
-    """GET /api/elo/{user_id} — returns list of {userId, beerId, score, comparisonCount}."""
+def _auth_headers(token: str) -> dict:
+    return {"Authorization": f"Bearer {token}"}
+
+
+async def fetch_elo_scores(user_id: str, token: str) -> list[dict]:
+    """GET /api/elo/{user_id} as that user — returns list of {userId, beerId, score, comparisonCount}."""
     url = f"{SPRING_BOOT_BASE_URL}/api/elo/{user_id}"
     async with httpx.AsyncClient(timeout=5.0) as client:
-        response = await client.get(url)
+        response = await client.get(url, headers=_auth_headers(token))
         response.raise_for_status()
         return response.json()
 
 
-async def push_elo_scores(scores: list[dict]) -> None:
-    """PUT /api/elo — batch upsert Elo scores to the backend."""
+async def push_elo_scores(scores: list[dict], token: str) -> None:
+    """PUT /api/elo as the scores' user — batch upsert Elo scores to the backend."""
     url = f"{SPRING_BOOT_BASE_URL}/api/elo"
     async with httpx.AsyncClient(timeout=5.0) as client:
-        response = await client.put(url, json=scores)
+        response = await client.put(url, json=scores, headers=_auth_headers(token))
         response.raise_for_status()
 
 

@@ -95,6 +95,8 @@ DB_HOST=<host>
 DB_PORT=<port>
 DB_NAME=<db>
 SPRING_BOOT_BASE_URL=http://localhost:8080
+SUPABASE_URL=https://<project-ref>.supabase.co
+ENABLE_DEBUG_ENDPOINTS=true   # local only; debug/export endpoints are off in production
 ```
 Then run:
 ```bash
