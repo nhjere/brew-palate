@@ -1,4 +1,6 @@
+import asyncio
 import logging
+import time
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, HTTPException, Query
 from typing import List
@@ -37,26 +39,63 @@ app.add_middleware(
 # Load craft beer data and composite vectors on startup
 beers_df, beer_vectors = loadData()
 
-# Survey beers loaded from backend on startup
+# Survey beers loaded from backend on startup, with retries; requests that
+# need them retry on demand (ensure_survey_loaded) if startup never succeeded.
 survey_df = None
 survey_vectors = None
 survey_beers_list = []
 
+log = logging.getLogger("uvicorn.error")  # shows up in uvicorn / Railway logs
+SURVEY_STARTUP_ATTEMPTS = 5
+SURVEY_RETRY_BASE_DELAY = 1.0   # seconds, doubled after each failed startup attempt
+SURVEY_ON_DEMAND_COOLDOWN = 10.0  # min seconds between on-demand reload attempts
+_survey_lock = asyncio.Lock()
+_last_survey_attempt = 0.0
+
+
+async def _try_load_survey() -> bool:
+    """One attempt to fetch survey beers and build their vectors."""
+    global survey_df, survey_vectors, survey_beers_list, _last_survey_attempt
+    _last_survey_attempt = time.monotonic()
+    try:
+        beers = await fetch_survey_beers()
+        df, vectors = loadSurveyBeers(beers, beer_vectors.columns.tolist(), compute_fill_medians(beers_df))
+    except Exception as e:
+        log.warning(f"Failed to load survey beers from backend: {e!r}")
+        return False
+    survey_beers_list, survey_df, survey_vectors = beers, df, vectors
+    log.info(f"Loaded {len(survey_df)} survey beers")
+    return True
+
+
+async def ensure_survey_loaded() -> bool:
+    """True if survey data is available, trying one reload if it's missing."""
+    if survey_vectors is not None:
+        return True
+    async with _survey_lock:
+        if survey_vectors is not None:
+            return True
+        if time.monotonic() - _last_survey_attempt < SURVEY_ON_DEMAND_COOLDOWN:
+            return False
+        return await _try_load_survey()
+
+
+async def _load_survey_with_retries():
+    for attempt in range(1, SURVEY_STARTUP_ATTEMPTS + 1):
+        async with _survey_lock:
+            if survey_vectors is not None or await _try_load_survey():
+                return
+        if attempt < SURVEY_STARTUP_ATTEMPTS:
+            delay = SURVEY_RETRY_BASE_DELAY * 2 ** (attempt - 1)
+            log.warning(f"Survey load attempt {attempt}/{SURVEY_STARTUP_ATTEMPTS} failed; retrying in {delay:.0f}s")
+            await asyncio.sleep(delay)
+    log.error("Survey beers unavailable after startup retries; will retry on demand")
+
 
 @app.on_event("startup")
 async def load_survey_data():
-    global survey_df, survey_vectors, survey_beers_list
-    try:
-        survey_beers_list = await fetch_survey_beers()
-        survey_df, survey_vectors = loadSurveyBeers(
-            survey_beers_list, beer_vectors.columns.tolist(), compute_fill_medians(beers_df)
-        )
-        logging.info(f"Loaded {len(survey_df)} survey beers")
-    except Exception as e:
-        logging.warning(f"Failed to load survey beers from backend: {e}")
-        survey_df = None
-        survey_vectors = None
-        survey_beers_list = []
+    # Retry in the background so the service starts serving immediately
+    asyncio.create_task(_load_survey_with_retries())
 
 
 # --- Existing endpoints ---
@@ -112,8 +151,11 @@ async def getLiveRecs(user_id: uuid.UUID):
         elo_scores = {}
 
     is_fallback = len(elo_scores) == 0
+    # Most profiles depend on survey beer vectors; without them, return popular
+    # beers marked as fallback rather than passing them off as personalized.
+    survey_unavailable = not is_fallback and not await ensure_survey_loaded()
 
-    if is_fallback:
+    if is_fallback or survey_unavailable:
         recs = addDiversity(getPopularBeers(beers_df, 20), top_n=20)
     else:
         recs = getLiveRecommendations(
@@ -121,7 +163,7 @@ async def getLiveRecs(user_id: uuid.UUID):
         )
 
     return {
-        "fallback": is_fallback,
+        "fallback": is_fallback or survey_unavailable,
         "beers": serialize_beers(recs),
     }
 
@@ -139,7 +181,7 @@ async def getNextMatchup(
     client wants to exclude this session (e.g. "Too Difficult" skips that aren't
     persisted to the comparisons table).
     """
-    if not survey_beers_list:
+    if not await ensure_survey_loaded():
         raise HTTPException(status_code=503, detail="Survey beers not loaded")
 
     user_id_str = str(user_id)
@@ -289,6 +331,8 @@ async def getPostReviewMatchup(
 
     liked_reviewed = load_user_liked_reviewed_beers(engine, user_id_str)
     liked_reviewed = [b for b in liked_reviewed if b["beerId"] != reviewed_id_str]
+
+    await ensure_survey_loaded()  # best effort; without it, survey opponents are skipped
 
     survey_meta = [
         {"id": str(b["surveyBeerId"]), "styleFamily": b.get("styleFamily")}

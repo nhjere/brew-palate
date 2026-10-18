@@ -53,7 +53,7 @@ Also reads `user_comparisons` (Elo replay) and `user_reviews` (post-review match
 
 - The frontend (brew-frontend on Vercel) calls this service directly for recommendations via `VITE_RECOMMENDATION_BASE_URL`.
 - This service calls Spring Boot (`SPRING_BOOT_BASE_URL`) for Elo scores, survey beers, comparisons, and reviews. It does not accept auth tokens directly.
-- Beer data is loaded once on startup and held in memory as DataFrames.
+- Beer data is loaded once on startup and held in memory as DataFrames. Survey beers load in the background with retries; endpoints that need them call `ensure_survey_loaded()`, which retries on demand (10s cooldown).
 
 ## Status
 

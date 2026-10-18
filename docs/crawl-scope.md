@@ -91,7 +91,7 @@ Then add `brew-recommender/scripts/compare_recs.py`:
 - DB access is read-only.
 - Neal reviews the output before deploying (rough bar: mean overlap ≥ 70%, with spot checks that look sensible).
 
-### Session 0c: survey startup resilience (`brew-recommender/main.py`)
+### Session 0c: survey startup resilience (`brew-recommender/main.py`) — DONE 2026-10-18 (background startup retries 1/2/4/8s, on-demand reload with 10s cooldown; `/live-recs` returns popular beers with `fallback: true` when survey data is unavailable, per Neal; `/comparisons/next` 503)
 - The survey-beer load in `load_survey_data()` must retry with backoff (e.g. 5 attempts, exponential) instead of failing once.
 - If `survey_vectors` is still `None` when a request arrives, try one lazy reload.
 - The crawl endpoint returns `503 SURVEY_NOT_LOADED` if survey vectors are still unavailable. Never silently fall back to "popular."
