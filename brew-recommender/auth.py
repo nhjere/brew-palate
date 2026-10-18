@@ -4,6 +4,7 @@ Supabase JWT auth for user-scoped endpoints.
 Tokens are verified like the Spring Boot backend does: ES256 signatures checked
 against the project's public JWKS (SUPABASE_URL/auth/v1/.well-known/jwks.json).
 """
+import logging
 import os
 from dataclasses import dataclass
 
@@ -14,11 +15,12 @@ from jwt import PyJWKClient
 
 load_dotenv()
 
-SUPABASE_URL = (os.getenv("SUPABASE_URL") or "").rstrip("/")
+SUPABASE_URL = (os.getenv("SUPABASE_URL") or "").strip().rstrip("/")  # tolerate pasted whitespace/newlines
 if not SUPABASE_URL:
     raise RuntimeError("SUPABASE_URL is not set; it's required to verify user tokens")
 
 _ISSUER = f"{SUPABASE_URL}/auth/v1"
+log = logging.getLogger("uvicorn.error")
 _jwks = PyJWKClient(f"{_ISSUER}/.well-known/jwks.json", cache_keys=True, lifespan=3600)
 
 
@@ -35,8 +37,17 @@ def get_current_user(authorization: str | None = Header(default=None)) -> AuthUs
     token = authorization[len("Bearer "):]
     try:
         key = _jwks.get_signing_key_from_jwt(token).key
-        claims = jwt.decode(token, key, algorithms=["ES256"], audience="authenticated", issuer=_ISSUER)
+    except jwt.PyJWKClientConnectionError as e:
+        log.error(f"Could not fetch Supabase JWKS: {e}")
+        raise HTTPException(status_code=503, detail="Auth temporarily unavailable")
     except (jwt.PyJWTError, jwt.PyJWKClientError):
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+    except Exception as e:  # misconfiguration (e.g. bad SUPABASE_URL): fail closed, but visibly
+        log.error(f"Token key lookup failed: {e!r}")
+        raise HTTPException(status_code=503, detail="Auth temporarily unavailable")
+    try:
+        claims = jwt.decode(token, key, algorithms=["ES256"], audience="authenticated", issuer=_ISSUER)
+    except jwt.PyJWTError:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
     return AuthUser(user_id=claims["sub"], token=token)
 
