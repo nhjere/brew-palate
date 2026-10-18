@@ -18,7 +18,7 @@ npm run lint         # ESLint
 cd brew-backend
 ./mvnw spring-boot:run                    # Run on :8080
 ./mvnw package -DskipTests               # Build JAR
-java -jar target/brew-backend-0.0.1-SNAPSHOT.jar  # Run built JAR
+java -jar target/app.jar  # Run built JAR
 ```
 
 ### Recommender (brew-recommender/)
@@ -57,7 +57,7 @@ Supabase handles auth. Frontend gets JWT from Supabase, sends it as `Authorizati
 - **Key services**: `JwtService` (Supabase token validation), `UserService`, `ReviewService`, `GeocodingService` (Nominatim OSM → lat/lon), `FriendSuggestionService`
 - **Beer data**: `bootstrapped_beers` is the catalog (linked to breweries, used for recommendations). `imported_beers` is the raw Kaggle dataset: not linked to breweries (`brewery_uuid` is null) and not used for recommendations. Flavor tags stored as `@ElementCollection`.
 - **Beer operations**: `@Transactional` to keep flavor tag ElementCollection in sync
-- **Config**: `application.properties` has DB URL, Supabase JWT secret, port via `${PORT:8080}`
+- **Config**: `application.properties` reads secrets from env vars (`DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `SUPABASE_JWT_SECRET`); locally from gitignored `brew-backend/.env`. Port via `${PORT:8080}`
 
 ### Recommender (FastAPI + scikit-learn)
 - **Algorithm**: Composite vectors (one-hot flavor tags + style family + normalized ABV/IBU, `vectors.py`) → cosine similarity against an Elo-weighted user profile (`getProfileVector(elo_scores, all_vectors)`). Beers above Elo 1500 pull the profile toward them; beers below push it away.
@@ -88,6 +88,6 @@ Backend manages schema via Hibernate `ddl-auto=update`. Recommender reads direct
 
 **Frontend** (`.env`): `VITE_BACKEND_URL`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_MAPBOX_TOKEN`, `VITE_RECOMMENDATION_BASE_URL`
 
-**Backend** (`application.properties`): DB connection, Supabase JWT secret, `PORT`
+**Backend** (`.env` locally, Railway variables in prod): `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `SUPABASE_JWT_SECRET`, `PORT`
 
 **Recommender** (`.env`): `DB_USER`, `DB_PASS`, `DB_HOST`, `DB_PORT`, `DB_NAME`, `SPRING_BOOT_BASE_URL`
