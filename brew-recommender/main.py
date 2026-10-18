@@ -17,7 +17,7 @@ from elo import (
     select_post_review_opponent, load_user_liked_reviewed_beers,
     get_post_review_pairs,
 )
-from vectors import get_style_family
+from vectors import get_style_family, compute_fill_medians
 import httpx
 import uuid
 import os
@@ -49,7 +49,7 @@ async def load_survey_data():
     try:
         survey_beers_list = await fetch_survey_beers()
         survey_df, survey_vectors = loadSurveyBeers(
-            survey_beers_list, beer_vectors.columns.tolist()
+            survey_beers_list, beer_vectors.columns.tolist(), compute_fill_medians(beers_df)
         )
         logging.info(f"Loaded {len(survey_df)} survey beers")
     except Exception as e:

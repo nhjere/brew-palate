@@ -123,10 +123,43 @@ STYLE_FAMILY_MAP = {
 # Canonical order of style families for one-hot encoding
 STYLE_FAMILIES = sorted(set(STYLE_FAMILY_MAP.values()))
 
+# Fixed ABV/IBU scales shared by catalog and survey vectors, so both live in
+# the same space and adding beers never shifts existing vectors.
+# ABV is stored as a fraction (0.05 = 5%), so 0.15 = 15% maps to 1.0.
+ABV_SCALE = 0.15
+IBU_SCALE = 150.0
+
 
 def get_style_family(style: str) -> str:
     """Map a beer style to its family. Falls back to 'Ale' for unknown styles."""
     return STYLE_FAMILY_MAP.get(style, "Ale")
+
+
+def compute_fill_medians(beers_df: pd.DataFrame) -> dict:
+    """
+    ABV/IBU medians from the catalog, used to fill missing values:
+    by exact style, then by style family, then catalog-wide.
+    """
+    df = pd.DataFrame({
+        "style": beers_df["style"].values,
+        "family": [get_style_family(s) for s in beers_df["style"]],
+        "abv": pd.to_numeric(beers_df["abv"], errors="coerce").values,
+        "ibu": pd.to_numeric(beers_df["ibu"], errors="coerce").values,
+    })
+    return {
+        "style": df.groupby("style")[["abv", "ibu"]].median(),
+        "family": df.groupby("family")[["abv", "ibu"]].median(),
+        "global": df[["abv", "ibu"]].median(),
+    }
+
+
+def _fill_and_scale(values, styles: pd.Series, families: pd.Series, medians: dict, col: str, scale: float) -> np.ndarray:
+    """Fill missing values (style → family → global median), then scale to [0, 1]."""
+    filled = pd.to_numeric(pd.Series(values), errors="coerce").astype(float)
+    filled = filled.fillna(styles.map(medians["style"][col]))
+    filled = filled.fillna(families.map(medians["family"][col]))
+    filled = filled.fillna(medians["global"][col]).fillna(0.0)
+    return np.clip(filled.values / scale, 0.0, 1.0)
 
 
 def build_composite_vectors(beers_df: pd.DataFrame) -> pd.DataFrame:
@@ -136,8 +169,8 @@ def build_composite_vectors(beers_df: pd.DataFrame) -> pd.DataFrame:
     Vector components:
     - One-hot encoded flavor tags (binary)
     - One-hot encoded style family
-    - Normalized ABV (0-1)
-    - Normalized IBU (0-1)
+    - ABV / ABV_SCALE, clipped to 0-1 (missing values filled with style medians)
+    - IBU / IBU_SCALE, clipped to 0-1 (missing values filled with style medians)
 
     Returns a DataFrame indexed by beer_id with one column per feature dimension.
     """
@@ -159,20 +192,16 @@ def build_composite_vectors(beers_df: pd.DataFrame) -> pd.DataFrame:
     # --- Style family: one-hot ---
     family_matrix = np.zeros((len(beers_df), len(STYLE_FAMILIES)))
     family_to_idx = {f: i for i, f in enumerate(STYLE_FAMILIES)}
-    for i, style in enumerate(beers_df["style"]):
-        family = get_style_family(style)
+    families = pd.Series([get_style_family(s) for s in beers_df["style"]])
+    for i, family in enumerate(families):
         if family in family_to_idx:
             family_matrix[i, family_to_idx[family]] = 1.0
 
-    # --- ABV: normalized 0-1 ---
-    abv = pd.to_numeric(beers_df["abv"], errors="coerce").fillna(0.0).values
-    abv_max = abv.max() if abv.max() > 0 else 1.0
-    abv_norm = (abv / abv_max).reshape(-1, 1)
-
-    # --- IBU: normalized 0-1 ---
-    ibu = pd.to_numeric(beers_df["ibu"], errors="coerce").fillna(0.0).values
-    ibu_max = ibu.max() if ibu.max() > 0 else 1.0
-    ibu_norm = (ibu / ibu_max).reshape(-1, 1)
+    # --- ABV / IBU: fill missing, then fixed-scale to 0-1 ---
+    medians = compute_fill_medians(beers_df)
+    styles = pd.Series(beers_df["style"].values)
+    abv_norm = _fill_and_scale(beers_df["abv"].values, styles, families, medians, "abv", ABV_SCALE).reshape(-1, 1)
+    ibu_norm = _fill_and_scale(beers_df["ibu"].values, styles, families, medians, "ibu", IBU_SCALE).reshape(-1, 1)
 
     # --- Combine ---
     composite = np.hstack([tag_matrix, family_matrix, abv_norm, ibu_norm])
@@ -187,18 +216,22 @@ def build_composite_vectors(beers_df: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(composite, index=beers_df["beer_id"].values, columns=col_names)
 
 
-def build_survey_vectors(survey_df: pd.DataFrame, reference_columns: list[str]) -> pd.DataFrame:
+def build_survey_vectors(survey_df: pd.DataFrame, reference_columns: list[str],
+                         fill_medians: dict | None = None) -> pd.DataFrame:
     """
     Build composite vectors for survey beers using the same feature space
     as the craft beer catalog.
 
     reference_columns: column names from the craft beer vector DataFrame,
     so survey vectors are aligned to the same dimensions.
+    fill_medians: catalog medians from compute_fill_medians(), used to fill
+    missing ABV/IBU. Without them, missing values become 0.
     """
     n = len(survey_df)
     vectors = np.zeros((n, len(reference_columns)))
     col_to_idx = {c: i for i, c in enumerate(reference_columns)}
 
+    styles, families = [], []
     for i, (_, row) in enumerate(survey_df.iterrows()):
         # Flavor tags — check both camelCase (from backend JSON) and snake_case
         tags = row.get("flavorTags", row.get("flavor_tags", [])) or []
@@ -207,21 +240,23 @@ def build_survey_vectors(survey_df: pd.DataFrame, reference_columns: list[str]) 
             if col in col_to_idx:
                 vectors[i, col_to_idx[col]] = 1.0
 
-        # Style family
-        family = row.get("style_family", "")
+        # Style family — camelCase from backend JSON, snake_case from DB rows
+        family = row.get("styleFamily", row.get("style_family", "")) or ""
         col = f"family_{family}"
         if col in col_to_idx:
             vectors[i, col_to_idx[col]] = 1.0
+        styles.append(row.get("style", "") or "")
+        families.append(family)
 
-        # ABV / IBU — use same normalization range as craft beers
-        # These will be approximate since we don't have the craft max here,
-        # but survey beers are mainstream brands with typical ABV/IBU ranges
-        abv = float(row.get("abv", 0) or 0)
-        ibu = float(row.get("ibu", 0) or 0)
-        if "abv_norm" in col_to_idx:
-            vectors[i, col_to_idx["abv_norm"]] = min(abv / 15.0, 1.0)  # ~15% as practical max
-        if "ibu_norm" in col_to_idx:
-            vectors[i, col_to_idx["ibu_norm"]] = min(ibu / 150.0, 1.0)  # ~150 as practical max
+    # ABV / IBU — same fixed scales as craft beers
+    if fill_medians is None:
+        empty = pd.DataFrame(columns=["abv", "ibu"], dtype=float)
+        fill_medians = {"style": empty, "family": empty, "global": pd.Series({"abv": np.nan, "ibu": np.nan})}
+    styles, families = pd.Series(styles), pd.Series(families)
+    for name, scale in (("abv", ABV_SCALE), ("ibu", IBU_SCALE)):
+        values = survey_df[name].values if name in survey_df.columns else [np.nan] * n
+        if f"{name}_norm" in col_to_idx:
+            vectors[:, col_to_idx[f"{name}_norm"]] = _fill_and_scale(values, styles, families, fill_medians, name, scale)
 
     beer_id_col = "survey_beer_id" if "survey_beer_id" in survey_df.columns else "surveyBeerId"
     return pd.DataFrame(vectors, index=survey_df[beer_id_col].values, columns=reference_columns)

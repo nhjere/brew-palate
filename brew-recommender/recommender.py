@@ -44,15 +44,17 @@ def loadData():
     return beers_df, beer_vectors
 
 
-def loadSurveyBeers(survey_beers_json: list[dict], reference_columns: list[str]) -> tuple[pd.DataFrame, pd.DataFrame]:
+def loadSurveyBeers(survey_beers_json: list[dict], reference_columns: list[str],
+                    fill_medians: dict | None = None) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
     Build a DataFrame and vectors for survey beers from the backend API response.
     reference_columns: column names from the craft beer vector DataFrame for alignment.
+    fill_medians: catalog ABV/IBU medians (compute_fill_medians) for missing values.
     """
     survey_df = pd.DataFrame(survey_beers_json)
     survey_df["surveyBeerId"] = survey_df["surveyBeerId"].astype(str)
 
-    survey_vectors = build_survey_vectors(survey_df, reference_columns)
+    survey_vectors = build_survey_vectors(survey_df, reference_columns, fill_medians)
     return survey_df, survey_vectors
 
 

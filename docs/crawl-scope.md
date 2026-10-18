@@ -73,7 +73,7 @@ BreweryCrawl.jsx
   - "`imported_beers` (from external APIs)" is wrong. It's the raw Kaggle dataset and isn't linked to breweries.
 - Fix `brew-recommender/CLAUDE.md`: it says `imported_beers` is combined with the catalog. It isn't. `loadData()` reads only `bootstrapped_beers`, and `imported_beers.brewery_uuid` is null on every row.
 
-### Session 0b: vector fixes (`brew-recommender/vectors.py`)
+### Session 0b: vector fixes (`brew-recommender/vectors.py`) — DONE 2026-10-18 (also fixed survey `styleFamily` key; mean top-20 overlap 81% scale+fill only, 57% with family fix; approved by Neal)
 Two bugs, fixed together and measured together:
 
 1. **ABV/IBU scaling mismatch.** Catalog ABV and survey ABV are *both stored as fractions* (catalog `0.075`, survey Guinness `0.042`).

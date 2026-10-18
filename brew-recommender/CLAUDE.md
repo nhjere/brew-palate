@@ -19,10 +19,11 @@ Requires a `.env` with: `DB_USER`, `DB_PASS`, `DB_HOST`, `DB_PORT`, `DB_NAME`, `
 - `elo.py` — Elo math, comparison replay, matchup selection (survey and post-review), and backend calls for Elo scores, survey beers, and comparisons.
 - `classes.py` — Pydantic DTOs.
 - `data/` — Local CSV exports.
+- `scripts/compare_recs.py` — Read-only check of how much `/live-recs` changes between old and new vectors. Run before deploying vector changes.
 
 ## How It Works Today
 
-1. Catalog beers get composite vectors: one-hot flavor tags + style family + normalized ABV/IBU (`build_composite_vectors()`)
+1. Catalog beers get composite vectors: one-hot flavor tags + style family + ABV/IBU on fixed scales (`ABV_SCALE = 0.15` since ABV is a fraction, `IBU_SCALE = 150`), with missing values filled by style → family → catalog median (`build_composite_vectors()`). Survey beers use the same scales and medians (`build_survey_vectors()`).
 2. Users compare beers pairwise (cold-start survey of macro beers, then post-review matchups). Each result updates per-user Elo scores.
 3. A profile vector is built from Elo scores (`getProfileVector(elo_scores, all_vectors)`): beers above 1500 pull the profile toward them, beers below push it away (0.3× penalty). Survey beer vectors count toward the profile but are never recommended.
 4. Recommendations are the highest cosine-similarity catalog beers, excluding already-compared beers, with style diversity enforced (`getLiveRecommendations()` → `addDiversity()`)
