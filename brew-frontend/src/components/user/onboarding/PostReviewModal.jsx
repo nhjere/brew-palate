@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import axios from 'axios';
+import recommenderClient from '../../../api/recommenderClient.js';
 import supabase from '../../../supabaseClient.js';
 import ComparisonCard from './ComparisonCard.jsx';
 
@@ -7,7 +8,6 @@ const PICK_ANIMATION_MS = 800;
 
 export default function PostReviewModal({ reviewedBeerId, onClose }) {
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
-  const REC_URL = import.meta.env.VITE_RECOMMENDATION_BASE_URL;
 
   const [accessToken, setAccessToken] = useState(null);
   const [userId, setUserId] = useState(null);
@@ -50,7 +50,7 @@ export default function PostReviewModal({ reviewedBeerId, onClose }) {
   }, []);
 
   const fetchMatchup = useCallback(async (skipsArr, signal) => {
-    const res = await axios.get(`${REC_URL}/comparisons/post-review/${userId}`, {
+    const res = await recommenderClient.get(`/comparisons/post-review/${userId}`, {
       signal,
       params: { reviewed_beer_id: reviewedBeerId, skip: skipsArr },
       paramsSerializer: (p) => {
@@ -61,7 +61,7 @@ export default function PostReviewModal({ reviewedBeerId, onClose }) {
       },
     });
     return res.data;
-  }, [REC_URL, userId, reviewedBeerId]);
+  }, [userId, reviewedBeerId]);
 
   const applyResp = (resp) => {
     if (!resp || resp.complete) {
@@ -111,7 +111,7 @@ export default function PostReviewModal({ reviewedBeerId, onClose }) {
       context: 'post-review',
     };
 
-    axios.post(`${REC_URL}/comparisons/submit/${userId}`, body).catch((err) => {
+    recommenderClient.post(`/comparisons/submit/${userId}`, body).catch((err) => {
       console.warn('Recommender Elo update failed:', err);
     });
 

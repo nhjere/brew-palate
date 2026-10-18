@@ -1,6 +1,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
+import recommenderClient from '../../../api/recommenderClient.js';
 import { TagIcon } from '@heroicons/react/20/solid';
 import SurveyButton from '../onboarding/SurveyButton';
 
@@ -73,10 +74,7 @@ export default function Recommendations({ userId, refreshRecs }) {
         // controller can cancel requests
         const controller = new AbortController();
         const signal = controller.signal;
-        const RECOMMENDATION_URL = import.meta.env.VITE_RECOMMENDATION_BASE_URL;
-        
-        // change to REC_URL when fast api service is deployed 
-        axios.get(`${RECOMMENDATION_URL}/live-recs/${userId}`, { signal })
+        recommenderClient.get(`/live-recs/${userId}`, { signal })
             .then((res) => {
                 if (Array.isArray(res.data.beers)) {
                     setBeers(res.data.beers);

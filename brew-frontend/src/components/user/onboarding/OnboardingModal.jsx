@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import axios from 'axios';
+import recommenderClient from '../../../api/recommenderClient.js';
 import supabase from '../../../supabaseClient.js';
 import ComparisonCard from './ComparisonCard.jsx';
 
@@ -8,7 +9,6 @@ const PICK_ANIMATION_MS = 800;
 
 export default function OnboardingModal({ onClose }) {
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
-  const REC_URL = import.meta.env.VITE_RECOMMENDATION_BASE_URL;
 
   const [accessToken, setAccessToken] = useState(null);
   const [userId, setUserId] = useState(null);
@@ -94,7 +94,7 @@ export default function OnboardingModal({ onClose }) {
 
   // Low-level fetch — returns the raw response or throws.
   const fetchMatchupData = useCallback(async (skipsArr, signal) => {
-    const res = await axios.get(`${REC_URL}/comparisons/next/${userId}`, {
+    const res = await recommenderClient.get(`/comparisons/next/${userId}`, {
       signal,
       params: { skip: skipsArr },
       paramsSerializer: (p) => {
@@ -104,7 +104,7 @@ export default function OnboardingModal({ onClose }) {
       },
     });
     return res.data;
-  }, [REC_URL, userId]);
+  }, [userId]);
 
   // Initial load — only used for the first matchup (no prefetch yet)
   const loadInitial = useCallback(async () => {
@@ -207,7 +207,7 @@ export default function OnboardingModal({ onClose }) {
     // Fire-and-forget the recommender's Elo update. It doesn't block the
     // critical path because Elo can be replayed from the comparison record
     // if this call ever fails.
-    axios.post(`${REC_URL}/comparisons/submit/${userId}`, body).catch((err) => {
+    recommenderClient.post(`/comparisons/submit/${userId}`, body).catch((err) => {
       console.warn('Recommender Elo update failed:', err);
     });
 
