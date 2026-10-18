@@ -31,7 +31,7 @@ src/main/java/com/codewithneal/brew_backend/
 │   ├── controller/    BreweryController, AnalyticsController
 │   ├── model/         Brewery
 │   └── repository/    BreweryRepository
-├── CsvReader/beers/   BeerCsv entity + BeerCsvRepository (beer_pool table)
+├── CsvReader/beers/   BeerCsv entity + BeerCsvRepository (bootstrapped_beers table)
 ├── JwtService.java    Shared JWT verification utility
 ├── WebConfig.java     CORS configuration
 └── GeocodingService   Geocodes brewery addresses for PostGIS
@@ -71,7 +71,7 @@ All authenticated endpoints expect `Authorization: Bearer <supabase_jwt>`. Token
 
 ## Database
 
-PostgreSQL on Railway. Key tables: `users`, `user_reviews`, `review_flavor_tags`, `beer_pool`, `beer_flavor_tags`, `breweries`, `user_follows`. PostGIS extension enabled for brewery geolocation queries.
+PostgreSQL on Railway. Key tables: `user_profiles`, `user_reviews`, `review_flavor_tags`, `bootstrapped_beers`, `bootstrapped_beer_flavor_tags`, `brewery_profiles`, `user_follows`, `user_comparisons`, `user_elo_scores`, `survey_beers` (+ `survey_beer_flavor_tags`, `survey_beer_feature_vector`). PostGIS extension enabled for brewery geolocation queries.
 
 ## Architecture Context
 
@@ -79,9 +79,9 @@ PostgreSQL on Railway. Key tables: `users`, `user_reviews`, `review_flavor_tags`
 - Recommender (brew-recommender) calls `GET /api/user/reviews/user/{userId}` to fetch review data for recommendations
 - This service does NOT call the recommender — the frontend calls the recommender directly
 
-## Active Refactor
+## Pairwise Comparison Layer (complete)
 
-Adding persistence layer for the pairwise comparison recommendation engine. New work includes:
+Persistence layer for the pairwise comparison recommendation engine, merged May 2026. Current feature work is the Brewery Crawl Generator; see `docs/crawl-scope.md` at the repo root. The comparison layer added:
 
 - New tables: `survey_beers`, `user_comparisons`, `user_elo_scores`
 - New endpoints: `POST /api/comparisons`, `GET /api/comparisons/history`, `GET /api/user/onboarding-status`

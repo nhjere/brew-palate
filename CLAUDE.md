@@ -55,30 +55,32 @@ Supabase handles auth. Frontend gets JWT from Supabase, sends it as `Authorizati
 ### Backend (Spring Boot 3 + Java 21)
 - **Package structure**: `user` (profiles, reviews, friends, follows) and `brewer` (breweries, beers, analytics) packages under `com.codewithneal.brew_backend`
 - **Key services**: `JwtService` (Supabase token validation), `UserService`, `ReviewService`, `GeocodingService` (Nominatim OSM → lat/lon), `FriendSuggestionService`
-- **Beer data**: Two sources — `bootstrapped_beers` (seed data) and `imported_beers` (from external APIs). Flavor tags stored as `@ElementCollection`.
+- **Beer data**: `bootstrapped_beers` is the catalog (linked to breweries, used for recommendations). `imported_beers` is the raw Kaggle dataset: not linked to breweries (`brewery_uuid` is null) and not used for recommendations. Flavor tags stored as `@ElementCollection`.
 - **Beer operations**: `@Transactional` to keep flavor tag ElementCollection in sync
 - **Config**: `application.properties` has DB URL, Supabase JWT secret, port via `${PORT:8080}`
 
 ### Recommender (FastAPI + scikit-learn)
-- **Algorithm**: TF-IDF vectorization on beer flavor tags → cosine similarity against user profile vector (built from beers rated >= 4)
-- **Fallback**: If user has insufficient reviews, returns popular beers with diversity algorithm
-- **Data loading**: Queries DB at startup — unions `bootstrapped_beers`/`imported_beers` and their flavor tag tables
-- **Calls backend**: `GET /api/user/reviews/user/{user_id}` via httpx for live user reviews
+- **Algorithm**: Composite vectors (one-hot flavor tags + style family + normalized ABV/IBU, `vectors.py`) → cosine similarity against an Elo-weighted user profile (`getProfileVector(elo_scores, all_vectors)`). Beers above Elo 1500 pull the profile toward them; beers below push it away.
+- **Comparisons**: Users rank beers via pairwise matchups (cold-start survey of macro beers, then post-review matchups). Results update per-user Elo scores (`elo.py`).
+- **Fallback**: If the user has no Elo scores, returns popular beers with the diversity algorithm
+- **Data loading**: `loadData()` queries `bootstrapped_beers` + `bootstrapped_beer_flavor_tags` at startup. Survey beers are fetched from the backend at startup.
+- **Calls backend**: via httpx for Elo scores, survey beers, comparisons, and user reviews
 - **CORS**: Allows `https://*.vercel.app` and `http://localhost:5173`
 
 ### IMPORTANT FOR CURRENT PLAN OF PROJECT
-- **Active Refactor Considerations**:
-  - Reference the 'Active Refactor' section in the `brew-recommender/CLAUDE.md` for an overview of current development goals.
-    - For even more details, reference `brew-recommender/docs/refactor-scope.md` 
+- **Current feature: Brewery Crawl Generator.** See `docs/crawl-scope.md` for the full plan and session breakdown.
+- The Elo pairwise-comparison refactor (`brew-recommender/docs/refactor-scope.md`) is complete and merged.
 
 ## Database
 
 Shared PostgreSQL with PostGIS. Key application tables:
 - `user_profiles`, `user_reviews`, `user_follows`
-- `bootstrapped_beers`, `bootstrapped_beer_flavor_tags` (seed data)
-- `imported_beers`, `imported_beer_flavor_tags` (external imports)
+- `bootstrapped_beers`, `bootstrapped_beer_flavor_tags` (beer catalog)
+- `imported_beers`, `imported_beer_flavor_tags` (raw Kaggle dataset, not linked to breweries, unused by recommender)
 - `brewery_profiles` (with lat/lon from geocoding)
 - `review_flavor_tags`
+- `user_comparisons`, `user_elo_scores` (pairwise comparison results and per-user Elo)
+- `survey_beers`, `survey_beer_flavor_tags`, `survey_beer_feature_vector` (cold-start survey beers)
 
 Backend manages schema via Hibernate `ddl-auto=update`. Recommender reads directly with raw SQL.
 
