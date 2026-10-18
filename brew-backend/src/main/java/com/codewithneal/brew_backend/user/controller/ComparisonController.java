@@ -79,8 +79,16 @@ public class ComparisonController {
         ));
     }
 
+    // Called by the recommender, which forwards the user's token
     @GetMapping("/elo/{userId}")
-    public ResponseEntity<List<UserEloScoreDTO>> getEloScores(@PathVariable UUID userId) {
+    public ResponseEntity<?> getEloScores(
+        @RequestHeader(value = "Authorization", required = false) String authHeader,
+        @PathVariable UUID userId
+    ) {
+        Optional<UUID> callerId = verifyAndGetUserId(authHeader);
+        if (callerId.isEmpty()) return ResponseEntity.status(401).body(Map.of("error", "Invalid token"));
+        if (!callerId.get().equals(userId)) return ResponseEntity.status(403).body(Map.of("error", "Forbidden"));
+
         List<UserEloScore> scores = comparisonService.getEloScoresByUser(userId);
         List<UserEloScoreDTO> dtos = scores.stream()
             .map(s -> new UserEloScoreDTO(s.getUserId(), s.getBeerId(), s.getScore(), s.getComparisonCount()))
@@ -89,7 +97,15 @@ public class ComparisonController {
     }
 
     @PutMapping("/elo")
-    public ResponseEntity<?> updateEloScores(@RequestBody List<UserEloScoreDTO> scores) {
+    public ResponseEntity<?> updateEloScores(
+        @RequestHeader(value = "Authorization", required = false) String authHeader,
+        @RequestBody List<UserEloScoreDTO> scores
+    ) {
+        Optional<UUID> callerId = verifyAndGetUserId(authHeader);
+        if (callerId.isEmpty()) return ResponseEntity.status(401).body(Map.of("error", "Invalid token"));
+        if (scores.stream().anyMatch(s -> !callerId.get().equals(s.getUserId()))) {
+            return ResponseEntity.status(403).body(Map.of("error", "Forbidden"));
+        }
         comparisonService.updateEloScores(scores);
         return ResponseEntity.ok(Map.of("updated", scores.size()));
     }
