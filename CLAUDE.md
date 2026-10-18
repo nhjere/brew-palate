@@ -44,7 +44,7 @@ React Frontend (Vercel, :5173)
 All three services share one PostgreSQL database on Railway (`turntable.proxy.rlwy.net:42070/railway`).
 
 ### Authentication Flow
-Supabase handles auth. Frontend gets JWT from Supabase, sends it as `Authorization: Bearer` header. Backend validates with HMAC256 using Supabase JWT secret. User profiles are lazily created on first API call (`getOrCreateUser`). Guest mode uses `supabase.auth.signInAnonymously()` with `X-BP-Guest: 1` header.
+Supabase handles auth. Frontend gets JWT from Supabase, sends it as `Authorization: Bearer` header. Backend validates tokens in `JwtService`: ES256 tokens against Supabase's public JWKS (`SUPABASE_URL/auth/v1/.well-known/jwks.json`); legacy HS256 tokens only if `SUPABASE_JWT_SECRET` is set. All controllers must verify through `JwtService`. User profiles are lazily created on first API call (`getOrCreateUser`). Guest mode uses `supabase.auth.signInAnonymously()` with `X-BP-Guest: 1` header.
 
 ### Frontend (React 19 + Vite + Tailwind 4)
 - **Routing**: React Router 7 with dual role paths (`/user/*` and `/brewer/*`)
@@ -57,7 +57,7 @@ Supabase handles auth. Frontend gets JWT from Supabase, sends it as `Authorizati
 - **Key services**: `JwtService` (Supabase token validation), `UserService`, `ReviewService`, `GeocodingService` (Nominatim OSM → lat/lon), `FriendSuggestionService`
 - **Beer data**: `bootstrapped_beers` is the catalog (linked to breweries, used for recommendations). `imported_beers` is the raw Kaggle dataset: not linked to breweries (`brewery_uuid` is null) and not used for recommendations. Flavor tags stored as `@ElementCollection`.
 - **Beer operations**: `@Transactional` to keep flavor tag ElementCollection in sync
-- **Config**: `application.properties` reads secrets from env vars (`DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `SUPABASE_JWT_SECRET`); locally from gitignored `brew-backend/.env`. Port via `${PORT:8080}`
+- **Config**: `application.properties` reads secrets from env vars (`DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `SUPABASE_URL`, optional `SUPABASE_JWT_SECRET`); locally from gitignored `brew-backend/.env`. Port via `${PORT:8080}`
 
 ### Recommender (FastAPI + scikit-learn)
 - **Algorithm**: Composite vectors (one-hot flavor tags + style family + normalized ABV/IBU, `vectors.py`) → cosine similarity against an Elo-weighted user profile (`getProfileVector(elo_scores, all_vectors)`). Beers above Elo 1500 pull the profile toward them; beers below push it away.
@@ -88,6 +88,6 @@ Backend manages schema via Hibernate `ddl-auto=update`. Recommender reads direct
 
 **Frontend** (`.env`): `VITE_BACKEND_URL`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_MAPBOX_TOKEN`, `VITE_RECOMMENDATION_BASE_URL`
 
-**Backend** (`.env` locally, Railway variables in prod): `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `SUPABASE_JWT_SECRET`, `PORT`
+**Backend** (`.env` locally, Railway variables in prod): `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `SUPABASE_URL`, optional `SUPABASE_JWT_SECRET` (legacy HS256), `PORT`
 
 **Recommender** (`.env`): `DB_USER`, `DB_PASS`, `DB_HOST`, `DB_PORT`, `DB_NAME`, `SPRING_BOOT_BASE_URL`

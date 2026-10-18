@@ -1,10 +1,10 @@
 package com.codewithneal.brew_backend.user.controller;
 
+import com.codewithneal.brew_backend.JwtService;
 import com.codewithneal.brew_backend.user.dto.UserRegistrationDTO;
 import com.codewithneal.brew_backend.user.model.User;
 import com.codewithneal.brew_backend.user.service.UserService;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,8 +12,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import com.auth0.jwt.interfaces.DecodedJWT;
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.algorithms.Algorithm;
 import java.util.Optional;
 
 
@@ -24,8 +22,9 @@ public class UserController {
 
     private final UserService userService; 
 
-    public UserController(UserService userService) {
+    public UserController(UserService userService, JwtService jwtService) {
         this.userService = userService;
+        this.jwtService = jwtService;
     }
 
     @GetMapping("/username/{userId}")
@@ -58,8 +57,7 @@ public class UserController {
     }
 
     // retrieve a  profile information based on a JWT (JSON Web Token) provided in the HTTP Authorization header
-    @Value("${supabase.jwt.secret}")
-        private String jwtSecret;
+    private final JwtService jwtService;
 
     // login endpoint to return registration info (returns WHO I AM to login)
     @GetMapping("/me")
@@ -132,9 +130,7 @@ public class UserController {
         String token = authHeader.replace("Bearer ", "");
         try {
             // Decode Supabase JWT token
-            DecodedJWT jwt = JWT.require(Algorithm.HMAC256(jwtSecret))
-                                .build()
-                                .verify(token);
+            DecodedJWT jwt = jwtService.verify(token);
             String userId = jwt.getSubject();
 
             Optional<User> userOpt = userService.getUserById(UUID.fromString(userId));
@@ -189,7 +185,7 @@ public class UserController {
 
     private Optional<UUID> verifyAndGetUserId(String token) {
         try {
-            DecodedJWT jwt = JWT.require(Algorithm.HMAC256(jwtSecret)).build().verify(token);
+            DecodedJWT jwt = jwtService.verify(token);
             return Optional.of(UUID.fromString(jwt.getSubject())); // supabase user UUID in "sub"
         } catch (Exception e) {
             return Optional.empty();

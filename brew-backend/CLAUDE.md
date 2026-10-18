@@ -8,7 +8,7 @@ Spring Boot REST API for BrewPalate. Handles authentication, user/brewery manage
 ./mvnw spring-boot:run
 ```
 
-Requires env vars `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `SUPABASE_JWT_SECRET`, read by `application.properties`. Locally, put them in `brew-backend/.env` (gitignored; loaded via `spring.config.import`, so run from `brew-backend/`). In prod they're Railway service variables. Never hard-code secrets in `application.properties`; it's committed.
+Requires env vars `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `SUPABASE_URL` (plus optional legacy `SUPABASE_JWT_SECRET`), read by `application.properties`. Locally, put them in `brew-backend/.env` (gitignored; loaded via `spring.config.import`, so run from `brew-backend/`). In prod they're Railway service variables. Never hard-code secrets in `application.properties`; it's committed.
 
 ## Tech Stack
 

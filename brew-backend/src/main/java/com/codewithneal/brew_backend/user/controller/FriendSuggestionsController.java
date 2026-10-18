@@ -1,14 +1,12 @@
 package com.codewithneal.brew_backend.user.controller;
 
+import com.codewithneal.brew_backend.JwtService;
 import com.codewithneal.brew_backend.user.dto.FriendSuggestionDto;
 import com.codewithneal.brew_backend.user.service.FriendSuggestionService;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
 
 import java.util.List;
@@ -22,11 +20,11 @@ public class FriendSuggestionsController {
 
     private final FriendSuggestionService userSuggest;
 
-    @Value("${supabase.jwt.secret}")
-    private String jwtSecret;
+    private final JwtService jwtService;
 
-    public FriendSuggestionsController(FriendSuggestionService userSuggest) {
+    public FriendSuggestionsController(FriendSuggestionService userSuggest, JwtService jwtService) {
         this.userSuggest = userSuggest;
+        this.jwtService = jwtService;
     }
 
     /**
@@ -79,10 +77,7 @@ public class FriendSuggestionsController {
 
     private Optional<UUID> verifyAndGetUserId(String token) {
         try {
-            DecodedJWT jwt = JWT
-                    .require(Algorithm.HMAC256(jwtSecret))
-                    .build()
-                    .verify(token);
+            DecodedJWT jwt = jwtService.verify(token);
 
             String subject = jwt.getSubject(); // Supabase user UUID in "sub"
             return Optional.of(UUID.fromString(subject));

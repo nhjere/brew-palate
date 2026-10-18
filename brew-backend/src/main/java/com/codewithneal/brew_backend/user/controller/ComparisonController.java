@@ -1,5 +1,6 @@
 package com.codewithneal.brew_backend.user.controller;
 
+import com.codewithneal.brew_backend.JwtService;
 import com.codewithneal.brew_backend.user.dto.UserComparisonDTO;
 import com.codewithneal.brew_backend.user.dto.UserEloScoreDTO;
 import com.codewithneal.brew_backend.user.dto.SurveyBeerDTO;
@@ -9,12 +10,9 @@ import com.codewithneal.brew_backend.user.model.SurveyBeer;
 import com.codewithneal.brew_backend.user.repository.SurveyBeerRepository;
 import com.codewithneal.brew_backend.user.service.ComparisonService;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
 
 import java.util.List;
@@ -30,11 +28,11 @@ public class ComparisonController {
     private final ComparisonService comparisonService;
     private final SurveyBeerRepository surveyBeerRepository;
 
-    @Value("${supabase.jwt.secret}")
-    private String jwtSecret;
+    private final JwtService jwtService;
 
-    public ComparisonController(ComparisonService comparisonService, SurveyBeerRepository surveyBeerRepository) {
+    public ComparisonController(ComparisonService comparisonService, SurveyBeerRepository surveyBeerRepository, JwtService jwtService) {
         this.comparisonService = comparisonService;
+        this.jwtService = jwtService;
         this.surveyBeerRepository = surveyBeerRepository;
     }
 
@@ -111,7 +109,7 @@ public class ComparisonController {
         if (authHeader == null || !authHeader.startsWith("Bearer ")) return Optional.empty();
         try {
             String token = authHeader.substring("Bearer ".length());
-            DecodedJWT jwt = JWT.require(Algorithm.HMAC256(jwtSecret)).build().verify(token);
+            DecodedJWT jwt = jwtService.verify(token);
             return Optional.of(UUID.fromString(jwt.getSubject()));
         } catch (Exception e) {
             return Optional.empty();

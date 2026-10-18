@@ -76,7 +76,8 @@ Create `brew-backend/.env` (gitignored; `application.properties` reads these and
 DB_URL=jdbc:postgresql://<host>:<port>/<db>?sslmode=require
 DB_USERNAME=<user>
 DB_PASSWORD=<password>
-SUPABASE_JWT_SECRET=<supabase-jwt-secret>
+SUPABASE_URL=https://<project-ref>.supabase.co
+SUPABASE_JWT_SECRET=<legacy-secret>   # optional; only while migrating off the legacy HS256 secret
 ```
 In production, set the same variables on the hosting service.
 Then run:
